@@ -61,7 +61,8 @@ public:
 #define BL_GASSTATION	10
 #define BL_CHEMPL		11
 #define BL_ELECPL		12
-#define BL_TYPES		13
+#define BL_IRONSM		13
+#define BL_TYPES		14
 
 #define BL_ROAD			(BL_TYPES+CONDUIT_ROAD)
 #define BL_POWL			(BL_TYPES+CONDUIT_POWL)

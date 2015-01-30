@@ -220,8 +220,8 @@ void Queue()
 	BOutput(BL_HOUSE1, RES_HOUSING, 15);
 	BDesc(BL_HOUSE1, "Apartments collect rent from labourers. They are required by the labourers to regenerate labour power.");
 
-	
 	DefB(BL_CHEMPL, "Chemical Plant", Vec2i(1,1),  false, "buildings/chempl/chempl", FOUNDATION_LAND, RES_NONE);
+	DefB(BL_IRONSM, "Iron Smelter", Vec2i(1,1),  false, "buildings/ironsm/ironsm", FOUNDATION_LAND, RES_NONE);
 
 	DefB(BL_FACTORY, "Factory", Vec2i(1,1),  false, "buildings/apt00/a", FOUNDATION_LAND, RES_NONE);
 	BConMat(BL_FACTORY, RES_MINERALS, 5);
@@ -432,7 +432,7 @@ void Queue()
 	DefTl(TILE_1100, "tiles/ng/ng_inc1100.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
 	DefTl(TILE_1101, "tiles/ng/ng_inc1101.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
 	DefTl(TILE_1110, "tiles/ng/ng_inc1110.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
-#elif 1
+#elif 0
 	DefTl(TILE_0000, "tiles/gengrass/gg_inc0000.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
 	DefTl(TILE_0001, "tiles/gengrass/gg_inc0001.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
 	DefTl(TILE_0010, "tiles/gengrass/gg_inc0010.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
@@ -448,6 +448,39 @@ void Queue()
 	DefTl(TILE_1100, "tiles/gengrass/gg_inc1100.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
 	DefTl(TILE_1101, "tiles/gengrass/gg_inc1101.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
 	DefTl(TILE_1110, "tiles/gengrass/gg_inc1110.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+#elif 1
+	DefTl(TILE_0000, "tiles/gengrass - Copy/gg_inc0000.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0001, "tiles/gengrass - Copy/gg_inc0001.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0010, "tiles/gengrass - Copy/gg_inc0010.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0011, "tiles/gengrass - Copy/gg_inc0011.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0100, "tiles/gengrass - Copy/gg_inc0100.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0101, "tiles/gengrass - Copy/gg_inc0101.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0110, "tiles/gengrass - Copy/gg_inc0110.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0111, "tiles/gengrass - Copy/gg_inc0111.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1000, "tiles/gengrass - Copy/gg_inc1000.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1001, "tiles/gengrass - Copy/gg_inc1001.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1010, "tiles/gengrass - Copy/gg_inc1010.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1011, "tiles/gengrass - Copy/gg_inc1011.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1100, "tiles/gengrass - Copy/gg_inc1100.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1101, "tiles/gengrass - Copy/gg_inc1101.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1110, "tiles/gengrass - Copy/gg_inc1110.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+#elif 1
+	
+	DefTl(TILE_0000, "tiles/farm/farm_inc0000.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0001, "tiles/farm/farm_inc0001.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0010, "tiles/farm/farm_inc0010.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0011, "tiles/farm/farm_inc0011.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0100, "tiles/farm/farm_inc0100.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0101, "tiles/farm/farm_inc0101.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0110, "tiles/farm/farm_inc0110.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_0111, "tiles/farm/farm_inc0111.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1000, "tiles/farm/farm_inc1000.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1001, "tiles/farm/farm_inc1001.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1010, "tiles/farm/farm_inc1010.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1011, "tiles/farm/farm_inc1011.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1100, "tiles/farm/farm_inc1100.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1101, "tiles/farm/farm_inc1101.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
+	DefTl(TILE_1110, "tiles/farm/farm_inc1110.png", Vec2i(0,-64)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
 #else
 	DefTl(TILE_0000, "tiles/gr/gr_inc0000.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());
 	DefTl(TILE_0001, "tiles/gr/gr_inc0001.png", Vec2i(0,0)+Vec2i(0,TILE_PIXEL_WIDTH/4), Vec2i());

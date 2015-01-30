@@ -316,6 +316,7 @@ void Click_NewGame()
 	//PlaceBl(BL_APARTMENT, Vec2i(0, 4), true, 0, &bid);
 	//PlaceBl(BL_APARTMENT, Vec2i(1, 4), true, 0, &bid);
 	PlaceBl(BL_NUCPOW, Vec2i(6, 4), true, 0, &bid);
+	PlaceBl(BL_IRONSM, Vec2i(2, 6), true, 0, &bid);
 
 	//g_log<<"at m x = "<<g_mapsize.x<<endl;
 	
