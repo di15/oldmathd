@@ -317,6 +317,9 @@ void Click_NewGame()
 	//PlaceBl(BL_APARTMENT, Vec2i(1, 4), true, 0, &bid);
 	PlaceBl(BL_NUCPOW, Vec2i(6, 4), true, 0, &bid);
 	PlaceBl(BL_IRONSM, Vec2i(2, 6), true, 0, &bid);
+	PlaceBl(BL_FACTORY, Vec2i(4, 6), true, 0, &bid);
+	PlaceBl(BL_STORE, Vec2i(2, 8), true, 0, &bid);
+	PlaceBl(BL_OILWELL, Vec2i(4, 8), true, 0, &bid);
 
 	//g_log<<"at m x = "<<g_mapsize.x<<endl;
 	
@@ -336,13 +339,13 @@ void Click_NewGame()
 			//PlaceUnit(UNIT_WORKER, 14 * TILE_SIZE, 18 * TILE_SIZE, PLAYER_HUMAN);
 		}
 
-#if 0
+#if 1
 	for(int i=0; i<5; i++)
 		for(int j=0; j<5; j++)
 		{
 			Vec2i upos;
-			upos.x = (60 + 10) * PATHNODE_SIZE + i * PATHNODE_SIZE * 3;
-			upos.y = (70 + 10) * PATHNODE_SIZE + j * PATHNODE_SIZE * 3;
+			upos.x = (160 + 10) * PATHNODE_SIZE + i * PATHNODE_SIZE * 10;
+			upos.y = (170 + 10) * PATHNODE_SIZE + j * PATHNODE_SIZE * 10;
 
 			int reti;
 			PlaceUnit(UNIT_ROBOSOLDIER, upos, 0, &reti);

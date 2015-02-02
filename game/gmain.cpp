@@ -207,7 +207,7 @@ void Draw()
 #if 1
 	if(g_mode == APPMODE_PLAY || g_mode == APPMODE_EDITOR)
 	{
-		glDisable(GL_BLEND);
+		//glDisable(GL_BLEND);
 		glDisable(GL_CULL_FACE);
 
 		StartTimer(TIMER_DRAWSETUP);
@@ -233,7 +233,7 @@ void Draw()
 		DrawQueue();
 		
 		glEnable(GL_CULL_FACE);
-		glEnable(GL_BLEND);
+		//glEnable(GL_BLEND);
 	}
 	CHECKGLERROR();
 #endif

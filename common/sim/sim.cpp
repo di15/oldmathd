@@ -190,7 +190,7 @@ void Queue()
 	// Unit types
 
 	//DefU(UNIT_ROBOSOLDIER, "units/lab00/lab00", Vec3i(125, 250, 125), "Robot Soldier", 100, true, true, false, false, false, 6, true);
-	DefU(UNIT_ROBOSOLDIER, "foliage/spruce1/spruce1", Vec3i(125, 250, 125), "Robot Soldier", 100, true, true, false, false, false, 6, true);
+	DefU(UNIT_ROBOSOLDIER, "foliage/spruce/spruce", Vec3i(125, 250, 125), "Robot Soldier", 100, true, true, false, false, false, 6, true);
 	//DefU(UNIT_LABOURER, "units/lab00/lab00", Vec3i(125, 250, 125), "Labourer", 100, true, true, false, false, false, 6, false);
 	DefU(UNIT_LABOURER, "units/lab00/lab00", Vec3i(50, 250, 50), "Labourer", 100, true, true, false, false, false, 6, false);
 	DefU(UNIT_TRUCK, "", Vec3i(125, 250, 125), "Truck", 100, true, false, true, false, false, 30, false);
@@ -223,7 +223,7 @@ void Queue()
 	DefB(BL_CHEMPL, "Chemical Plant", Vec2i(1,1),  false, "buildings/chempl/chempl", FOUNDATION_LAND, RES_NONE);
 	DefB(BL_IRONSM, "Iron Smelter", Vec2i(1,1),  false, "buildings/ironsm/ironsm", FOUNDATION_LAND, RES_NONE);
 
-	DefB(BL_FACTORY, "Factory", Vec2i(1,1),  false, "buildings/apt00/a", FOUNDATION_LAND, RES_NONE);
+	DefB(BL_FACTORY, "Truck Assembly Plant", Vec2i(1,1),  false, "buildings/trfac/trfac", FOUNDATION_LAND, RES_NONE);
 	BConMat(BL_FACTORY, RES_MINERALS, 5);
 	BConMat(BL_FACTORY, RES_LABOUR, 10);
 	BInput(BL_FACTORY, RES_ENERGY, 50);
@@ -258,7 +258,7 @@ void Queue()
 	BOutput(BL_FARM, RES_FARMPRODUCTS, 1900);
 	BDesc(BL_FARM, "Produces farm products, necessary for the production of retail food.");
 
-	DefB(BL_STORE, "Store", Vec2i(2,1), true, "buildings/apt00/a", FOUNDATION_LAND, RES_NONE);
+	DefB(BL_STORE, "Store", Vec2i(1,1), true, "buildings/store/store", FOUNDATION_LAND, RES_NONE);
 	BConMat(BL_STORE, RES_MINERALS, 5);
 	BConMat(BL_STORE, RES_LABOUR, 10);
 	BInput(BL_STORE, RES_ENERGY, 50);
@@ -275,7 +275,7 @@ void Queue()
 	BInput(BL_HARBOUR, RES_ENERGY, 50);
 	BDesc(BL_HARBOUR, "Produces sea units. Necessary for transport between sea and roads.");
 
-	DefB(BL_OILWELL, "Oil Well", Vec2i(1,1), false, "buildings/apt00/a", FOUNDATION_LAND, RES_CRUDEOIL);
+	DefB(BL_OILWELL, "Oil Well", Vec2i(1,1), false, "buildings/oilwell/oilwell", FOUNDATION_LAND, RES_CRUDEOIL);
 	BConMat(BL_OILWELL, RES_MINERALS, 5);
 	BConMat(BL_OILWELL, RES_LABOUR, 10);
 	BInput(BL_OILWELL, RES_ENERGY, 50);
