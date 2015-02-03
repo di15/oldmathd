@@ -2,14 +2,12 @@
 #include "../math/3dmath.h"
 #include "../math/vec3f.h"
 
-using namespace std;
-
 class ProjectileType
 {
 public:
 	unsigned int tex;
 
-	void Define(const char* texpath);
+	void Define(char* texpath);
 };
 
 enum PROJECTILE {GUNPROJ, PROJECTILE_TYPES};

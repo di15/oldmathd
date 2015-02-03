@@ -85,7 +85,7 @@ void MapKeys()
 	for(int i=0; i<PLAYERS; i++)
 	{
 		Player* py = &g_player[i];
-		GUI* gui = &py->gui;
+		GUI* gui = &g_gui;
 		gui->assignmousewheel(&MouseWheel);
 		gui->assignmbutton(MouseMidButtonDown, MouseMidButtonUp);
 		gui->assignkey('R', ZoomOut, NULL);

@@ -5,25 +5,52 @@
 #include "../window.h"
 #include "../utils.h"
 #include "../sim/player.h"
+#include "../math/frustum.h"
 
 std::list<Transaction> g_transx;
+bool g_drawtransx = false;
 
 void DrawTransactions(Matrix projmodlview)
 {
 	//return;
 
-	Player* py = &g_player[g_curP];
+	Player* py = &g_player[g_localP];
 
 	Vec3f* pos;
 	Vec4f screenpos;
-	int size = g_font[MAINFONT8].gheight;
+	int size = (int)g_font[MAINFONT8].gheight;
 	float color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 	auto triter = g_transx.begin();
 
 	while(triter != g_transx.end())
 	{
+		triter->drawpos.y += TRANSACTION_RISE * g_drawfrinterval;
+		triter->life -= TRANSACTION_DECAY * g_drawfrinterval;
+
+		if(triter->life <= 0.0f || _isnan(triter->life))
+		{
+			triter = g_transx.erase( triter );
+			continue;
+		}
+
+		triter ++;
+	}
+
+	if(!g_drawtransx)
+		return;
+
+	triter = g_transx.begin();
+
+	while(triter != g_transx.end())
+	{
 		pos = &triter->drawpos;
+
+		if(!g_frustum.pointin(pos->x, pos->y, pos->z))
+		{
+			triter++;
+			continue;
+		}
 
 		screenpos.x = pos->x;
 		screenpos.y = pos->y;
@@ -37,23 +64,34 @@ void DrawTransactions(Matrix projmodlview)
 		screenpos.x = (screenpos.x * 0.5f + 0.5f) * g_width;
 		screenpos.y = (-screenpos.y * 0.5f + 0.5f) * g_height;
 
-		int x1 = screenpos.x - triter->halfwidth;
-		int y1 = screenpos.y;
+#if 0
+		if(_isnan(screenpos.x))
+			goto next;
+		
+		if(_isnan(screenpos.y))
+			goto next;
+#endif
+
+		int x1 = (int)( screenpos.x - triter->halfwidth );
+		int y1 = (int)screenpos.y;
 		color[3] = triter->life * 0.9f;
 
-		DrawShadowedText(MAINFONT8, x1, y1, &triter->rtext, color);
-		//DrawBoxShadText(MAINFONT8, x1, y1, g_width, g_height, &triter->rtext, color, 0, -1);
+#if 0
+		if(x1 < 0)
+			goto next;
+		if(y1 < 0)
+			goto next;
+		if(x1 > g_width)
+			goto next;
+		if(y1 > g_height)
+			goto next;
+#endif
+
+		//DrawShadowedText(MAINFONT8, x1, y1, &triter->rtext, color);
+		DrawBoxShadText(MAINFONT8, x1, y1, g_width, g_height, &triter->rtext, color, 0, -1);
 		//DrawCenterShadText(MAINFONT8, x1, y1, &triter->rtext, color, -1);
 
-		triter->drawpos.y += TRANSACTION_RISE * g_drawfrinterval;
-		triter->life -= TRANSACTION_DECAY * g_drawfrinterval;
-
-		if(triter->life <= 0.0f)
-		{
-			triter = g_transx.erase( triter );
-			continue;
-		}
-
+next:
 		triter ++;
 	}
 }
@@ -70,7 +108,12 @@ void NewTransx(Vec3f pos, const RichText* rtext)
 #if 0
 	auto titer = g_transx.rbegin();
 
-	g_log<<"raw str = "<<titer->rtext.rawstr()<<endl;
+	g_log<<"raw str = "<<titer->rtext.rawstr()<<std::endl;
 	g_log.flush();
 #endif
+}
+
+void FreeTransx()
+{
+	g_transx.clear();
 }

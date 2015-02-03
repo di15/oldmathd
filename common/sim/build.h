@@ -8,8 +8,8 @@ class Building;
 class BlType;
 class Matrix;
 
-void DrawSBuild();
-void UpdateSBuild();
+void DrawSBl();
+void UpdSBl();
 bool CheckCanPlace(int type, Vec2i pos);
 void DrawBReason(Matrix* mvp, float width, float height, bool persp);
 bool PlaceBl(int type, Vec2i pos, bool finished, int owner, int* bid);

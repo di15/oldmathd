@@ -32,7 +32,7 @@ void Resize_Console(Widget* thisw)
 void Change_Console(unsigned int key, unsigned int scancode, bool down)
 {
 	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	GUI* gui = &g_gui;
 	ViewLayer* conview = (ViewLayer*)gui->get("console");
 	EditBox* con = (EditBox*)conview->get("console");
 
@@ -55,7 +55,7 @@ void Change_Console(unsigned int key, unsigned int scancode, bool down)
 void SubmitConsole(RichText* rt)
 {
 	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	GUI* gui = &g_gui;
 
 	gui->add(new ViewLayer(gui, "console"));
 	ViewLayer* con = (ViewLayer*)gui->get("console");
@@ -77,7 +77,7 @@ void SubmitConsole(RichText* rt)
 void Submit_Console()
 {
 	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	GUI* gui = &g_gui;
 
 	gui->add(new ViewLayer(gui, "console"));
 	ViewLayer* con = (ViewLayer*)gui->get("console");
@@ -90,7 +90,7 @@ void Submit_Console()
 void FillConsole()
 {
 	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	GUI* gui = &g_gui;
 
 	gui->add(new ViewLayer(gui, "console"));
 	ViewLayer* con = (ViewLayer*)gui->get("console");
@@ -109,7 +109,7 @@ void FillConsole()
 void ToggleConsole()
 {
 	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	GUI* gui = &g_gui;
 	ViewLayer* con = (ViewLayer*)gui->get("console");
 	con->get("console")->m_opened = true;
 	con->m_opened =! con->m_opened;

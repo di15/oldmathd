@@ -4,6 +4,7 @@
 #include "../../common/math/vec3f.h"
 
 class ViewLayer;
+class Widget;
 
 #if 0
 extern bool g_canselect;
@@ -13,11 +14,13 @@ extern bool g_canselect;
 
 extern char g_lastsave[MAX_PATH+1];
 
+void Resize_Fullscreen(Widget* thisw);
 void Click_NewGame();
 void Click_OpenEditor();
 void FillGUI();
 void Click_LoadMapButton();
 void Click_SaveMapButton();
 void Click_QSaveMapButton();
+void Resize_MenuItem(Widget* thisw);
 
 #endif	//GGUI_H

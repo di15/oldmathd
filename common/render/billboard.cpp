@@ -108,8 +108,8 @@ void PlaceBillboard(int type, Vec3f pos, float size, int particle)
 
 void SortBillboards()
 {
-	Player* py = &g_player[g_curP];
-	Camera* c = &py->camera;
+	Player* py = &g_player[g_localP];
+	Camera* c = &g_cam;
 
 	Vec3f pos = c->m_pos;
 	Vec3f dir = Normalize( c->m_view - c->m_pos );
@@ -166,8 +166,8 @@ void DrawBillboards()
 	BillboardT* t;
 	float size;
 
-	Player* py = &g_player[g_curP];
-	Camera* cam = &py->camera;
+	Player* py = &g_player[g_localP];
+	Camera* cam = &g_cam;
 
 	Vec3f vertical = cam->up2();
 	Vec3f horizontal = cam->m_strafe;
@@ -175,9 +175,9 @@ void DrawBillboards()
 	Vec3f vert, horiz;
 
 	Particle* part;
-	ParticleT* pT;
+	PlType* pT;
 
-	Shader* s = &g_shader[g_curS];
+	Shader* s = &g_shader[SHADER_BILLBOARD];
 
 	//glDisable(GL_CULL_FACE);
 
@@ -226,16 +226,18 @@ void DrawBillboards()
 			a.x, a.y, a.z,          1, 0
 		};
 
-		glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(float)*5, &vertices[3]);
+		//glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
+		//glTexCoordPointer(2, GL_FLOAT, sizeof(float)*5, &vertices[3]);
 
 		//glVertexAttribPointer(s->m_slot[SSLOT_POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, &vertices[0]);
+		glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
 		//glVertexAttribPointer(s->m_slot[SSLOT_TEXCOORD0], 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, &vertices[3]);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(float)*5, &vertices[3]);
 		//glVertexAttribPointer(s->m_slot[SSLOT_NORMAL], 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, va->normals);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		//g_log<<"draw"<<endl;
+		//g_log<<"draw"<<std::endl;
 	}
 
 	//glEnable(GL_CULL_FACE);

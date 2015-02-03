@@ -3,20 +3,16 @@
 
 #include "connectable.h"
 #include "resources.h"
-#include "../render/vertexarray.h"
 #include "../math/vec3i.h"
 #include "conduit.h"
 
-class RoadTile : public ConduitTile
+class RoadTile : public CdTile
 {
 public:
-	char condtype();
+	unsigned char cdtype();
 	void fillcollider();
 	void freecollider();
 };
-
-#define ROAD_MAX_FOREW_INCLINE		(TILE_SIZE)
-#define ROAD_MAX_SIDEW_INCLINE		(TILE_SIZE/2)
 
 #endif
 

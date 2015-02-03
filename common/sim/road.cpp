@@ -1,4 +1,3 @@
-
 #include "road.h"
 #include "../render/heightmap.h"
 #include "player.h"
@@ -17,7 +16,7 @@
 #include "../path/pathnode.h"
 #include "../path/collidertile.h"
 
-char RoadTile::condtype()
+unsigned char RoadTile::cdtype()
 {
 	return CONDUIT_ROAD;
 }
@@ -28,7 +27,7 @@ void RoadTile::freecollider()
 	// otherwise it will go out of array bounds!
 
 	Vec2i t;
-	CoXZ(CONDUIT_ROAD, this, false, t.x, t.y);
+	CdXZ(CONDUIT_ROAD, this, false, t.x, t.y);
 
 	int cmminx = t.x * TILE_SIZE;
 	int cmminz = t.y * TILE_SIZE;
@@ -40,13 +39,15 @@ void RoadTile::freecollider()
 	int nmaxx = cmmaxx / PATHNODE_SIZE;
 	int nmaxz = cmmaxz / PATHNODE_SIZE;
 
+#if 0
 	for(int x=nminx; x<=nmaxx; x++)
 		for(int z=nminz; z<=nmaxz; z++)
 		{
-			ColliderTile* c = ColliderTileAt(x, z);
+			ColliderTile* c = ColliderAt(x, z);
 			//c->hasroad = false;
 			c->flags &= ~FLAG_HASROAD;
 		}
+#endif
 
 #if 0
 	int roadx, roadz;
@@ -79,7 +80,7 @@ void RoadTile::freecollider()
 		for(int z=startz; z<endz; z++)
 		{
 			bool found = false;
-			ColliderTile* cell = ColliderTileAt(x, z);
+			ColliderTile* cell = ColliderAt(x, z);
 			for(int i=0; i<cell->colliders.size(); i++)
 			{
 				Collider* c = &cell->colliders[i];
@@ -102,7 +103,7 @@ void RoadTile::fillcollider()
 	// otherwise it will go out of array bounds!
 
 	Vec2i t;
-	CoXZ(CONDUIT_ROAD, this, false, t.x, t.y);
+	CdXZ(CONDUIT_ROAD, this, false, t.x, t.y);
 
 	int cmminx = t.x * TILE_SIZE;
 	int cmminz = t.y * TILE_SIZE;
@@ -114,13 +115,16 @@ void RoadTile::fillcollider()
 	int nmaxx = cmmaxx / PATHNODE_SIZE;
 	int nmaxz = cmmaxz / PATHNODE_SIZE;
 
+#if 0
 	for(int x=nminx; x<=nmaxx; x++)
 		for(int z=nminz; z<=nmaxz; z++)
 		{
-			ColliderTile* c = ColliderTileAt(x, z);
+			ColliderTile* c = ColliderAt(x, z);
 			//c->hasroad = true;
-			c->flags ^= FLAG_HASROAD;
+			//c->flags ^= FLAG_HASROAD;
+			c->flags |= FLAG_HASROAD;
 		}
+#endif
 
 #if 0
 	int roadx, roadz;
@@ -152,7 +156,7 @@ void RoadTile::fillcollider()
 	for(int x=startx; x<endx; x++)
 		for(int z=startz; z<endz; z++)
 		{
-			ColliderTile* cell = ColliderTileAt(x, z);
+			ColliderTile* cell = ColliderAt(x, z);
 			//cell->colliders.push_back(Collider(COLLIDER_UNIT, uID));
 			for(int i=0; i<cell->colliders.size(); i++)
 			{

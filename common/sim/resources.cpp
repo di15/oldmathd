@@ -1,4 +1,3 @@
-
 #include "resources.h"
 #include "building.h"
 #include "bltype.h"
@@ -35,7 +34,7 @@ void Zero(int *r)
 
 /*
 Players have a global cache of resources, which are available at any point on the map
-like in any other RTS game, and they also haave localized caches, which are located at
+like in any other RTS game, and they also have localized caches, which are located at
 buildings and must be transported.
 
 Players start off with a certain amount of global resources which can be used anywhere on
@@ -54,7 +53,7 @@ Parameters
 	netch:	a pointer a resource array indicating the net change of resources (I don't remember how this was any different from cost)
 	insufres:	a pointer to an int that will indicate the resource type that was insufficient if false is returned (transaction failure)
 */
-bool TrySubtract(const int* cost, int* universal, int* stock, int* local, int* netch, int* insufres)
+bool TrySub(const int* cost, int* universal, int* stock, int* local, int* netch, int* insufres)
 {
 	int combined[RESOURCES];
 

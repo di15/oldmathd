@@ -170,9 +170,6 @@
     <ClCompile Include="gui\ggui.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
-    <ClCompile Include="gui\editorgui.cpp">
-      <Filter>Source Files\gui</Filter>
-    </ClCompile>
     <ClCompile Include="gui\playgui.cpp">
       <Filter>Source Files\gui</Filter>
     </ClCompile>
@@ -494,6 +491,15 @@
     <ClCompile Include="..\common\sim\truck.cpp">
       <Filter>Source Files\common\sim</Filter>
     </ClCompile>
+    <ClCompile Include="gui\edgui.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\render\graph.cpp">
+      <Filter>Source Files\common\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\render\infoov.cpp">
+      <Filter>Source Files\common\render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gmain.h">
@@ -608,9 +614,6 @@
       <Filter>Source Files\common\sim</Filter>
     </ClInclude>
     <ClInclude Include="gui\ggui.h">
-      <Filter>Source Files\gui</Filter>
-    </ClInclude>
-    <ClInclude Include="gui\editorgui.h">
       <Filter>Source Files\gui</Filter>
     </ClInclude>
     <ClInclude Include="gui\playgui.h">
@@ -939,6 +942,15 @@
     </ClInclude>
     <ClInclude Include="..\common\sim\truck.h">
       <Filter>Source Files\common\sim</Filter>
+    </ClInclude>
+    <ClInclude Include="gui\edgui.h">
+      <Filter>Source Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\render\graph.h">
+      <Filter>Source Files\common\render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\render\infoov.h">
+      <Filter>Source Files\common\render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

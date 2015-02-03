@@ -247,7 +247,9 @@
     <ClCompile Include="..\common\render\cell.cpp" />
     <ClCompile Include="..\common\render\drawqueue.cpp" />
     <ClCompile Include="..\common\render\foliage.cpp" />
+    <ClCompile Include="..\common\render\graph.cpp" />
     <ClCompile Include="..\common\render\heightmap.cpp" />
+    <ClCompile Include="..\common\render\infoov.cpp" />
     <ClCompile Include="..\common\render\particle.cpp" />
     <ClCompile Include="..\common\render\projectile.cpp" />
     <ClCompile Include="..\common\render\screenshot.cpp" />
@@ -293,7 +295,7 @@
     <ClCompile Include="..\common\window.cpp" />
     <ClCompile Include="gmain.cpp" />
     <ClCompile Include="gui\chattext.cpp" />
-    <ClCompile Include="gui\editorgui.cpp" />
+    <ClCompile Include="gui\edgui.cpp" />
     <ClCompile Include="gui\ggui.cpp" />
     <ClCompile Include="gui\gviewport.cpp" />
     <ClCompile Include="gui\playgui.cpp" />
@@ -396,7 +398,9 @@
     <ClInclude Include="..\common\render\cell.h" />
     <ClInclude Include="..\common\render\drawqueue.h" />
     <ClInclude Include="..\common\render\foliage.h" />
+    <ClInclude Include="..\common\render\graph.h" />
     <ClInclude Include="..\common\render\heightmap.h" />
+    <ClInclude Include="..\common\render\infoov.h" />
     <ClInclude Include="..\common\render\particle.h" />
     <ClInclude Include="..\common\render\projectile.h" />
     <ClInclude Include="..\common\render\screenshot.h" />
@@ -443,7 +447,7 @@
     <ClInclude Include="gmain.h" />
     <ClInclude Include="gres.h" />
     <ClInclude Include="gui\chattext.h" />
-    <ClInclude Include="gui\editorgui.h" />
+    <ClInclude Include="gui\edgui.h" />
     <ClInclude Include="gui\ggui.h" />
     <ClInclude Include="gui\gviewport.h" />
     <ClInclude Include="gui\playgui.h" />

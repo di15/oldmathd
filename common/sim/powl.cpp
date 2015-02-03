@@ -1,5 +1,3 @@
-
-
 #include "powl.h"
 #include "../render/heightmap.h"
 #include "../math/hmapmath.h"
@@ -12,7 +10,9 @@
 #include "../../game/gmain.h"
 #include "building.h"
 
-char PowlTile::condtype()
+#if 0
+unsigned char PowlTile::cdtype()
 {
 	return CONDUIT_POWL;
 }
+#endif

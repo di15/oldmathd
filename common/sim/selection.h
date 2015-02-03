@@ -17,7 +17,6 @@ public:
 	void clear();
 };
 
-extern Selection g_sel;
 extern unsigned int g_circle;
 
 Selection DoSel(Vec3f campos, Vec3f camside, Vec3f camup2, Vec3f viewdir);

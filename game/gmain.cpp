@@ -192,8 +192,7 @@ void Draw()
 	CHECKGLERROR();
 
 	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
-	Camera* c = &py->camera;
+	GUI* gui = &g_gui;
 
 	StopTimer(TIMER_DRAWSETUP);
 
@@ -569,7 +568,7 @@ void EventLoop()
 	//SDL_EnableUNICODE(SDL_ENABLE);
 
 	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	GUI* gui = &g_gui;
 
 	while (!g_quit)
 	{

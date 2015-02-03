@@ -7,14 +7,14 @@
 #include "../../common/save/savemap.h"
 #include "ggui.h"
 #include "../../common/sim/utype.h"
-#include "editorgui.h"
+#include "edgui.h"
 #include "../../common/save/savemap.h"
 #include "../../common/sim/bltype.h"
 #include "../../common/sim/player.h"
 
 void Resize_LeftPanel(Widget* thisw)
 {
-	Player* py = &g_player[g_curP];
+	Player* py = &g_player[g_localP];
 	thisw->m_pos[0] = 0;
 	thisw->m_pos[1] = 0;
 	thisw->m_pos[2] = LEFT_PANEL_WIDTH;
@@ -31,8 +31,8 @@ void Resize_EditorToolsSelector(Widget* thisw)
 
 int EdToolsSelection()
 {
-	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
 
 	ViewLayer* editorguiview = (ViewLayer*)gui->get("editor gui");
 
@@ -45,8 +45,8 @@ int EdToolsSelection()
 
 void CloseEdTools()
 {
-	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
 
 	gui->close("borders");
 	gui->close("place units");
@@ -55,13 +55,13 @@ void CloseEdTools()
 	gui->close("place powls");
 	gui->close("place crude pipelines");
 
-	py->build = BL_NONE;
+	g_build = BL_NONE;
 }
 
 int GetEdTool()
 {
-	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
 
 	ViewLayer* editorguiview = (ViewLayer*)gui->get("editor gui");
 
@@ -74,8 +74,8 @@ int GetEdTool()
 
 void Change_EditorToolsSelector()
 {
-	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
 	int selected = GetEdTool();
 
 	CloseEdTools();
@@ -102,15 +102,15 @@ void Change_EditorToolsSelector()
 	}
 	else if(selected == EDTOOL_PLACEROADS)
 	{
-		py->build = BL_ROAD;
+		g_build = BL_ROAD;
 	}
 	else if(selected == EDTOOL_PLACECRUDEPIPES)
 	{
-		py->build = BL_CRPIPE;
+		g_build = BL_CRPIPE;
 	}
 	else if(selected == EDTOOL_PLACEPOWERLINES)
 	{
-		py->build = BL_POWL;
+		g_build = BL_POWL;
 	}
 #if 0
 #define EDTOOL_PLACEROADS		4
@@ -157,13 +157,13 @@ void Change_UnitDropDownSelector()
 
 void FillPlaceUnitsView()
 {
-	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
 
 	gui->add(new ViewLayer(gui, "place units"));
 	ViewLayer* placeunitsview = (ViewLayer*)gui->get("place units");
 
-	placeunitsview->add(new DropDownS(NULL, "unit selector", MAINFONT8, Resize_UnitDropDownSelector, NULL));
+	placeunitsview->add(new DropList(NULL, "unit selector", MAINFONT8, Resize_UnitDropDownSelector, NULL));
 
 	Widget* unitselector = placeunitsview->get("unit selector");
 
@@ -176,7 +176,7 @@ void FillPlaceUnitsView()
 
 	//unitselector->select(0);
 
-	placeunitsview->add(new DropDownS(NULL, "unit country selector", MAINFONT8, Resize_UnitCountryDropDownSelector, NULL));
+	placeunitsview->add(new DropList(NULL, "unit country selector", MAINFONT8, Resize_UnitCountryDropDownSelector, NULL));
 
 	Widget* unitcountryselector = placeunitsview->get("unit country selector");
 
@@ -184,7 +184,7 @@ void FillPlaceUnitsView()
 	for(int i=0; i<PLAYERS; i++)
 		unitcountryselector->m_options.push_back(g_player[i].name);
 
-	placeunitsview->add(new DropDownS(NULL, "unit company selector", MAINFONT8, Resize_UnitCompanyDropDownSelector, NULL));
+	placeunitsview->add(new DropList(NULL, "unit company selector", MAINFONT8, Resize_UnitCompanyDropDownSelector, NULL));
 
 	Widget* unitcompanyselector = placeunitsview->get("unit company selector");
 
@@ -193,8 +193,8 @@ void FillPlaceUnitsView()
 
 int GetPlaceUnitCountry()
 {
-	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
 
 	ViewLayer* placeunitsview = (ViewLayer*)gui->get("place units");
 
@@ -205,8 +205,8 @@ int GetPlaceUnitCountry()
 
 int GetPlaceUnitCompany()
 {
-	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
 
 	ViewLayer* placeunitsview = (ViewLayer*)gui->get("place units");
 
@@ -217,13 +217,13 @@ int GetPlaceUnitCompany()
 
 void FillPlaceBuildingsView()
 {
-	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
 
 	gui->add(new ViewLayer(gui, "place buildings"));
 	ViewLayer* placebuildingsview = (ViewLayer*)gui->get("place buildings");
 
-	placebuildingsview->add(new DropDownS(NULL, "building selector", MAINFONT8, Resize_BuildingDropDownSelector, NULL));
+	placebuildingsview->add(new DropList(NULL, "building selector", MAINFONT8, Resize_BuildingDropDownSelector, NULL));
 
 	Widget* buildingselector = placebuildingsview->get("building selector");
 
@@ -232,15 +232,15 @@ void FillPlaceBuildingsView()
 		buildingselector->m_options.push_back(RichText(g_bltype[i].name));
 	}
 
-	//placebuildingsview->add(new DropDownS(NULL, "country owner selector", MAINFONT8, Resize_BuildingCountryDropDownSelector, NULL));
+	//placebuildingsview->add(new DropList(NULL, "country owner selector", MAINFONT8, Resize_BuildingCountryDropDownSelector, NULL));
 
-	//placebuildingsview->add(new DropDownS(NULL, "company owner selector", MAINFONT8, Resize_BuildingCompanyDropDownSelector, NULL));
+	//placebuildingsview->add(new DropList(NULL, "company owner selector", MAINFONT8, Resize_BuildingCompanyDropDownSelector, NULL));
 }
 
 int GetPlaceUnitType()
 {
-	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
 
 	ViewLayer* placeunitsview = (ViewLayer*)gui->get("place units");
 
@@ -251,8 +251,8 @@ int GetPlaceUnitType()
 
 int GetPlaceBuildingType()
 {
-	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
 
 	ViewLayer* placebuildingsview = (ViewLayer*)gui->get("place buildings");
 
@@ -285,12 +285,12 @@ void Resize_QSaveMapButton(Widget* thisw)
 	thisw->m_pos[3] = thisw->m_pos[1] + 64;
 }
 
-void FillEditorGUI()
+void FillEd()
 {
 	g_lastsave[0] = '\0';
 
-	Player* py = &g_player[g_curP];
-	GUI* gui = &py->gui;
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
 
 	gui->add(new ViewLayer(gui, "editor gui"));
 	ViewLayer* editorguiview = (ViewLayer*)gui->get("editor gui");
@@ -301,11 +301,11 @@ void FillEditorGUI()
 	Button(Widget* parent, const char* filepath, const RichText t, int f, int style, void (*reframef)(Widget* thisw), void (*click)(), void (*click2)(int p), void (*overf)(), void (*overf2)(int p), void (*out)(), int parm)
 #endif
 
-	editorguiview->add(new Button(NULL, "name", "gui/edload.png", RichText(""), RichText("Load map"), MAINFONT8, BUTTON_CORRODE, Resize_LoadMapButton, Click_LoadMapButton, NULL, NULL, NULL, NULL, -1));
-	editorguiview->add(new Button(NULL, "name", "gui/edsave.png", RichText(""), RichText("Save map"), MAINFONT8, BUTTON_CORRODE, Resize_SaveMapButton, Click_SaveMapButton, NULL, NULL, NULL, NULL, -1));
-	editorguiview->add(new Button(NULL, "name", "gui/qsave.png", RichText(""), RichText("Quick save"), MAINFONT8, BUTTON_CORRODE, Resize_QSaveMapButton, Click_QSaveMapButton, NULL, NULL, NULL, NULL, -1));
+	editorguiview->add(new Button(NULL, "name", "gui/edload.png", RichText(""), RichText("Load map"), MAINFONT8, BUST_CORRODE, Resize_LoadMapButton, Click_LoadMapButton, NULL, NULL, NULL, NULL, -1));
+	editorguiview->add(new Button(NULL, "name", "gui/edsave.png", RichText(""), RichText("Save map"), MAINFONT8, BUST_CORRODE, Resize_SaveMapButton, Click_SaveMapButton, NULL, NULL, NULL, NULL, -1));
+	editorguiview->add(new Button(NULL, "name", "gui/qsave.png", RichText(""), RichText("Quick save"), MAINFONT8, BUST_CORRODE, Resize_QSaveMapButton, Click_QSaveMapButton, NULL, NULL, NULL, NULL, -1));
 
-	editorguiview->add(new DropDownS(NULL, "editor tools selector", MAINFONT8, Resize_EditorToolsSelector, Change_EditorToolsSelector));
+	editorguiview->add(new DropList(NULL, "editor tools selector", MAINFONT8, Resize_EditorToolsSelector, Change_EditorToolsSelector));
 
 	Widget* edtoolsselector = editorguiview->get("editor tools selector");
 

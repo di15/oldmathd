@@ -1,5 +1,6 @@
-
+#include "../render/model.h"
 #include "bltype.h"
+#include "../sound/sound.h"
 
 BlType g_bltype[BL_TYPES];
 
@@ -7,45 +8,26 @@ BlType::BlType()
 {
 }
 
-void DefB(int type, const char* name, Vec2i size, bool hugterr, const char* sprrelative, int foundation, int reqdeposit)
+void DefB(int type, 
+		  const char* name, 
+		  Vec2i size, 
+		  bool hugterr, 
+		  const char* modelrelative, 
+		  Vec3f scale, 
+		  Vec3f translate, 
+		  const char* cmodelrelative,  
+		  Vec3f cscale, 
+		  Vec3f ctranslate, 
+		  int foundation, 
+		  int reqdeposit,
+		  int maxhp)
 {
 	BlType* t = &g_bltype[type];
 	t->widthx = size.x;
-	t->widthz = size.y;
+	t->widthy = size.y;
 	sprintf(t->name, name);
-
-#if 1
-	char texpath[MAX_PATH+1];
-	sprintf(texpath, "%s_fr000.png", sprrelative);
-
-	CreateTexture(t->sprite.texindex, texpath, true, false);
-#endif
-
-#if 1
-	char infopath[MAX_PATH+1];
-	strcpy(infopath, texpath);
-	StripExtension(infopath);
-	strcat(infopath, ".txt");
-
-	std::ifstream infos(infopath);
-
-	if(!infos)
-		return;
-
-	int centeroff[2];
-	int imagesz[2];
-	int clipsz[2];
-
-	infos>>centeroff[0]>>centeroff[1];
-	infos>>imagesz[0]>>imagesz[1];
-	infos>>clipsz[0]>>clipsz[1];
-
-	t->sprite.offset[0] = -centeroff[0];
-	t->sprite.offset[1] = -centeroff[1];
-	t->sprite.offset[2] = t->sprite.offset[0] + imagesz[0];
-	t->sprite.offset[3] = t->sprite.offset[1] + imagesz[1];
-#endif
-
+	QueueModel(&t->model, modelrelative, scale, translate);
+	QueueModel(&t->cmodel, cmodelrelative, cscale, ctranslate);
 	t->foundation = foundation;
 	t->hugterr = hugterr;
 
@@ -54,30 +36,48 @@ void DefB(int type, const char* name, Vec2i size, bool hugterr, const char* sprr
 	Zero(t->conmat);
 
 	t->reqdeposit = reqdeposit;
+
+	for(int i=0; i<BL_SOUNDS; i++)
+		t->sound[i] = -1;
+
+	t->maxhp = maxhp;
+	t->manuf.clear();
 }
 
-void BConMat(int type, int res, int amt)
+void BMan(int type, unsigned char utype)
 {
 	BlType* t = &g_bltype[type];
-	t->conmat[res] = amt;
+	t->manuf.push_back(utype);
 }
 
-void BInput(int type, int res, int amt)
+void BSound(int type, int stype, const char* relative)
 {
 	BlType* t = &g_bltype[type];
-	t->input[res] = amt;
-}
-
-void BOutput(int type, int res, int amt)
-{
-	BlType* t = &g_bltype[type];
-	t->output[res] = amt;
+	LoadSound(relative, &t->sound[stype]);
 }
 
 void BDesc(int type, const char* desc)
 {
 	BlType* t = &g_bltype[type];
 	t->desc = desc;
+}
+
+void BMat(int type, int res, int amt)
+{
+	BlType* t = &g_bltype[type];
+	t->conmat[res] = amt;
+}
+
+void BIn(int type, int res, int amt)
+{
+	BlType* t = &g_bltype[type];
+	t->input[res] = amt;
+}
+
+void BOut(int type, int res, int amt)
+{
+	BlType* t = &g_bltype[type];
+	t->output[res] = amt;
 }
 
 void BEmitter(int type, int emitterindex, int ptype, Vec3f offset)

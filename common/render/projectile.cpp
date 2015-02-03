@@ -9,7 +9,7 @@
 ProjectileType g_projectileType[PROJECTILE_TYPES];
 Projectile g_projectile[PROJECTILES];
 
-void ProjectileType::Define(const char* texpath)
+void ProjectileType::Define(char* texpath)
 {
 	//CreateTexture(tex, texpath);
 	QueueTexture(&tex, texpath, true, true);
@@ -41,8 +41,8 @@ void NewProjectile(Vec3f start, Vec3f end, int type)
 
 void DrawProjectiles()
 {
-	Player* py = &g_player[g_curP];
-	Camera* cam = &py->camera;
+	Player* py = &g_player[g_localP];
+	Camera* cam = &g_cam;
 
 	Projectile* proj;
 	ProjectileType* t;
@@ -59,7 +59,7 @@ void DrawProjectiles()
 	Vec3f view = Normalize(cam->m_view - cam->m_pos);
 	Vec3f a, b, c, d;
 
-	Shader* s = &g_shader[g_curS];
+	Shader* s = &g_shader[SHADER_BILLBOARD];
 	glUniform4f(s->m_slot[SSLOT_COLOR], 1, 1, 1, 1);
 
 	for(int i=0; i<PROJECTILES; i++)
@@ -105,13 +105,11 @@ void DrawProjectiles()
 			d.x, d.y, d.z,          1, 0,
 			a.x, a.y, a.z,          0, 0
 		};
-		
-
-		glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(float)*5, &vertices[3]);
 
 		//glVertexAttribPointer(s->m_slot[SSLOT_POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, &vertices[0]);
+		glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
 		//glVertexAttribPointer(s->m_slot[SSLOT_TEXCOORD0], 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, &vertices[3]);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(float)*5, &vertices[3]);
 		//glVertexAttribPointer(s->m_slot[SSLOT_NORMAL], 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, va->normals);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);

@@ -1,10 +1,14 @@
 #include "player.h"
 #include "resources.h"
+#include "../sim/building.h"
+#include "../script/console.h"
+
+#ifndef MATCHMAKER
+#include "../gui/cursor.h"
 #include "../render/heightmap.h"
 #include "../sim/build.h"
-#include "../sim/building.h"
-#include "../gui/cursor.h"
 #include "../../game/gui/chattext.h"
+#endif
 
 PlayerColor g_pycols[PLAYER_COLORS] =
 {
@@ -60,30 +64,17 @@ PlayerColor g_pycols[PLAYER_COLORS] =
 
 Player g_player[PLAYERS];
 int g_localP = 0;
-int g_curP = g_localP;
 int g_playerm;
+bool g_diplomacy[PLAYERS][PLAYERS] = {1};
 
 Player::Player()
 {
 	Zero(local);
 	Zero(global);
-
-	global[RES_MINERALS] = 10000;
-	//global[RES_LABOUR] = 10000;
-
+	Zero(resch);
+	truckwage = 0;
+	transpcost = 0;
 	on = false;
-	keyintercepted = false;
-	mouseout = false;
-	moved = false;
-	canplace = false;
-	bpcol = -1;
-	build = BL_NONE;
-	bptype = -1;
-	bpyaw = 0;
-	mouseoveraction = false;
-	curst = CU_DEFAULT;
-	kbfocus = 0;
-	zoom = INI_ZOOM;
 }
 
 Player::~Player()
@@ -93,11 +84,18 @@ Player::~Player()
 void DefP(int ID, float red, float green, float blue, float alpha, RichText name)
 {
 	Player* py = &g_player[ID];
-	py->colorcode[0] = red;
-	py->colorcode[1] = green;
-	py->colorcode[2] = blue;
-	py->colorcode[3] = alpha;
+	py->color[0] = red;
+	py->color[1] = green;
+	py->color[2] = blue;
+	py->color[3] = alpha;
 	py->name = name;
+}
+
+void DrawPy()
+{
+	Model* m = &g_model[g_playerm];
+
+	m->draw(0, Vec3f(TILE_SIZE*10, TILE_SIZE*5, TILE_SIZE*10), 30);
 }
 
 void Bankrupt(int player, const char* reason)

@@ -4,7 +4,6 @@
 #include "../platform.h"
 #include "../gui/richtext.h"
 #include "../math/vec3f.h"
-#include "../math/vec3i.h"
 
 class Transaction
 {
@@ -19,10 +18,12 @@ public:
 #define TRANSACTION_DECAY		(0.015f*30.0f)
 
 extern std::list<Transaction> g_transx;
+extern bool g_drawtransx;
 
 class Matrix;
 
 void DrawTransactions(Matrix projmodlview);
 void NewTransx(Vec3f pos, const RichText* rtext);
+void FreeTransx();
 
 #endif
