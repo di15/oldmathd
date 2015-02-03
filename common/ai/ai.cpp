@@ -2,9 +2,9 @@
 #include "ai.h"
 #include "../econ/demand.h"
 #include "../sim/building.h"
-#include "../sim/buildingtype.h"
+#include "../sim/bltype.h"
 #include "../sim/build.h"
-#include "../sim/sim.h"
+#include "../sim/simdef.h"
 #include "../econ/utility.h"
 #include "../sim/unit.h"
 
@@ -384,7 +384,7 @@ bool AdjPr(Building* b)
 			//find max profit based on cost composition and price
 			MaxPro(bid.costcompo, leastnext, demramt, &proramt, maxbudg, &currev, &curprofit);
 
-			//int ofmax = Ceili(proramt * RATIO_DENOM, bestmaxr);	//how much of max demanded is
+			//int ofmax = ceili(proramt * RATIO_DENOM, bestmaxr);	//how much of max demanded is
 			//curprofit += ofmax * bestrecur / RATIO_DENOM;	//bl recurring costs, scaled to demanded qty
 
 			if(curprofit <= bestprofit)

@@ -16,7 +16,7 @@
 #define WIDGET_BUTTON				2
 #define WIDGET_TEXT					3
 #define WIDGET_LINK					4
-#define WIDGET_DROPDOWNSELECTOR		5
+#define WIDGET_DROPLIST				5
 #define WIDGET_EDITBOX				6
 #define WIDGET_BARBUTTON			7
 #define WIDGET_HSCROLLER			8
@@ -37,6 +37,13 @@
 #define WIDGET_WINDOW				23
 #define WIDGET_VSCROLLBAR			24
 #define WIDGET_HSCROLLBAR			25
+#define WIDGET_BUILDINGVIEW			26
+#define WIDGET_SVLISTVIEW			27
+#define WIDGET_NEWHOST				28
+#define WIDGET_TRUCKMGR				29
+#define WIDGET_SAVEVIEW				30
+#define WIDGET_LOADVIEW				31
+#define WIDGET_LOBBY				32
 
 #define CHCALL_VSCROLL				0
 #define CHCAlL_HSCROLL				1
@@ -105,16 +112,13 @@ public:
 
 	virtual ~Widget()
 	{
-		for(auto i=m_subwidg.begin(); i!=m_subwidg.end(); i++)
-			delete *i;
-
-		m_subwidg.clear();
+		freech();
 	}
 
 	virtual void draw()	{}
 	virtual void drawover()	{}
-	virtual void inev(InEv* ev) {}
-	virtual void frameupd()	{}
+	virtual void inev(InEv* ie) {}
+	virtual void frameupd();
 	virtual void reframe();	//resized or moved
 	virtual void subframe(float* fr)
 	{
@@ -123,7 +127,14 @@ public:
 	virtual Widget* get(const char* name);
 	virtual void add(Widget* neww);
 	virtual void close();
+	virtual void open();
 	virtual void chcall(Widget* ch, int type, void* data);	//child callback
+	virtual void freech();	//free subwidget children
+	virtual void tofront();	//only used for windows. edit: needed for everything since droplist uses it on parent tree.
+	virtual void subdraw(){}
+	virtual void subdrawover(){}
+	virtual void subreframe(){}
+	virtual void subinev(InEv* ie){}
 };
 
 void CenterLabel(Widget* w);

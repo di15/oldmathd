@@ -2,9 +2,9 @@
 
 #include "job.h"
 #include "building.h"
-#include "infrastructure.h"
-#include "unittype.h"
-#include "sim.h"
+#include "conduit.h"
+#include "utype.h"
+#include "simdef.h"
 #include "../econ/utility.h"
 #include "../../game/gui/chattext.h"
 

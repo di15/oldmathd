@@ -8,7 +8,7 @@
 #include "../phys/collision.h"
 #include "../math/3dmath.h"
 #include "building.h"
-#include "buildingtype.h"
+#include "bltype.h"
 #include "../../game/gmain.h"
 #include "../render/water.h"
 #include "../math/polygon.h"

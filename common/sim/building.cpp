@@ -2,7 +2,7 @@
 #include "building.h"
 #include "../math/hmapmath.h"
 #include "../render/heightmap.h"
-#include "buildingtype.h"
+#include "bltype.h"
 #include "../render/foliage.h"
 #include "../phys/collision.h"
 #include "../render/water.h"
@@ -14,7 +14,7 @@
 #include "selection.h"
 #include "../gui/gui.h"
 #include "../gui/widget.h"
-#include "../gui/widgets/spez/constructionview.h"
+#include "../gui/widgets/spez/cstrview.h"
 #include "powl.h"
 #include "road.h"
 #include "crpipe.h"
@@ -72,7 +72,7 @@ int Building::stillreq(int rtype)
 		return 0;
 #endif
 
-	int netreq = Ceili(bt->input[rtype] * prodleft, RATIO_DENOM);
+	int netreq = ceili(bt->input[rtype] * prodleft, RATIO_DENOM);
 	netreq -= stocked[rtype];
 
 	Resource* r = &g_resource[rtype];

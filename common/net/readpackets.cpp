@@ -1,70 +1,61 @@
 
 
 #include "readpackets.h"
-
 #include "sendpackets.h"
 #include "packets.h"
 #include "net.h"
-#ifdef _SERVER
-#include "client.h"
-#include "../server/svmain.h"
-#include "server.h"
-#include "../database/mysql.h"
-#include "../database/database.h"
-#include "../debug.h"
-#include "../utils.h"
-#else
-#include "../../game/ggui.h"
-#include "../sim/visibility.h"
-#include "../../game/spaceview.h"
-#include "../../game/gmain.h"
-#include "../gui/gui.h"
-#endif
-#include "../sim/planet.h"
-#include "../sim/unitt.h"
+#include "netconn.h"
 #include "../sim/unit.h"
-#include "../sim/buildingt.h"
 #include "../sim/building.h"
-#include "../sim/player.h"
 #include "../utils.h"
+#include "lockstep.h"
+#include "../sim/build.h"
+#include "../sim/simdef.h"
+#include "../sim/simflow.h"
+#include "../sys/unicode.h"
+#include "client.h"
+#include "../save/savemap.h"
 
-#define REGCRASH_DBG
+#ifndef MATCHMAKER
+#include "../gui/widgets/spez/svlist.h"
+#include "../gui/widgets/spez/lobby.h"
+#include "../../game/gui/ggui.h"
+
+//not engine
+#include "../../game/gui/chattext.h"
+#endif
 
 /*
-What this function does is take a range of packet ack's (acknowledgment number for reliable UDP transmission) 
-and executes that range of buffered received packets. This is needed because packets might arrive out of order, 
+What this function does is take a range of packet ack's (acknowledgment number for reliable UDP transmission)
+and executes that range of buffered received packets. This is needed because packets might arrive out of order,
 be missing some in between, and I execute them only after a whole range up to the latest ack has been received.
 
 The out-of-order packets are stored in the g_recv vector.
 
-Notice that there is preprocessor check if we are compiling this for the master server _SERVER (because I'm 
-making this for a persistent, online world) or client. If server, there's extra parameters to match the packets 
+Notice that there is preprocessor check if we are compiling this for the master server MATCHMAKER (because I'm
+making this for a persistent, online world) or client. If server, there's extra parameters to match the packets
 to the right client; we're only interested in processing the packet range for a certain client.
 
-Each packet goes to the PacketSwitch function, that is like a switch-table that executes the right 
-packet-execution function based on the packet type ID. The switch-table could probably be turned into 
+Each packet goes to the PacketSwitch function, that is like a switch-table that executes the right
+packet-execution function based on the packet type ID. The switch-table could probably be turned into
 an array of function pointers to improve performance, probably only slightly.
 
-The function takes a time of log(O) to execute, because it has to search through all the buffered packets 
-several times to execute them in the right order. And before that, there's a check to see if we even have 
+The function takes a time of log(O) to execute, because it has to search through all the buffered packets
+several times to execute them in the right order. And before that, there's a check to see if we even have
 the whole range of packets from the last "recvack" before calling this function.
 
-I keep a "sendack" and "recvack" for each client, for sent packets and received packets. I only update the 
-recvack up to the latest one once a continuous range has been received, with no missing packets. Recvack 
+I keep a "sendack" and "recvack" for each client, for sent packets and received packets. I only update the
+recvack up to the latest one once a continuous range has been received, with no missing packets. Recvack
 is thus the last executed received packet.
 */
 
-#ifdef _SERVER
-void ParseRecieved(unsigned int first, unsigned int last, struct sockaddr_in addr, Client* c)
-#else
-void ParseRecieved(unsigned int first, unsigned int last)
-#endif
+void ParseRecieved(unsigned int first, unsigned int last, NetConn* nc)
 {
 	OldPacket* p;
 	PacketHeader* header;
 	unsigned int current = first;
 	unsigned int afterlast = NextAck(last);
-	
+
 	do
 	{
 		for(auto i=g_recv.begin(); i!=g_recv.end(); i++)
@@ -75,35 +66,29 @@ void ParseRecieved(unsigned int first, unsigned int last)
 			if(header->ack != current)
 				continue;
 
-#ifdef _SERVER
-			if(memcmp((void*)&p->addr, (void*)&addr, sizeof(struct sockaddr_in)) != 0)
+			//if(memcmp((void*)&p->addr, (void*)&nc->addr, sizeof(IPaddress)) != 0)
+			if(!Same(&p->addr, &nc->addr))
 				continue;
-			
-			PacketSwitch(header->type, p->buffer, p->len, addr, c);
-#else
-			PacketSwitch(header->type, p->buffer, p->len);
-#endif
-		
-			p->freemem();
+
+			PacketSwitch(header->type, p->buffer, p->len, nc, &p->addr, &g_sock);
+
+			//p->freemem();
 			i = g_recv.erase(i);
 			current = NextAck(current);
 			break;
 		}
-	}while(current != afterlast);
+	} while(current != afterlast);
 }
 
-#ifdef _SERVER
-bool Recieved(unsigned int first, unsigned int last, struct sockaddr_in addr)
-#else
-bool Recieved(unsigned int first, unsigned int last)
-#endif
+//do what needs to be done when we've recieved a packet range [first,last]
+bool Recieved(unsigned short first, unsigned short last, NetConn* nc)
 {
 	OldPacket* p;
 	PacketHeader* header;
-	unsigned int current = first;
-	unsigned int afterlast = NextAck(last);
+	unsigned short current = first;
+	unsigned short afterlast = NextAck(last);
 	bool missed;
-	
+
 	do
 	{
 		missed = true;
@@ -114,98 +99,66 @@ bool Recieved(unsigned int first, unsigned int last)
 
 			if(header->ack != current)
 				continue;
-
-#ifdef _SERVER
-			if(memcmp((void*)&p->addr, (void*)&addr, sizeof(struct sockaddr_in)) != 0)
+			
+			//if(memcmp((void*)&p->addr, (void*)&nc->addr, sizeof(IPaddress)) != 0)
+			if(!Same(&p->addr, &nc->addr))
 				continue;
-#endif
 
 			current = NextAck(current);
 			missed = false;
 			break;
 		}
-		
+
 		if(missed)
 			return false;
-	}while(current != afterlast);
-	
+	} while(current != afterlast);
+
 	return true;
 }
 
-#ifdef _SERVER
-void AddRecieved(char* buffer, int len, struct sockaddr_in addr)
-#else
-void AddRecieved(char* buffer, int len)
-#endif
+void AddRecieved(char* buffer, int len, NetConn* nc)
 {
 	OldPacket p;
 	p.buffer = new char[ len ];
 	p.len = len;
-	memcpy((void*)p.buffer, (void*)buffer, len);
-#ifdef _SERVER
-	memcpy((void*)&p.addr, (void*)&addr, sizeof(struct sockaddr_in));
-#endif
+	memcpy((void*)p.buffer, (void*)buffer, len);	
+	memcpy((void*)&p.addr, (void*)&nc->addr, sizeof(IPaddress));
+
 	g_recv.push_back(p);
 }
 
-#ifdef _SERVER
-void TranslatePacket(char* buffer, int bytes, struct sockaddr_in from, bool checkprev)
-#else
-void TranslatePacket(char* buffer, int bytes, bool checkprev)
-#endif
+void TranslatePacket(char* buffer, int bytes, bool checkprev, UDPsocket* sock, IPaddress* from)
 {
 	PacketHeader* header = (PacketHeader*)buffer;
 
-#ifdef _SERVER
-
-	PacketHeader* phtemp = (PacketHeader*)buffer;
-
-	g_log<<"tp t"<<phtemp->type<<endl;
-	g_log.flush();
-
-	int client = MatchClient(from);
-	Client* c = NULL;
-	if(client >= 0)
+	NetConn* nc = Match(from);
+	if(nc)
 	{
-		c = &g_client[client];
-		c->m_last = GetTickCount64();
-	}
-#else
-	g_lastR = GetTickCount64();
+#ifdef NET_DEBUG
+//#if 1
+	//unsigned int ipaddr = SDL_SwapBE32(ip.host);
+	//unsigned short port = SDL_SwapBE16(ip.port);
 
-	g_log<<"ack"<<header->ack<<" type"<<header->type<<endl;
+		g_log<<"upd last "<<SDL_SwapBE32(nc->addr.host)<<":"<<SDL_SwapBE16(nc->addr.port)<<" "<<DateTime()<<" msec"<<GetTickCount64()<<std::endl;
+		g_log.flush();
 #endif
+		nc->lastrecv = GetTickCount64();
+	}
+
+	//bool bindaddr = true;
 
 	switch(header->type)
 	{
-#ifdef _SERVER
 	case PACKET_ACKNOWLEDGMENT:
-	case PACKET_REGISTRATION:
-	case PACKET_LOGIN:
-		{
-			checkprev = false;
-			break;
-		}
-#else        
-	case PACKET_ACKNOWLEDGMENT:
-	case PACKET_USERNAME_EXISTS:
-	case PACKET_EMAIL_EXISTS:
-	case PACKET_INCORRECT_LOGIN:
-	case PACKET_INCORRECT_VERSION:
-	case PACKET_LOGIN_CORRECT:
-	case PACKET_TOO_MANY_CLIENTS:
-	case PACKET_REG_DB_ERROR:
-	case PACKET_REGISTRATION_DONE:
-	case PACKET_CONNECTION_RESET:
-		{
-			checkprev = false;
-			break;
-		}
-#endif
-	default: break;
+	case PACKET_CONNECT:
+	case PACKET_DISCONNECT:
+		checkprev = false;
+		break;
+	default:
+		break;
 	}
 
-#ifndef _SERVER
+#ifndef MATCHMAKER
 	//if(g_loadbytes > 0)
 	{
 		//char msg[128];
@@ -214,343 +167,279 @@ void TranslatePacket(char* buffer, int bytes, bool checkprev)
 	}
 #endif
 
-#ifdef _SERVER
-	if(checkprev && c != NULL)
-#else
-	if(checkprev)
-#endif
+	//g_log<<"pack ack"<<header->ack<<" t"<<header->type<<" ::"<<SDL_SwapBE32(from->host)<<":"<<SDL_SwapBE16(from->port)<<" "<<DateTime()<<std::endl;
+
+	if(checkprev && nc != NULL)
 	{
-#ifdef _SERVER
-		if(PastAck(header->ack, c->m_recvack) || Recieved(header->ack, header->ack, from))
-#else
-		if(PastAck(header->ack, g_recvack) || Recieved(header->ack, header->ack))
-#endif
+		if(PastAck(header->ack, nc->recvack) || Recieved(header->ack, header->ack, nc))
 		{
-#ifdef _SERVER
-			Acknowledge(header->ack, from);
-#else
-			Acknowledge(header->ack);
+			Acknowledge(header->ack, nc, from, sock, buffer, bytes);
+			//InfoMess("a", "pa");
+			//g_log<<"past ack "<<header->ack<<" pa"<<PastAck(header->ack, nc->recvack)<<",r"<<Recieved(header->ack, header->ack, nc)<<std::endl;
+#ifdef NET_DEBUG
+//#if 1
+			char msg[128];
+			sprintf(msg, "\tpast ack%u t%d nc->recack=%u", (unsigned int)header->ack, header->type, (unsigned int)nc->recvack);
+			g_log<<msg<<std::endl;
 #endif
-			//g_log<<"ack "<<header->ack<<endl;
+			//InfoMess("pa", msg);
 			return;
 		}
-		
-#ifdef _SERVER
-		unsigned int next = NextAck(c->m_recvack);
-#else
-		unsigned int next = NextAck(g_recvack);
-#endif
+
+		unsigned short next = NextAck(nc->recvack);
 
 		if(header->ack == next) {}  // Translate packet
 		else  // More than +1 after recvack?
 		{
-			unsigned int last = PrevAck(header->ack);
-#ifdef _SERVER
-			if(Recieved(next, last, from))
-				ParseRecieved(next, last, from, c);  // Translate in order
-#else
-			if(Recieved(next, last))
-				ParseRecieved(next, last);  // Translate in order
-#endif
+			unsigned short last = PrevAck(header->ack);
+
+			if(Recieved(next, last, nc))
+				ParseRecieved(next, last, nc);  // Translate in order
+
 			else
 			{
-#ifdef _SERVER
-				AddRecieved(buffer, bytes, from);
-#else
-				AddRecieved(buffer, bytes);
-#endif
+				AddRecieved(buffer, bytes, nc);
+				
+				if(Recieved(next, last, nc))
+					ParseRecieved(next, last, nc);  // Translate in order
+
 				return;
 			}
 		}
 	}
 
-#ifdef _SERVER
-	PacketSwitch(header->type, buffer, bytes, from, c);
-#else
-	PacketSwitch(header->type, buffer, bytes);
-#endif
-	
-	if(header->type != PACKET_ACKNOWLEDGMENT)
+#if 0
+	//ack SvInfoPacket's before disconnect...
+	nc = Match(from);
+	bool acked = false;
+	if(header->type != PACKET_ACKNOWLEDGMENT && sock && nc && nc->handshook)
 	{
-#ifdef _SERVER
-		if(c == NULL)
+#if 0
+		if(!nc)
 		{
-			client = MatchClient(from);
-			if(client >= 0)
-				c = &g_client[client];
+			NetConn newnc;
+			newnc.addr = *from;
+			newnc.handshook = false;
+			newnc.sendack = 0;
+			newnc.lastrecv = GetTickCount64();
+			g_conn.push_back(newnc);
+			nc = &*g_conn.rbegin();
 		}
-
-		if(c != NULL)
-			c->m_recvack = header->ack;
-		Acknowledge(header->ack, from);
-#else
-		g_recvack = header->ack;
-		Acknowledge(header->ack);
 #endif
+
+		nc->recvack = header->ack;
+		Acknowledge(header->ack, nc, from, sock, buffer, bytes);
+		acked = true;
+	}
+#endif
+
+	//We're getting an anonymous packet.
+	//Maybe we've timed out and they still have a connection.
+	//Tell them we don't have a connection.
+	//We check if sock is set to make sure this isn't a local 
+	//command packet being executed.
+	if(!nc && header->type != PACKET_CONNECT && sock)
+	{
+		NoConnectionPacket ncp;
+		ncp.header.type = PACKET_NOCONN;
+		SendData((char*)&ncp, sizeof(NoConnectionPacket), from, false, true, NULL, &g_sock, 0, NULL);
+		return;
+	}
+
+	PacketSwitch(header->type, buffer, bytes, nc, from, sock);
+	
+	//have to do this again because PacketSwitch might 
+	//read a ConnectPacket, which adds new connections.
+	//have to comment this out because connection might have 
+	//been Disconnected(); and erased.
+	//if(!nc)	
+	nc = Match(from);
+
+	//ack Connect packets after new NetConn added...
+	if(header->type != PACKET_ACKNOWLEDGMENT && sock && nc /* && !acked */)
+	{
+#if 0
+		if(!nc)
+		{
+			NetConn newnc;
+			newnc.addr = *from;
+			newnc.handshook = false;
+			newnc.sendack = 0;
+			newnc.lastrecv = GetTickCount64();
+			g_conn.push_back(newnc);
+			nc = &*g_conn.rbegin();
+		}
+#endif
+
+		if(header->type != PACKET_CONNECT &&
+			header->type != PACKET_DISCONNECT)
+			nc->recvack = header->ack;
+
+		Acknowledge(header->ack, nc, from, sock, buffer, bytes);
 	}
 }
 
-#ifdef _SERVER
-void PacketSwitch(int type, char* buffer, int bytes, struct sockaddr_in from, Client* c)
-#else
-void PacketSwitch(int type, char* buffer, int bytes)
-#endif
+void PacketSwitch(int type, char* buffer, int bytes, NetConn* nc, IPaddress* from, UDPsocket* sock)
 {
+#ifdef NET_DEBUG
+	//unsigned int ipaddr = SDL_SwapBE32(ip.host);
+	//unsigned short port = SDL_SwapBE16(ip.port);
+	//warning: "from" might be NULL
+	g_log<<"psw "<<((PacketHeader*)buffer)->type<<" ack"<<((PacketHeader*)buffer)->ack<<" from "<<(from ? SDL_SwapBE32(from->host) : 0)<<":"<<(from ? SDL_SwapBE16(from->port) : 0)<<std::endl;
+	
+	int nhs = 0;
+	for(auto ci=g_conn.begin(); ci!=g_conn.end(); ci++)
+		if(ci->handshook)
+			nhs++;
+
+	g_log<<"g_conn.sz = "<<g_conn.size()<<" numhandshook="<<nhs<<std::endl;
+	g_log.flush();
+#endif
+
 	switch(type)
 	{
-#ifdef _SERVER
-	case PACKET_LOGIN:				ReadLoginPacket((LoginPacket*)buffer, from, c);						break;
-	case PACKET_REGISTRATION:		ReadRegistrationPacket((RegistrationPacket*)buffer, from, c);		break;
-	case PACKET_ACKNOWLEDGMENT:	ReadAcknowledgmentPacket((AcknowledgmentPacket*)buffer, from, c);	break;
-#else
-	case PACKET_ACKNOWLEDGMENT:		ReadAcknowledgmentPacket((AcknowledgmentPacket*)buffer);			break;
-	case PACKET_REGISTRATION_DONE:	ReadRegisteredPacket((RegisteredPacket*)buffer);          break;
-	case PACKET_SPAWN_UNIT:			ReadSpawnUnitPacket((SpawnUnitPacket*)buffer);					break;
-	case PACKET_HEIGHT_POINT:		ReadHeightPointPacket((HeightPointPacket*)buffer);			break;
-	case PACKET_BUILDING:			ReadBuildingPacket((BuildingPacket*)buffer);				break;
-	case PACKET_GARRISON:			ReadGarrisonPacket((GarrisonPacket*)buffer);				break;
-	case PACKET_JOIN_INFO:			ReadJoinInfoPacket((JoinInfoPacket*)buffer);				break;
-	case PACKET_DONE_LOADING:		ReadDoneLoadingPacket((DoneLoadingPacket*)buffer);			break;
-		
-	case PACKET_USERNAME_EXISTS:   ReadUsernameExistsPacket((UsernameExistsPacket*)buffer);    break;
-	case PACKET_EMAIL_EXISTS:      ReadEmailExistsPacket((EmailExistsPacket*)buffer);          break;
-	case PACKET_INCORRECT_LOGIN:   ReadIncorrectLoginPacket((IncorrectLoginPacket*)buffer);    break;
-	case PACKET_INCORRECT_VERSION: ReadIncorrectVersionPacket((IncorrectVersionPacket*)buffer);    break;
-	case PACKET_LOGIN_CORRECT:     ReadLoginCorrectPacket((LoginCorrectPacket*)buffer);        break;
-	case PACKET_TOO_MANY_CLIENTS:  ReadTooManyClientsPacket((TooManyClientsPacket*)buffer);    break;
-	case PACKET_REG_DB_ERROR:      ReadRegDBErrorPacket((RegDBErrorPacket*)buffer);            break;
-	/*
-	case PACKET_CONNECTION_RESET:  ReadConnectionResetPacket((ConnectionResetPacket*)buffer);  break;
-	case PACKET_DISCONNECT:        ReadDisconnectPacket((DisconnectPacket*)buffer);            break;
-	*/
-#endif
-	default: break;
+	case PACKET_ACKNOWLEDGMENT:
+		ReadAckPacket((AckPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_CONNECT:
+		ReadConnectPacket((ConnectPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_DISCONNECT:
+		ReadDisconnectPacket((DisconnectPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_NOCONN:
+		ReadNoConnPacket((NoConnectionPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_PLACEBL:
+		ReadPlaceBlPacket((PlaceBlPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_NETTURN:
+		ReadNetTurnPacket((NetTurnPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_DONETURN:
+		ReadDoneTurnPacket((DoneTurnPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_JOIN:
+		ReadJoinPacket((JoinPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_ADDSV:
+		ReadAddSvPacket((AddSvPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_ADDEDSV:
+		ReadAddedSvPacket((AddedSvPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_KEEPALIVE:
+		//g_log<<"recv kap"<<std::endl;
+		//don't need to do anything here. TranslatePacket already upped the nc->lastrecv.
+		//ReadKeepAlivePacket((KeepAlivePacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_GETSVLIST:
+		ReadGetSvListPacket((GetSvListPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_SVADDR:
+		ReadSvAddrPacket((SvAddrPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_SENDNEXTHOST:
+		ReadSendNextHostPacket((SendNextHostPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_NOMOREHOSTS:
+		ReadNoMoreHostsPacket((NoMoreHostsPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_SVINFO:
+		ReadSvInfoPacket((SvInfoPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_GETSVINFO:
+		ReadGetSvInfoPacket((GetSvInfoPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_ADDCLIENT:
+		ReadAddClPacket((AddClientPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_SELFCLIENT:
+		ReadSelfClPacket((SelfClientPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_SETCLNAME:
+		ReadSetClNamePacket((SetClNamePacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_CLIENTLEFT:
+		ReadClientLeftPacket((ClientLeftPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_CLIENTROLE:
+		ReadClientRolePacket((ClientRolePacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_DONEJOIN:
+		ReadDoneJoinPacket((DoneJoinPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_TOOMANYCL:
+		ReadTooManyClPacket((TooManyClPacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_MAPCHANGE:
+		ReadMapChangePacket((MapChangePacket*)buffer, nc, from, sock);
+		break;
+	case PACKET_CHVAL:
+		ReadChValPacket((ChValPacket*)buffer, nc, from, sock);
+		break;
+	default:
+		break;
 	}
 }
 
-#ifdef _SERVER
-
-void ReadLoginPacket(LoginPacket* p, struct sockaddr_in from, Client* c)
-{
-	g_log<<"rlp 1"<<endl;
-	g_log.flush();
-
-	if(c == NULL)
-		c = NewClient(from);
-
-	if(c == NULL)
-	{
-		TooManyClientsPacket tmcp;
-		tmcp.header.type = PACKET_TOO_MANY_CLIENTS;
-		tmcp.header.ack = 0;
-		SendData((char*)&tmcp, sizeof(TooManyClientsPacket), &from, false, c);
-		return;
-	}
-	
-	g_log<<"rlp 2"<<endl;
-	g_log.flush();
-
-	if(p->version != VERSION)
-	{
-		IncorrectVersionPacket ivp;
-		ivp.header.type = PACKET_INCORRECT_VERSION;
-		ivp.version = VERSION;
-		SendData((char*)&ivp, sizeof(IncorrectVersionPacket), &from, true, c);
-		return;
-	}
-
-	g_log<<"rlp 3"<<endl;
-	g_log.flush();
-
-	//Prevent buffer overrun
-	p->username[UN_LEN-1] = '\0';
-	p->password[PW_LEN-1] = '\0';
-	
-	char username[UN_LEN*2];
-	char crypt[CR_LEN];
-
-	//EscapeString(p->username, username);
-	strcpy(username, p->username);
-	Hash(p->password, crypt);
-
-	
-	g_log<<"rlp 4"<<endl;
-	g_log.flush();
-
-	int loginpl = CorrectLogin(username, crypt);
-
-	g_log<<"rlp 4.1"<<endl;
-	g_log.flush();
-
-	if(loginpl < 0)
-	{
-		g_log<<"rlp 4 i"<<endl;
-		g_log.flush();
-
-		IncorrectLoginPacket ilp;
-		ilp.header.type = PACKET_INCORRECT_LOGIN;
-		SendData((char*)&ilp, sizeof(IncorrectLoginPacket), &from, true, c);
-		return;
-	}
-
-	
-	g_log<<"rlp 5"<<endl;
-	g_log.flush();
-
-	if(c->m_player >= 0)	//Different player logged in previously from this address?
-	{
-		Player* pl = &g_player[c->m_player];
-		if(stricmp(pl->m_username, p->username) != 0)
-			DisconnectPlayer(c->m_player);
-	}
-	
-	
-	g_log<<"rlp 6"<<endl;
-	g_log.flush();
-
-	/*
-	if(!LoadPlayer(username, c, p->username))
-		g_error<<"Error loading player "<<username<<endl;
-		*/
-
-	g_player[loginpl].m_client = MatchClient(c);
-	c->m_player = loginpl;
-
-	
-	g_log<<"rlp 7"<<endl;
-	g_log.flush();
-	
-	Player* pl = &g_player[c->m_player];
-	int prevclient = PlayerClient(c->m_player);	//Is user already logged in from somewhere else?
-	if(prevclient >= 0)
-		DisconnectClient(prevclient);
-
-	
-	g_log<<"rlp 8"<<endl;
-	g_log.flush();
-	
-	LoginCorrectPacket clp;
-	clp.header.type = PACKET_LOGIN_CORRECT;
-	SendData((char*)&clp, sizeof(LoginCorrectPacket), &from, true, c);
-
-	
-	g_log<<"rlp 9"<<endl;
-	g_log.flush();
-
-	JoinInfo(c);
-
-	// TO DO: inform other clients
-}
-
-void ReadRegistrationPacket(RegistrationPacket* p, struct sockaddr_in from, Client* c)
-{
-	if(c == NULL)
-		c = NewClient(from);
-
-	if(c == NULL)
-	{
-		TooManyClientsPacket tmcp;
-		tmcp.header.type = PACKET_TOO_MANY_CLIENTS;
-		tmcp.header.ack = 0;
-		SendData((char*)&tmcp, sizeof(TooManyClientsPacket), &from, false, c);
-		return;
-	}
-
-	if(PastAck(p->header.ack, c->m_recvack))
-		return;	//This is a resent packet so return
-
-	//Prevent buffer overrun
-	p->username[UN_LEN-1] = '\0';
-	p->email[EM_LEN-1] = '\0';
-	p->password[PW_LEN-1] = '\0';
-
-	if(strlen(p->password) <= 0 || strlen(p->email) <= 0 || strlen(p->username) <= 0)
-	{
-		RegDBErrorPacket rdbep;
-		rdbep.header.type = PACKET_REG_DB_ERROR;
-		c->m_sendack = NextAck(c->m_sendack);
-		rdbep.header.ack = c->m_sendack;
-		SendData((char*)&rdbep, sizeof(RegDBErrorPacket), &from, true, c);
-		return;
-	}
-	
-	//char username[UN_LEN*2];
-	//char email[EM_LEN*2];
-	char crypt[CR_LEN];
-
-	//EscapeString(p->username, username);
-	//EscapeString(p->email, email);
-	Hash(p->password, crypt);
-
-	if(UsernameExists(p->username) >= 0)
-	{
-		UsernameExistsPacket uep;
-		uep.header.type = PACKET_USERNAME_EXISTS;
-		c->m_sendack = NextAck(c->m_sendack);
-		uep.header.ack = c->m_sendack;
-		SendData((char*)&uep, sizeof(UsernameExistsPacket), &from, true, c);
-		return;
-	}
-
-	if(EmailExists(p->email) >= 0)
-	{
-		EmailExistsPacket eep;
-		eep.header.type = PACKET_EMAIL_EXISTS;
-		c->m_sendack = NextAck(c->m_sendack);
-		eep.header.ack = c->m_sendack;
-		SendData((char*)&eep, sizeof(EmailExistsPacket), &from, true, c);
-		return;
-	}
-
-	int plid = -1;
-
-	if(!Register(p->username, p->email, crypt, &plid))
-	{
-		RegDBErrorPacket rdbep;
-		rdbep.header.type = PACKET_REG_DB_ERROR;
-		c->m_sendack = NextAck(c->m_sendack);
-		rdbep.header.ack = c->m_sendack;
-		SendData((char*)&rdbep, sizeof(RegDBErrorPacket), &from, true, c);
-		return;
-	}
-	
-	RegisteredPacket rp;
-	rp.header.type = PACKET_REGISTRATION_DONE;
-	c->m_sendack = NextAck(c->m_sendack);
-	rp.header.ack = c->m_sendack;
-	SendData((char*)&rp, sizeof(RegisteredPacket), &from, true, c);
-
-	g_log<<"Registration id"<<plid<<" \""<<p->username<<"\" \""<<p->email<<"\" "<<crypt<<endl;
-
-	//if(!LoadPlayer(p->username, c))	//So that we know to return on resent PACKET_REGISTRATION packets
-	//	g_error<<"Error loading player "<<p->username<<endl;
-}
-
-#endif
-
-#ifdef _SERVER
-void ReadAcknowledgmentPacket(AcknowledgmentPacket* ap, struct sockaddr_in from, Client* c)
-#else
-void ReadAcknowledgmentPacket(AcknowledgmentPacket* ap)
-#endif
+void ReadAckPacket(AckPacket* ap, NetConn* nc, IPaddress* from, UDPsocket* sock)
 {
 	OldPacket* p;
 	PacketHeader* header;
 	
-	for(auto i=g_sent.begin(); i!=g_sent.end(); i++)
+#ifndef MATCHMAKER
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
+	SvList* v = (SvList*)gui->get("sv list");
+#endif
+
+	for(auto i=g_outgo.begin(); i!=g_outgo.end(); i++)
 	{
 		p = &*i;
 		header = (PacketHeader*)p->buffer;
-#ifdef _SERVER
-		if(header->ack == ap->header.ack && memcmp((void*)&p->addr, (void*)&from, sizeof(struct sockaddr_in)) == 0)
-#else
-		if(header->ack == ap->header.ack)
-#endif
+		if(header->ack == ap->header.ack &&
+			//memcmp((void*)&p->addr, (void*)from, sizeof(IPaddress)) == 0
+			Same(&p->addr, from))
 		{
-			p->freemem();
-			i = g_sent.erase(i);
-#ifdef _SERVER
-			g_log<<"left to ack "<<g_sent.size()<<endl;
+			if(!nc)
+				nc = Match(from);
+
+			if(nc)
+			{
+				//nc->ping = ((float)(GetTickCount64() - i->first) + nc->ping) / 2.0f;
+				nc->ping = (float)(GetTickCount64() - i->first);
+
+#ifndef MATCHMAKER
+				//update sv listing info
+				if(nc->ishostinfo)
+				{
+					for(auto sit=v->m_svlist.begin(); sit!=v->m_svlist.end(); sit++)
+					{
+						if(!Same(&sit->addr, from))
+							continue;
+
+						sit->ping = (int)nc->ping;
+						char pingstr[16];
+						sprintf(pingstr, "%d", (int)nc->ping);
+						sit->pingrt = RichText(pingstr);
+					}
+				}
+#endif
+
+#ifdef NET_DEBUG
+				g_log<<"new ping for "<<nc->addr.host<<": "<<nc->ping<<std::endl;
+				g_log.flush();
+#endif
+			}
+
+			if(p->onackfunc)
+				p->onackfunc(p, nc);
+
+			//p->freemem();
+			i = g_outgo.erase(i);
+#if 0
+			g_log<<"left to ack "<<g_outgo.size()<<std::endl;
 			g_log.flush();
 #endif
 			return;
@@ -558,278 +447,1260 @@ void ReadAcknowledgmentPacket(AcknowledgmentPacket* ap)
 	}
 }
 
-#ifndef _SERVER
-void ReadRegisteredPacket(RegisteredPacket* rp)
-{	
-	//void MessageBlock(const char* msg, bool show);
-	//void ShowMessageBlockContinue(bool show, void (*clickf)());
-
-	MessageBlock("Registered successfully.", true);
-	ShowMessageBlockContinue(true, Continue_BackToMain);
-}
-
-void ReadSpawnUnitPacket(SpawnUnitPacket* sup)
+void ReadDoneTurnPacket(DoneTurnPacket* dtp, NetConn* nc, IPaddress* from, UDPsocket* sock)
 {
-	Planet* planet = &g_planet[sup->planetid];
-	Unit* u = &planet->m_unit[sup->uid];
+#ifndef MATCHMAKER
+	//TO DO check for player==nc->player
 
-		/*
-struct SpawnUnitPacket
-{
-	PacketHeader header;
-	int planetid;
-	int uid;
-	int owner;
-	int type;
-	Camera camera;
-	int mode;
-	Vec3f goal;
-	Vec3f subgoal;
-	int step;
-	int target;
-	int target2;
-	int targtype;
-	int driver;
-	bool targetunit;
-	bool underorder;
-	int fuel;
-	int labour;
-	int transportres;
-	int transportamt;
-	int actpoints;
-	int hitpoints;
-	bool passive;
-	int distaccum;
-	int drivewage;
-};
-*/
+	if(!nc)
+		nc = Match(from);
 
-	u->m_owner = sup->owner;
-	u->m_type = sup->type;
-	u->m_camera = sup->camera;
-	u->m_mode = sup->mode;
-	u->m_goal = sup->goal;
-	u->m_subgoal = sup->subgoal;
-	u->m_step = sup->step;
-	u->m_target = sup->target;
-	u->m_target2 = sup->target2;
-	u->m_targtype = sup->targtype;
-	u->m_driver = sup->driver;
-	u->m_targetunit = sup->targetunit;
-	u->m_underorder = sup->underorder;
-	u->m_fuel = sup->fuel;
-	u->m_labour = sup->labour;
-	u->m_transportres = sup->transportres;
-	u->m_transportamt = sup->transportamt;
-	u->m_actpoints = sup->actpoints;
-	u->m_hitpoints = sup->hitpoints;
-	u->m_passive = sup->passive;
-	u->m_distaccum = sup->distaccum;
-	u->m_drivewage = sup->drivewage;
+	if(!nc)
+		return;
 
-	if(u->m_owner == g_localplayer)
-		AddVis(sup->planetid, sup->uid);
-	
-	if(g_mode == MENU)
-	{
-		g_loadbytes += sizeof(JoinInfoPacket);
-		char msg[128];
-		sprintf(msg, "Received %d bytes...", g_loadbytes);
-		MessageBlock(msg, true);
-	}
-}
+	//if(nc->ctype != CONN_CLIENT)
+	//	return;
+	if(!nc->isclient)
+		return;
 
-void ReadHeightPointPacket(HeightPointPacket* hpp)
-{
-	/*struct HeightPointPacket
-{
-	PacketHeader header;
-	int planetid;
-	int tx;
-	int tz;
-	float height;
-};*/
-	
-	Planet* p = &g_planet[hpp->planetid];
-	Heightmap* hm = &p->m_hmap;
-	hm->setheight(hpp->tx, hpp->tz, hpp->height);
+	//if(dtp->player != nc->player)
+	//	return;
 
-	g_log<<"hp "<<hpp->tx<<","<<hpp->tz<<endl;
-	
-	if(g_mode == MENU)
-	{
-		g_loadbytes += sizeof(JoinInfoPacket);
-		char msg[128];
-		sprintf(msg, "Received %d bytes...", g_loadbytes);
-		MessageBlock(msg, true);
-	}
-}
+	if(dtp->player < 0 || dtp->player >= PLAYERS)
+		return;
 
-void ReadBuildingPacket(BuildingPacket* bp)
-{
-	/*struct BuildingPacket
-{
-	PacketHeader header;
-	int planetid;
-	int bid;
-	bool on;
-	int type;
-	int state;
-	Vec3f pos;
-	float yaw;
-	int conmat[RESOURCES];
-	int stock[RESOURCES];
-};*/
+	Player* py = &g_player[dtp->player];
 
-	Planet* p = &g_planet[bp->planetid];
-	Building* b = &p->m_building[bp->bid];
-	b->m_on = bp->on;
-	b->m_type = bp->type;
-	b->m_state = bp->state;
-	b->m_pos = bp->pos;
-	b->m_yaw = bp->yaw;
-	for(int i=0; i<RESOURCES; i++)
-	{
-		b->m_conmat[i] = bp->conmat[i];
-		b->m_stock[i] = bp->stock[i];
-	}
-	b->m_conwage = bp->conwage;
-	
-	if(g_mode == MENU)
-	{
-		g_loadbytes += sizeof(JoinInfoPacket);
-		char msg[128];
-		sprintf(msg, "Received %d bytes...", g_loadbytes);
-		MessageBlock(msg, true);
-	}
-}
+	//we added 1 because the client is on the verge of the next turn
+	//adding 1 gives the next turn
+	py->curnetfr = dtp->fornetfr + 1;
 
-void ReadGarrisonPacket(GarrisonPacket* gp)
-{
-	/*
-struct GarrisonPacket
-{
-	PacketHeader header;
-	int planetid;
-	int bid;
-	int uid;
-};*/
-
-	Planet* p = &g_planet[gp->planetid];
-	Building* b = &p->m_building[gp->bid];
-	b->m_garrison.push_back(gp->uid);
-
-	if(g_mode == MENU)
-	{
-		g_loadbytes += sizeof(JoinInfoPacket);
-		char msg[128];
-		sprintf(msg, "Received %d bytes...", g_loadbytes);
-		MessageBlock(msg, true);
-	}
-}
-
-
-void ReadJoinInfoPacket(JoinInfoPacket* jip)
-{
-	/*
-struct JoinInfoPacket
-{
-	PacketHeader header;
-	int playerid;
-	Vec2i hmapwidth[PLANETS];
-};*/
-
-	g_localplayer = jip->playerid;
-
-	for(int i=0; i<PLANETS; i++)
-	{
-		Planet* p = &g_planet[i];
-		p->allocate(jip->hmapwidth[i].x, jip->hmapwidth[i].y);
-	}
-	
-	if(g_mode == MENU)
-	{
-		g_loadbytes += sizeof(JoinInfoPacket);
-		char msg[128];
-		sprintf(msg, "Received %d bytes...", g_loadbytes);
-		MessageBlock(msg, true);
-	}
-}
-
-void ReadDoneLoadingPacket(DoneLoadingPacket* dlp)
-{
-	g_loadbytes = 0;
-
-	for(int i=0; i<PLANETS; i++)
-	{
-		Planet* p = &g_planet[i];
-		p->m_hmap.remesh();
-	}
-
-	g_spaceview = true;
-	g_spacecam.position(0,0,0, 100,100,100, 0,1,0);
-	g_camera = g_spacecam;
-	g_mode = PLAY;
-	OpenSoleView("spaceview");
-}
-
-
-void ReadUsernameExistsPacket(UsernameExistsPacket* uep)
-{
-	MessageBlock("Error: username already registered", true);
-	ShowMessageBlockContinue(true, Continue_ToRegister);
-}
-
-void ReadEmailExistsPacket(EmailExistsPacket* eep)
-{
-	MessageBlock("Error: email already registered", true);
-	ShowMessageBlockContinue(true, Continue_ToRegister);
-}
-
-void ReadIncorrectLoginPacket(IncorrectLoginPacket* ilp)
-{
-	//g_log<<"oinc li"<<endl;
-	//g_log.flush();
-
-	MessageBlock("Error: incorrect username or password", true);
-	ShowMessageBlockContinue(true, Continue_ToLogin);
-}
-
-void ReadIncorrectVersionPacket(IncorrectVersionPacket* ivp)
-{
+#if 0
 	char msg[128];
-	sprintf(msg, "Error: your client version (%0.2f) doesn't match server (%0.2f)", VERSION, ivp->version);
-	MessageBlock(msg, true);
-	ShowMessageBlockContinue(true, Continue_ToLogin);
+	sprintf(msg, "read done turn packet netf%u", py->curnetfr);
+	InfoMess("r", msg);
+#endif
+#endif
 }
 
-void ReadLoginCorrectPacket(LoginCorrectPacket* lcp)
+void ReadNetTurnPacket(NetTurnPacket* ntp, NetConn* nc, IPaddress* from, UDPsocket* sock)
 {
-	MessageBlock("Login correct", true);
-	ShowMessageBlockContinue(false, Continue_ToLogin);
+#ifndef MATCHMAKER
+	//InfoMess("a", "rntp");
+
+	if(g_netmode == NETM_CLIENT)
+	{
+#if 0
+		char msg[128];
+		sprintf(msg, "recv netturn for netfr%u load=%u", ntp->fornetfr, (unsigned int)ntp->loadsz);
+		//InfoMess("r", msg);
+		//if(ntp->loadsz > 0)
+		{
+			FILE* fp = fopen("rntp.txt", "wb");
+			fwrite(msg, strlen(msg)+1, 1, fp);
+			fclose(fp);
+		}
+#endif
+
+		//for next turn?
+		if(ntp->fornetfr != (g_netframe / NETTURN + 1) * NETTURN)
+		{
+			//something wrong, did we miss a turn?
+			if(PastFr(g_netframe, ntp->fornetfr))
+				ErrMess("Error", "Turn missed?");
+			else
+				ErrMess("Error", "Future turn?");
+
+			return;	//if not, discard
+		}
+
+		//Cl_StepTurn(ntp);
+		AppendCmds(&g_nextcmdq, ntp);
+		g_canturn = true;
+
+#if 0
+		//char msg[128];
+		sprintf(msg, "passed for netfr%u", ntp->fornetfr);
+		InfoMess("Error", msg);
+#endif
+	}
+	else if(g_netmode == NETM_HOST)	//cl can't send batch of commands packet
+	{
+		//AppendCmds(&g_localcmd, ntp);
+	}
+#endif
 }
 
-void ReadTooManyClientsPacket(TooManyClientsPacket* tmcp)
+void ReadPlaceBlPacket(PlaceBlPacket* pbp, NetConn* nc, IPaddress* from, UDPsocket* sock)
 {
-	MessageBlock("Error: too many clients connected right now", true);
-	ShowMessageBlockContinue(true, Continue_ToLogin);
+#ifndef MATCHMAKER
+	if(!from)
+	{
+		if(CheckCanPlace(pbp->btype, pbp->tpos))
+			PlaceBl(pbp->btype, pbp->tpos, false, pbp->player, NULL);
+
+		return;
+	}
+
+	if(g_netmode == NETM_HOST)
+	{
+#if 0
+		PlaceBlPacket* pbp2 = (PlaceBlPacket*)malloc(sizeof(PlaceBlPacket));
+		memcpy(pbp2, pbp, sizeof(PlaceBlPacket));
+		g_localcmd.push_back((PacketHeader*)pbp2);
+#else
+		AppendCmd(&g_localcmd, (PacketHeader*)pbp, sizeof(PlaceBlPacket));
+#endif
+	}
+#if 0	//no longer required, exec'd with NULL "from" addr
+#if 1	//cl can only exec command batch packets, but it will then call this func
+	else if(g_netmode == NETM_CLIENT)
+	{
+		//InfoMess("polk", "p");
+#ifndef MATCHMAKER
+		if(CheckCanPlace(pbp->btype, pbp->tpos))
+			PlaceBl(pbp->btype, pbp->tpos, false, pbp->player, NULL);
+#endif
+	}
+#endif
+	else if(g_netmode == NETM_SINGLE)
+	{
+#if 0
+		char msg[128];
+		sprintf(msg, "%d at %d,%d", pbp->btype, pbp->tpos.x, pbp->tpos.y);
+		InfoMess("polk", msg);
+#endif
+#ifndef MATCHMAKER
+		if(CheckCanPlace(pbp->btype, pbp->tpos))
+			PlaceBl(pbp->btype, pbp->tpos, false, pbp->player, NULL);
+#endif
+	}
+#endif
+#endif
 }
 
-void ReadRegDBErrorPacket(RegDBErrorPacket* rdbep)
+//If we got a "no connection" packet while attempting to send
+//data to a connection we have, reconnect to them, setting their
+//recvack to the one before our current sendack (?)
+//Will that work? If we have outgoing packets. It should be the earliest
+//outgoing packet sendack. But what if one ahead has been ack'd? 
+//Recvack will still be at the first one. If they have a connection (or buffered packet).
+void ReadNoConnPacket(NoConnectionPacket* ncp, NetConn* nc, IPaddress* from, UDPsocket* sock)
 {
-	MessageBlock("Error: database registration error", true);
-	ShowMessageBlockContinue(true, Continue_ToRegister);
+	if(!nc)
+		nc = Match(from);
+
+	if(!nc)
+		return;	//Not our problem
+
+	//Reconnect(from);	//Might want to encapsulate it in a function later
+
+	unsigned short early;	//earliest outgoing ack
+	bool earlyset = false;
+
+	for(auto oit=g_outgo.begin(); oit!=g_outgo.end(); oit++)
+	{
+		if(!Same(&oit->addr, from))
+			continue;
+
+		PacketHeader* ph = (PacketHeader*)oit->buffer;
+
+		if(!earlyset && PastAck(ph->ack, early))
+		{
+			earlyset = true;
+			early = ph->ack;
+		}
+	}
+
+	if(!earlyset)
+		early = 0;	//Strange, should have outgoing
+
+	ConnectPacket scp;
+	scp.header.type = PACKET_CONNECT;
+	scp.reply = false;
+	scp.header.ack = early - 1;	//Must be -1; next packet to be read is recvack+1.
+	//Do we need OnAck_Connect?
+	SendData((char*)&scp, sizeof(ConnectPacket), from, false, true, nc, &g_sock, 0, NULL);
 }
 
-void ReadConnectionResetPacket(ConnectionResetPacket* crp)
+void ReadClDisconnectedPacket(ClDisconnectedPacket* cdp, NetConn* nc, IPaddress* from, UDPsocket* sock)
 {
-	MessageBlock("Connection reset", true);
-	ShowMessageBlockContinue(true, Continue_BackToMain);
-}
-
-void ReadDisconnectPacket(DisconnectPacket* dp)
-{
-	//player dp->id disconnected
-}
+#ifndef MATCHMAKER
 
 #endif
+}
+
+void ReadDisconnectPacket(DisconnectPacket* dp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+	//char msg[128];
+	//sprintf(msg, "dis %u:%u", from->host, (unsigned int)from->port);
+	//InfoMess("d", msg);
+	
+	if(!nc)
+		nc = Match(from);
+
+	if(!nc)
+		return;
+
+	//if(nc->ctype == CONN_HOST)
+	if(nc->isourhost)
+		g_svconn = NULL;
+	//else if(nc->ctype == CONN_MATCHER)
+	if(nc->ismatcher)
+		g_mmconn = NULL;
+
+	for(auto ci=g_conn.begin(); ci!=g_conn.end(); ci++)
+		if(&*ci == nc)
+		{
+			ci->closed = true;
+			FlushPrev(&ci->addr);
+
+			if(dp->reply)
+			{
+				//FlushPrev(&ci->addr);
+				//g_conn.erase(ci);
+			}
+
+			break;
+		}
+
+	//TODO get rid of client, inform players
+	if(nc->client >= 0)
+	{
+		Client* c = &g_client[nc->client];
+		c->nc = NULL;
+		c->on = false;
+	}
+
+	nc->client = -1;
+}
+
+void ReadChValPacket(ChValPacket* cvp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+	if(!from)
+	{
+		Building* b = NULL;
+		Player* py = &g_player[cvp->player];
+		CdTile* cdtile = NULL;
+		Resource* r = NULL;
+		BlType* bt = NULL;
+		CdType* ct = NULL;
+		UType* ut = NULL;
+
+		RichText chat;
+
+		chat = chat + py->name;
+		char add[128];
+
+		switch(cvp->chtype)
+		{
+		//TODO verify that player owns this
+		case CHVAL_BLPRICE:
+			b = &g_building[cvp->bi];
+			b->price[cvp->res] = cvp->value;
+#if 1
+			r = &g_resource[cvp->res];
+			bt = &g_bltype[b->type];
+			sprintf(add, " set price ");
+			chat = chat + RichText(add);
+			chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			//chat = chat + RichText(r->name.c_str());
+			sprintf(add, " at %s to ", bt->name);
+			chat = chat + RichText(add);
+			r = &g_resource[RES_DOLLARS];
+			chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			sprintf(add, "%d", cvp->value);
+			chat = chat + RichText(add);
+#endif
+			//TODO messages for the rest
+			break;
+		case CHVAL_BLWAGE:
+			b = &g_building[cvp->bi];
+			b->opwage = cvp->value;
+#if 1
+			//r = &g_resource[cvp->res];
+			bt = &g_bltype[b->type];
+			sprintf(add, " set wage");
+			chat = chat + RichText(add);
+			//chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			//chat = chat + RichText(r->name.c_str());
+			sprintf(add, " at %s to ", bt->name);
+			chat = chat + RichText(add);
+			r = &g_resource[RES_DOLLARS];
+			chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			sprintf(add, "%d", cvp->value);
+			chat = chat + RichText(add);
+#endif
+			break;
+		case CHVAL_CSTWAGE:
+			b = &g_building[cvp->bi];
+			b->conwage = cvp->value;
+#if 1
+			r = &g_resource[cvp->res];
+			bt = &g_bltype[b->type];
+			sprintf(add, " set con. wage");
+			chat = chat + RichText(add);
+			//chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			//chat = chat + RichText(r->name.c_str());
+			sprintf(add, " at %s to ", bt->name);
+			chat = chat + RichText(add);
+			r = &g_resource[RES_DOLLARS];
+			chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			sprintf(add, "%d", cvp->value);
+			chat = chat + RichText(add);
+#endif
+			break;
+		case CHVAL_TRPRICE:
+			py->transpcost = cvp->value;
+#if 1
+			r = &g_resource[cvp->res];
+			bt = &g_bltype[b->type];
+			sprintf(add, " set transp. price");
+			chat = chat + RichText(add);
+			//chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			//chat = chat + RichText(r->name.c_str());
+			sprintf(add, " to ");
+			chat = chat + RichText(add);
+			r = &g_resource[RES_DOLLARS];
+			chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			sprintf(add, "%d", cvp->value);
+			chat = chat + RichText(add);
+#endif
+			break;
+		case CHVAL_TRWAGE:
+			py->truckwage = cvp->value;
+#if 1
+			r = &g_resource[cvp->res];
+			bt = &g_bltype[b->type];
+			sprintf(add, " set driver wage");
+			chat = chat + RichText(add);
+			//chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			//chat = chat + RichText(r->name.c_str());
+			sprintf(add, " to ");
+			chat = chat + RichText(add);
+			r = &g_resource[RES_DOLLARS];
+			chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			sprintf(add, "%d", cvp->value);
+			chat = chat + RichText(add);
+#endif
+			break;
+		case CHVAL_PRODLEV:
+			b = &g_building[cvp->bi];
+			b->prodlevel = cvp->value;
+#if 1
+			r = &g_resource[cvp->res];
+			bt = &g_bltype[b->type];
+			sprintf(add, " set prod. level");
+			chat = chat + RichText(add);
+			//chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			//chat = chat + RichText(r->name.c_str());
+			sprintf(add, " at %s to ", bt->name);
+			chat = chat + RichText(add);
+			//r = &g_resource[RES_DOLLARS];
+			//chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			sprintf(add, "%d", cvp->value);
+			chat = chat + RichText(add);
+#endif
+			break;
+		case CHVAL_CDWAGE:
+			//TODO verify that player owns this
+			cdtile = GetCd(cvp->cdtype, cvp->x, cvp->y, false);
+			cdtile->conwage = cvp->value;
+#if 1
+			r = &g_resource[cvp->res];
+			ct = &g_cdtype[cvp->cdtype];
+			sprintf(add, " set con. wage");
+			chat = chat + RichText(add);
+			//chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			//chat = chat + RichText(r->name.c_str());
+			sprintf(add, " at %s to ", ct->name);
+			chat = chat + RichText(add);
+			r = &g_resource[RES_DOLLARS];
+			chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			sprintf(add, "%d", cvp->value);
+			chat = chat + RichText(add);
+#endif
+			break;
+		case CHVAL_MANPRICE:
+			b = &g_building[cvp->bi];
+			b->manufprc[cvp->utype] = cvp->value;
+#if 1
+			r = &g_resource[cvp->res];
+			bt = &g_bltype[b->type];
+			sprintf(add, " set manuf. price");
+			//chat = chat + RichText(add);
+			//chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			//chat = chat + RichText(r->name.c_str());
+			sprintf(add, " of %s to ", ut->name);
+			chat = chat + RichText(add);
+			r = &g_resource[RES_DOLLARS];
+			chat = chat + RichText(RichPart(RICHTEXT_ICON, r->icon));
+			sprintf(add, "%d", cvp->value);
+			chat = chat + RichText(add);
+#endif
+			break;
+		default:
+			break;
+		};
+
+		AddChat(&chat);
+
+		return;
+	}
+
+	if(g_netmode == NETM_HOST)
+	{
+		if(!nc)
+			return;
+		if(!nc->isclient)
+			return;
+		if(nc->client < 0)
+			return;
+		
+		Client* c = &g_client[nc->client];
+
+		if(cvp->player != c->player)
+			return;
+
+		AppendCmd(&g_localcmd, (PacketHeader*)cvp, sizeof(ChValPacket));
+		//TODO change to LockCmd?
+	}
+#endif
+}
+
+void ReadAddSvPacket(AddSvPacket* asp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifdef MATCHMAKER
+	if(!nc)
+		return;
+
+	nc->ishostinfo = true;
+	//nc->svinfo = asp->svinfo;
+	//nc->svinfo.addr = *from;
+
+#if 0
+	g_log<<"addsv "<<nc->addr.port<<std::endl;
+	g_log.flush();
+#endif
+
+	AddedSvPacket asp2;
+	asp2.header.type = PACKET_ADDEDSV;
+	SendData((char*)&asp2, sizeof(AddedSvPacket), from, true, false, nc, &g_sock, 0);
+#else
+#endif
+}
+
+//cl reads a sv addr of game host
+void ReadSvAddrPacket(SvAddrPacket* sap, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+#if 0
+	//temp
+	if(g_netmode == NETM_HOST)
+		return;
+
+	//InfoMess("g", "gsl");
+	
+	//temp
+	if(g_svconn)
+		return;
+
+	Click_NewGame();
+	
+	//Connect(&sap->addr, false, true, false, true);
+	Connect("localhost", PORT, false, true, false, true);
+	BegSess();
+#else
+	if(!nc->ismatcher)
+		return;
+
+	//we can get next host now
+	g_reqdnexthost = false;
+
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
+	SvList* v = (SvList*)gui->get("sv list");
+	auto sl = &v->m_svlist;
+
+	bool found = false;
+
+	for(auto sit=sl->begin(); sit!=sl->end(); sit++)
+	{
+		//if have, update info
+		if(!Same(&sit->addr, &sap->addr))
+		{
+			found = true;
+			break;
+		}
+	}
+
+	if(!found)
+	{
+		//InfoMess("rsap", "rsap");
+
+		SvList::SvInfo svinfo;
+		svinfo.addr = sap->addr;
+		svinfo.mapnamert = RichText("???");
+		svinfo.name = RichText("???");
+		svinfo.pingrt = RichText("???");
+		sl->push_back(svinfo);
+		NetConn* havenc = Match(&sap->addr);
+		Connect(&sap->addr, false, false, false, true);
+		if(havenc && havenc->handshook)
+		{
+			GetSvInfoPacket gsip;
+			gsip.header.type = PACKET_GETSVINFO;
+			SendData((char*)&gsip, sizeof(GetSvInfoPacket), &havenc->addr, true, false, nc, &g_sock, 0, NULL);
+		}
+	}
+#endif
+#endif
+}
+
+void ReadGetSvInfoPacket(GetSvInfoPacket* gsip, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+	if(g_netmode != NETM_HOST)
+		return;
+
+	SvInfoPacket sip;
+	sip.header.type = PACKET_SVINFO;
+	//sip.svinfo.addr = {0};	//?
+	strcpy(sip.svinfo.mapname, g_mapname);
+	strcpy(sip.svinfo.svname, g_svname);
+	sip.svinfo.mapname[MAPNAME_LEN] = 0;
+	sip.svinfo.svname[SVNAME_LEN] = 0;
+	//sip.svinfo.nplayers = g_nplayers;	//TO DO
+	SendData((char*)&sip, sizeof(SvInfoPacket), from, true, false, nc, &g_sock, 0, NULL);
+#endif
+}
+
+void ReadSvInfoPacket(SvInfoPacket* sip, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+	if(!nc)
+		return;
+
+	if(!nc->ishostinfo)
+		return;
+
+	//InfoMess("rgsip", "rgsip");
+	//g_log<<"rgsip ack"<<sip->header.ack<<std::endl;
+
+	//check if we already have this addr
+	Player* py = &g_player[g_localP];
+	GUI* gui = &g_gui;
+	SvList* v = (SvList*)gui->get("sv list");
+	auto sl = &v->m_svlist;
+
+	for(auto sit=sl->begin(); sit!=sl->end(); sit++)
+	{
+		//if have, update info
+		if(!Same(&sit->addr, from))	//self-address might be different on LAN
+		//if(!Same(&sit->addr, &sip->svinfo.addr))	//how do we know self-address?
+			continue;
+
+		sit->replied = true;
+		
+		sip->svinfo.mapname[MAPNAME_LEN] = 0;
+		sip->svinfo.svname[SVNAME_LEN] = 0;
+
+		sit->nplayers = sip->svinfo.nplayers;
+
+		char pingstr[16];
+		sprintf(pingstr, "%d", (int)nc->ping);
+		sit->pingrt = RichText(pingstr);
+
+#if 1
+		//yes unicode?
+		//unsigned int* mapnameuni = ToUTF32((const unsigned char*)sip->svinfo.mapname, strlen(sip->svinfo.mapname));
+		//unsigned int* svnameuni = ToUTF32((const unsigned char*)sip->svinfo.svname, strlen(sip->svinfo.svname));
+		unsigned int* mapnameuni = ToUTF32((const unsigned char*)sip->svinfo.mapname);
+		unsigned int* svnameuni = ToUTF32((const unsigned char*)sip->svinfo.svname);
+		sit->mapnamert = RichText(UString(mapnameuni));
+		sit->name = RichText(UString(svnameuni));
+		sit->name = ParseTags(sit->name, NULL);
+		delete [] mapnameuni;
+		delete [] svnameuni;
+#else
+		//no unicode?
+		//sit->mapnamert = sip->svinfo.mapname;
+		//sit->name = sip->svinfo.svname;
+#endif
+
+		//break;	//multiple copies?
+	}
+
+	//return;	//temp
+
+	//if it's only a hostinfo and nc isn't closed
+	if(!nc->closed && !nc->isourhost && !nc->isclient && !nc->ismatcher)
+		Disconnect(nc);
+#endif
+}
+
+void ReadGetSvListPacket(GetSvListPacket* gslp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifdef MATCHMAKER
+	if(!nc)
+		return;
+
+	//if(!nc->isclient)
+	//	return;
+
+	nc->svlistoff = 0;
+
+	//g_log<<"req sv l"<<std::endl;
+	//g_log.flush();
+
+	ReadSendNextHostPacket(NULL, nc, from, sock);
+
+	//g_log<<"/req sv l"<<std::endl;
+	//g_log.flush();
+#endif
+}
+
+void ReadSendNextHostPacket(SendNextHostPacket* snhp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifdef MATCHMAKER
+	//g_log<<"sendnexthost1 g_conn.size()="<<g_conn.size()<<std::endl;
+	//g_log.flush();
+
+	if(!nc)
+		nc = Match(from);
+
+	//g_log<<"sendnexthost2"<<std::endl;
+	//g_log.flush();
+
+	if(!nc)
+		return;
+
+	//g_log<<"sendnexthost3"<<std::endl;
+	//g_log.flush();
+
+	int hin = -1;
+	auto hit = g_conn.begin();
+	while(hit != g_conn.end())
+	{
+		if(hit->ishostinfo)
+		{
+			hin++;
+		
+			//g_log<<"hin "<<hin<<" svlistoff "<<nc->svlistoff<<std::endl;
+
+			if(hin == nc->svlistoff)
+			{
+				SvAddrPacket sap;
+				sap.header.type = PACKET_SVADDR;
+				sap.addr = hit->addr;
+				SendData((char*)&sap, sizeof(SvAddrPacket), from, true, false, nc, &g_sock, 0);
+				nc->svlistoff++;
+				return;
+			}
+		}
+
+		hit++;
+	}
+
+	NoMoreHostsPacket nmhp;
+	nmhp.header.type = PACKET_NOMOREHOSTS;
+	SendData((char*)&nmhp, sizeof(NoMoreHostsPacket), from, true, false, nc, &g_sock, 0);
+#endif
+}
+
+void ReadNoMoreHostsPacket(NoMoreHostsPacket* nmhp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+	g_reqsvlist = false;
+#endif
+}
+
+void ReadAddedSvPacket(AddedSvPacket* asp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+	if(!nc)
+		return;
+
+	if(!nc->ismatcher)
+		return;
+
+	if(g_netmode != NETM_HOST)
+		return;
+
+	g_sentsvinfo = true;
+	//InfoMess("added", "added sv");
+#endif
+}
+
+void ReadJoinPacket(JoinPacket* jp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+	if(g_netmode == NETM_HOST)
+	{
+		if(!nc)
+			return;
+
+		nc->isclient = true;
+		
+		//InfoMess("conn", "read join");
+		//TO DO send join info map etc.
+
+		RichText name;
+		unsigned int* uname = ToUTF32((unsigned char*)jp->name);
+		name.m_part.push_back(UString(uname));
+		delete [] uname;
+		int joinci;
+
+		//InfoMess(" ? mcp", " ? mcp");
+		
+		//unsigned int ipaddr = SDL_SwapBE32(ip.host);
+		//unsigned short port = SDL_SwapBE16(ip.port);
+#if 1
+		char ipname[128];
+		sprintf(ipname, "%u:%u", SDL_SwapBE32(nc->addr.host), (unsigned int)SDL_SwapBE16(nc->addr.port));
+		name = RichText(ipname);
+#endif
+
+		if(!AddClient(nc, name, &joinci))
+		{
+			TooManyClPacket tmcp;
+			tmcp.header.type = PACKET_TOOMANYCL;
+			SendData((char*)&tmcp, sizeof(TooManyClPacket), &nc->addr, true, false, nc, &g_sock, 0, NULL);
+			return;
+		}
+
+		int msdelay = RESEND_DELAY;
+		
+		MapChangePacket mcp;
+		mcp.header.type = PACKET_MAPCHANGE;
+		strcpy(mcp.map, g_mapname);
+		SendData((char*)&mcp, sizeof(MapChangePacket), &nc->addr, true, false, nc, &g_sock, msdelay, NULL);
+		msdelay += RESEND_DELAY;
+
+		AddClientPacket acp;
+		acp.header.type = PACKET_ADDCLIENT;
+		//acp.client = joinci;
+		//strcpy(acp.name, jp->name);
+		//acp.player = -1;
+		for(int i=0; i<CLIENTS; i++)
+		{
+			Client* c = &g_client[i];
+
+			if(!c->on)
+				continue;
+
+			RichText* cname = &c->name;
+			acp.client = i;
+
+			if(cname->m_part.size() > 0)
+			{
+				unsigned char* name8 = ToUTF8(cname->m_part.begin()->m_text.m_data);
+				name8[PYNAME_LEN] = 0;
+				strcpy(acp.name, (char*)name8);
+				delete [] name8;
+			}
+			else
+				strcpy(acp.name, "");
+
+			acp.player = c->player;
+
+			SendData((char*)&acp, sizeof(AddClientPacket), &nc->addr, true, false, nc, &g_sock, msdelay, NULL);
+			msdelay += RESEND_DELAY;
+
+			if(i == joinci)
+			{
+				SendAll((char*)&acp, sizeof(AddClientPacket), true, false, &nc->addr);
+			}
+		}
+
+		SelfClientPacket scp;
+		scp.header.type = PACKET_SELFCLIENT;
+		scp.client = joinci;
+		SendData((char*)&scp, sizeof(SelfClientPacket), &nc->addr, true, false, nc, &g_sock, msdelay, NULL);
+		msdelay += RESEND_DELAY;
+
+		DoneJoinPacket djp;
+		djp.header.type = PACKET_DONEJOIN;
+		SendData((char*)&djp, sizeof(DoneJoinPacket), &nc->addr, true, false, nc, &g_sock, msdelay, NULL);
+		msdelay += RESEND_DELAY;
+	}
+#endif
+}
+
+void ReadAddClPacket(AddClientPacket* acp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+	if(g_netmode == NETM_CLIENT && nc && nc->isourhost)
+	{
+		//g_log<<"acp"<<std::endl;
+		unsigned int* uname = ToUTF32((unsigned char*)acp->name);
+		int addci;
+		AddClient(nc, RichText(UString(uname)), &addci);
+		delete [] uname;
+		Client* c = &g_client[addci];
+		c->player = acp->player;
+
+		if(acp->player >= 0)
+		{
+			Player* py = &g_player[acp->player];
+			py->client = addci;
+		}
+	}
+	else if(g_netmode == NETM_HOST)
+	{
+	}
+#endif
+}
+
+void ReadSelfClPacket(SelfClientPacket* scp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+	if(g_netmode == NETM_CLIENT && nc && nc->isourhost)
+	{
+#ifndef MATCHMAKER
+		//g_log<<"scp"<<std::endl;
+		g_localC = scp->client;
+		Client* c = &g_client[scp->client];
+		g_localP = c->player;
+#endif
+	}
+}
+
+void ReadSetClNamePacket(SetClNamePacket* scnp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+	if(g_netmode == NETM_CLIENT && nc && nc->isourhost)
+	{
+		Client* c = &g_client[scnp->client];
+		unsigned int* uname = ToUTF32((unsigned char*)scnp->name);
+		c->name = RichText(UString(uname));
+		delete [] uname;
+	}
+	else if(g_netmode == NETM_HOST && nc && nc->isclient)
+	{
+		Client* c = &g_client[scnp->client];
+		unsigned int* uname = ToUTF32((unsigned char*)scnp->name);
+		c->name = RichText(UString(uname));
+		delete [] uname;
+
+		SetClNamePacket scnp2;
+		memcpy(&scnp2, scnp, sizeof(SetClNamePacket));
+		SendAll((char*)&scnp2, sizeof(SetClNamePacket), true, false, &nc->addr);
+	}
+#endif
+}
+
+void ReadClientLeftPacket(ClientLeftPacket* clp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+	if(g_netmode == NETM_CLIENT && nc && nc->isourhost)
+	{
+		Client* c = &g_client[clp->client];
+		c->on = false;
+		c->name = RichText("Player");
+
+		if(c->player >= 0)
+		{
+			Player* py = &g_player[c->player];
+			py->client = -1;
+			c->player = -1;
+		}
+	}
+	else if(g_netmode == NETM_HOST && nc && nc->isclient)
+	{
+		Client* c = &g_client[clp->client];
+		c->on = false;
+		c->name = RichText("Player");
+
+		if(c->player >= 0)
+		{
+			Player* py = &g_player[c->player];
+			py->client = -1;
+			c->player = -1;
+		}
+
+		ClientLeftPacket clp2;
+		memcpy(&clp2, clp, sizeof(ClientLeftPacket));
+		SendAll((char*)&clp2, sizeof(ClientLeftPacket), true, false, &nc->addr);
+	}
+#endif
+}
+
+void ReadClientRolePacket(ClientRolePacket* crp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+	if(g_netmode == NETM_CLIENT && nc && nc->isourhost)
+	{
+		//g_log<<"crp"<<std::endl;
+		Client* c = &g_client[crp->client];
+		c->on = false;
+
+		if(c->player >= 0)
+		{
+			Player* py = &g_player[c->player];
+			py->client = -1;
+			c->player = -1;
+		}
+
+		c->player = crp->player;
+		Player* py = &g_player[crp->player];
+		py->client = crp->client;
+	}
+	else if(g_netmode == NETM_HOST && nc && nc->isclient)
+	{
+		Client* c = &g_client[crp->client];
+		c->on = false;
+
+		if(c->player >= 0)
+		{
+			Player* py = &g_player[c->player];
+			py->client = -1;
+			c->player = -1;
+		}
+
+		//TO DO reject if another client controls crp->player
+
+		c->player = crp->player;
+		Player* py = &g_player[crp->player];
+		py->client = crp->client;
+
+		ClientRolePacket crp2;
+		memcpy(&crp2, crp, sizeof(ClientRolePacket));
+		SendAll((char*)&crp2, sizeof(ClientRolePacket), true, false, &nc->addr);
+	}
+#endif
+}
+
+void ReadDoneJoinPacket(DoneJoinPacket* djp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+	if(g_netmode == NETM_CLIENT && nc && nc->isourhost)
+	{
+#ifndef MATCHMAKER
+		//g_log<<"djp"<<std::endl;
+		GUI* gui = &g_gui;
+		gui->closeall();
+		gui->open("lobby");
+		((Lobby*)gui->get("lobby"))->regen();
+#endif
+	}
+}
+
+void ReadTooManyClPacket(TooManyClPacket* tmcp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+	if(g_netmode == NETM_CLIENT && nc && nc->isourhost)
+	{
+#ifndef MATCHMAKER
+
+		Disconnect(nc);
+		GUI* gui = &g_gui;
+#if 0
+		gui->closeall();
+		gui->open("menu");
+#else
+		ViewLayer* v = (ViewLayer*)gui->get("join");
+		Text* status = (Text*)v->get("status");
+		status->m_text = RichText("Cannot join. Server is full.");
+#endif
+
+		//TO DO info message
+
+#endif
+	}
+}
+
+void ReadMapChangePacket(MapChangePacket* mcp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#ifndef MATCHMAKER
+	if(g_netmode == NETM_CLIENT && nc && nc->isourhost)
+	{
+		//g_log<<"mcp"<<std::endl;
+		//g_log.flush();
+		strcpy(g_mapname, mcp->map);
+		FreeMap();
+		//TO DO load, download etc. check sum
+	}
+#endif
+}
+
+//connect packet won't be discarded if it's a (reply's or otherwise) copy, so this function needs to be durable.
+//i.e., no repeat action if cp->header.ack is PastAck(...);.
+void ReadConnectPacket(ConnectPacket* cp, NetConn* nc, IPaddress* from, UDPsocket* sock)
+{
+#if 0
+	char msg[128];
+	sprintf(msg, "\tcon %u:%u reply=%d", from->host, (unsigned int)from->port, (int)cp->reply);
+	g_log<<msg<<std::endl;
+	//InfoMess("d", msg);
+#endif
+
+	//InfoMess("d", "rc");
+
+#if 1	//flush all previous incoming and outgoing packets from this addr
+	//FlushPrev(from);
+	//actually, that might be bad, if we've got a game host we're playing in,
+	//and we request a sv list and get connected to this same host to get its
+	//game info. actually, just need to be make sure Connect(); doesn't send 
+	//another ConnectPacket if we've already handshook.
+#endif
+
+	if(!nc)
+	{
+		nc = Match(from);
+
+		if(!nc)
+		{
+			
+	//char msg[128];
+	//sprintf(msg, "con %u:%u", from->host, (unsigned int)from->port);
+	//InfoMess("d", msg);
+
+			NetConn newnc;
+			//newnc.ctype = CONN_CLIENT;
+			//temporary - must get some packet telling us this is client that wants to join TO DO
+			//newnc.isclient = true;
+			newnc.addr = *from;
+			newnc.handshook = true;
+			newnc.recvack = cp->header.ack;
+			newnc.sendack = 0;
+			newnc.lastrecv = GetTickCount64();
+			g_conn.push_back(newnc);
+			nc = &*g_conn.rbegin();
+
+#if 0
+		{
+			auto ci1 = g_conn.begin();
+			auto ci2 = g_conn.rbegin();
+
+			if(g_conn.size() > 1 && 
+				ci1->addr.host == ci2->addr.host &&
+				ci1->addr.port == ci2->addr.port)
+			{
+				char msg[128];
+				sprintf(msg, "mult c same at f%s, l%d", __FILE__, __LINE__);
+				InfoMess("e", msg);
+			}
+		}
+#endif
+
+#if 0	//now done by ack
+			ConnectPacket replycp;
+			replycp.header.type = PACKET_CONNECT;
+			//replycp.header.ack = 0;
+			//nc->sendack = 0;
+			replycp.reply = true;
+			SendData((char*)&replycp, sizeof(ConnectPacket), from, true, false, nc, &g_sock, 0);
+
+			//temp
+			//g_canturn = true;
+#endif
+
+			return;
+		}
+	}
+
+	nc->handshook = true;
+	nc->closed = false;
+	//nc->sendack = 0;
+
+#if 1	//for ack to work
+	nc->recvack = cp->header.ack;
+	nc->sendack = 0;
+#endif
+
+#if 0	//now done by ack
+	//we already have a connection to them, 
+	//so they must have lost theirs if this isn't a reply to ours.
+	if(!cp->reply)
+	{
+		//this is probably a copy since we already have a connection 
+		//(or else they might have closed their connection and reconnected).
+		//we need to check if we already have an outgoing reply ConnectPacket.
+
+		bool outgoing = false;
+
+		for(auto pit=g_outgo.begin(); pit!=g_outgo.end(); pit++)
+		{
+			if(!Same(&pit->addr, from))
+				continue;
+
+			PacketHeader* ph = (PacketHeader*)pit->buffer;
+
+			if(ph->type != PACKET_CONNECT)
+				continue;
+
+#if 1	//necessary to know if it's a reply=true?
+			ConnectPacket* oldcp = (ConnectPacket*)pit->buffer;
+
+			if(!oldcp->reply)
+				continue;
+#endif
+
+			outgoing = true;
+			break;
+		}
+
+		if(!outgoing)
+		{
+			FlushPrev(from);
+			
+			nc->recvack = cp->header.ack;
+
+			ConnectPacket replycp;
+			replycp.header.type = PACKET_CONNECT;
+			replycp.header.ack = 0;
+			//nc->sendack = 1;
+			replycp.reply = true;
+			SendData((char*)&replycp, sizeof(ConnectPacket), from, true, false, nc, &g_sock, 0);
+		}
+	}
+
+	//temp
+	//g_canturn = true;
+#endif
+
+	//we got this in reply to a ConnectPacket sent?
+
+#ifndef MATCHMAKER
+#if 0	//now done in OnAck_Connect
+	else
+	{
+		//is this a reply copy?
+		if(PastAck(cp->header.ack, nc->recvack))
+			return;	//if so, discard, because we've already dealt with a previous copy
+
+		//update recvack since TranslatePacket won't do it for a ConnectPacket
+		nc->recvack = cp->header.ack;
+
+		//if(nc->ctype == CONN_HOST)
+		if(nc->isourhost)
+		{
+			g_svconn = nc;
+
+			//InfoMess("conn", "conn to our host");
+
+			//TO DO request data, get ping, whatever, server info
+
+			//g_canturn = true;
+			//
+			//char msg[128];
+			//sprintf(msg, "send join to %u:%u aka %u:%u", from->host, (unsigned int)from->port, nc->addr.host, (unsigned int)nc->addr.port);
+			//InfoMess("j", msg);
+
+			JoinPacket jp;
+			jp.header.type = PACKET_JOIN;
+			std::string name = g_name.rawstr();
+			if(name.length() >= PYNAME_LEN)
+				name[PYNAME_LEN] = 0;
+			strcpy(jp.name, name.c_str());
+			SendData((char*)&jp, sizeof(JoinPacket), from, true, false, nc, &g_sock, 0);
+		}
+		//else if(nc->ctype == CONN_MATCHER)
+	
+		if(nc->ishostinfo)
+		{
+			//TO DO request data, get ping, whatever, server info
+			GetSvInfoPacket gsip;
+			gsip.header.type = PACKET_GETSVINFO;
+			SendData((char*)&gsip, sizeof(GetSvInfoPacket), from, true, false, nc, &g_sock, 0);
+		}
+
+		if(nc->ismatcher)
+		{
+			//InfoMess("got mm", "got mm");
+			//g_log<<"got mm"<<std::endl;
+			//g_log.flush();
+			g_mmconn = nc;
+			g_sentsvinfo = false;
+
+			if(g_reqsvlist && !g_reqdnexthost)
+			{
+				//g_log<<"got mm send f svl"<<std::endl;
+				//g_log.flush();
+
+				//g_reqdsvlist = true;
+				//g_needsvlist = false;
+				g_reqdnexthost = true;
+
+				GetSvListPacket gslp;
+				gslp.header.type = PACKET_GETSVLIST;
+				SendData((char*)&gslp, sizeof(GetSvListPacket), &nc->addr, true, false, nc, &g_sock, 0);
+				//InfoMess("sglp", "sglp");
+			}
+		}
+	}
+#endif
+#else
+#endif
+}
+
+//on connect packed ack'd
+void OnAck_Connect(OldPacket* p, NetConn* nc)
+{
+	if(!nc)
+		nc = Match(&p->addr);
+
+	if(!nc)
+		return;
+	
+	ConnectPacket* scp = (ConnectPacket*)p->buffer;
+
+	if(!scp->reply)
+	{
+		//if(nc->ctype == CONN_HOST)
+		if(nc->isourhost)
+		{
+			g_svconn = nc;
+
+			//InfoMess("conn", "conn to our host");
+
+			//TO DO request data, get ping, whatever, server info
+
+			//g_canturn = true;
+			//
+			//char msg[128];
+			//sprintf(msg, "send join to %u:%u aka %u:%u", from->host, (unsigned int)from->port, nc->addr.host, (unsigned int)nc->addr.port);
+			//InfoMess("j", msg);
+
+			JoinPacket jp;
+			jp.header.type = PACKET_JOIN;
+			std::string name = g_name.rawstr();
+			if(name.length() >= PYNAME_LEN)
+				name[PYNAME_LEN] = 0;
+			strcpy(jp.name, name.c_str());
+			SendData((char*)&jp, sizeof(JoinPacket), &nc->addr, true, false, nc, &g_sock, 0, NULL);
+		}
+		//else if(nc->ctype == CONN_MATCHER)
+	
+		if(nc->ishostinfo)
+		{
+			//TO DO request data, get ping, whatever, server info
+			GetSvInfoPacket gsip;
+			gsip.header.type = PACKET_GETSVINFO;
+			SendData((char*)&gsip, sizeof(GetSvInfoPacket), &nc->addr, true, false, nc, &g_sock, 0, NULL);
+		}
+
+		if(nc->ismatcher)
+		{
+			//InfoMess("got mm", "got mm");
+			//g_log<<"got mm"<<std::endl;
+			//g_log.flush();
+			g_mmconn = nc;
+			g_sentsvinfo = false;
+
+			if(g_reqsvlist && !g_reqdnexthost)
+			{
+				//g_log<<"got mm send f svl"<<std::endl;
+				//g_log.flush();
+
+				//g_reqdsvlist = true;
+				//g_needsvlist = false;
+				g_reqdnexthost = true;
+
+				GetSvListPacket gslp;
+				gslp.header.type = PACKET_GETSVLIST;
+				SendData((char*)&gslp, sizeof(GetSvListPacket), &nc->addr, true, false, nc, &g_sock, 0, NULL);
+				//InfoMess("sglp", "sglp");
+			}
+		}
+	}
+}

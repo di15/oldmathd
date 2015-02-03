@@ -3,7 +3,7 @@
 #include "button.h"
 #include "checkbox.h"
 #include "editbox.h"
-#include "dropdowns.h"
+#include "droplist.h"
 #include "image.h"
 #include "insdraw.h"
 #include "link.h"
@@ -17,10 +17,10 @@
 #include "../../window.h"
 #include "../../render/shader.h"
 #include "../gui.h"
-#include "../../sim/player.h"
+
 #include "../../debug.h"
 
-ViewportW::ViewportW()
+Viewport::Viewport()
 {
 	m_parent = NULL;
 	m_type = WIDGET_VIEWPORT;
@@ -38,15 +38,15 @@ ViewportW::ViewportW()
 	//reframe();
 }
 
-ViewportW::ViewportW(Widget* parent, const char* n, void (*reframef)(Widget* thisw),
-					 void (*drawf)(int p, int x, int y, int w, int h),
-					 bool (*ldownf)(int p, int x, int y, int w, int h),
-					 bool (*lupf)(int p, int x, int y, int w, int h),
-					 bool (*mousemovef)(int p, int x, int y, int w, int h),
-					 bool (*rdownf)(int p, int relx, int rely, int w, int h),
-					 bool (*rupf)(int p, int relx, int rely, int w, int h),
-					 bool (*mousewf)(int p, int d),
-					 int parm)
+Viewport::Viewport(Widget* parent, const char* n, void (*reframef)(Widget* thisw),
+                     void (*drawf)(int p, int x, int y, int w, int h),
+                     bool (*ldownf)(int p, int x, int y, int w, int h),
+                     bool (*lupf)(int p, int x, int y, int w, int h),
+                     bool (*mousemovef)(int p, int x, int y, int w, int h),
+                     bool (*rdownf)(int p, int relx, int rely, int w, int h),
+                     bool (*rupf)(int p, int relx, int rely, int w, int h),
+                     bool (*mousewf)(int p, int d),
+                     int parm)
 {
 	m_parent = parent;
 	m_type = WIDGET_VIEWPORT;
@@ -64,13 +64,12 @@ ViewportW::ViewportW(Widget* parent, const char* n, void (*reframef)(Widget* thi
 	reframe();
 }
 
-void ViewportW::draw()
+void Viewport::draw()
 {
-	//g_log<<m_pos[0]<<","<<m_pos[1]<<","<<m_pos[2]<<","<<m_pos[3]<<endl;
+	//g_applog<<m_pos[0]<<","<<m_pos[1]<<","<<m_pos[2]<<","<<m_pos[3]<<std::endl;
 
-	Player* py = &g_player[g_curP];
-	int w = m_pos[2] - m_pos[0];
-	int h = m_pos[3] - m_pos[1];
+	int w = (int)( m_pos[2] - m_pos[0] );
+	int h = (int)( m_pos[3] - m_pos[1] );
 
 	int viewport[4];
 	glGetIntegerv(GL_VIEWPORT, viewport);
@@ -80,108 +79,119 @@ void ViewportW::draw()
 
 	EndS();
 
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 
 	if(drawfunc != NULL)
 		drawfunc(m_param, m_pos[0], m_pos[1], w, h);
 
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 
 	//glViewport(0, 0, g_width, g_height);
 	glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 	//glUniform1f(g_shader[SHADER_ORTHO].m_slot[SSLOT_WIDTH], (float)g_width);
 	//glUniform1f(g_shader[SHADER_ORTHO].m_slot[SSLOT_HEIGHT], (float)g_height);
 
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 	Ortho(g_width, g_height, 1, 1, 1, 1);
 }
 
-void ViewportW::inev(InEv* ev)
+void Viewport::inev(InEv* ie)
 {
-	Player* py = &g_player[g_curP];
-
-	if(ev->type == INEV_MOUSEMOVE)
+	if(ie->type == INEV_MOUSEMOVE)
 	{
-		if(py->mouse.x >= m_pos[0] && py->mouse.x <= m_pos[2] && py->mouse.y >= m_pos[1] && py->mouse.y <= m_pos[3])
-		{}
+		if(g_mouse.x >= m_pos[0] && g_mouse.x <= m_pos[2] && g_mouse.y >= m_pos[1] && g_mouse.y <= m_pos[3])
+		{
+			if(!ie->intercepted)
+				m_over = true;
+		}
 		else
 			m_over = false;
 	}
-	else if(ev->type == INEV_MOUSEMOVE && !ev->intercepted)
+	
+	if(ie->type == INEV_MOUSEMOVE && !ie->intercepted)
 	{
-		if(py->mouse.x >= m_pos[0] && py->mouse.x <= m_pos[2] && py->mouse.y >= m_pos[1] && py->mouse.y <= m_pos[3])
+		if(g_mouse.x >= m_pos[0] && g_mouse.x <= m_pos[2] && g_mouse.y >= m_pos[1] && g_mouse.y <= m_pos[3])
 			m_over = true;
 
 		if(mousemovefunc != NULL)
 		{
-			int relx = py->mouse.x - m_pos[0];
-			int rely = py->mouse.y - m_pos[1];
-			int w = m_pos[2] - m_pos[0];
-			int h = m_pos[3] - m_pos[1];
-			ev->intercepted = mousemovefunc(m_param, relx, rely, w, h);
+			int relx = g_mouse.x - (int)m_pos[0];
+			int rely = g_mouse.y - (int)m_pos[1];
+			int w = (int)( m_pos[2] - m_pos[0] );
+			int h = (int)( m_pos[3] - m_pos[1] );
+			ie->intercepted = mousemovefunc(m_param, relx, rely, w, h);
 		}
 
 		return;
 	}
-	else if(ev->type == INEV_MOUSEDOWN && ev->key == MOUSE_LEFT && !ev->intercepted)
+	else if(ie->type == INEV_MOUSEDOWN && ie->key == MOUSE_LEFT && !ie->intercepted)
 	{
+		//InfoMess("vpld", "vpld");
+
 		if(!m_over)
 			return;
 
 		if(ldownfunc != NULL)
 		{
-			Player* py = &g_player[g_curP];
-			int relx = py->mouse.x - m_pos[0];
-			int rely = py->mouse.y - m_pos[1];
-			int w = m_pos[2] - m_pos[0];
-			int h = m_pos[3] - m_pos[1];
-			ev->intercepted = ldownfunc(m_param, relx, rely, w, h);
+			int relx = g_mouse.x - (int)m_pos[0];
+			int rely = g_mouse.y - (int)m_pos[1];
+			int w = (int)( m_pos[2] - m_pos[0] );
+			int h = (int)( m_pos[3] - m_pos[1] );
+			ie->intercepted = ldownfunc(m_param, relx, rely, w, h);
 		}
 	}
-	else if(ev->type == INEV_MOUSEUP && ev->key == MOUSE_LEFT && !ev->intercepted)
+	else if(ie->type == INEV_MOUSEUP && ie->key == MOUSE_LEFT && !ie->intercepted)
 	{
+		//InfoMess("vplu", "vplu");
+
+		if(!m_over)
+			return;
+
 		if(lupfunc != NULL)
 		{
-			Player* py = &g_player[g_curP];
-			int relx = py->mouse.x - m_pos[0];
-			int rely = py->mouse.y - m_pos[1];
-			int w = m_pos[2] - m_pos[0];
-			int h = m_pos[3] - m_pos[1];
-			ev->intercepted = lupfunc(m_param, relx, rely, w, h);
+			int relx = g_mouse.x - (int)m_pos[0];
+			int rely = g_mouse.y - (int)m_pos[1];
+			int w = (int)( m_pos[2] - m_pos[0] );
+			int h = (int)( m_pos[3] - m_pos[1] );
+			ie->intercepted = lupfunc(m_param, relx, rely, w, h);
 		}
 	}
-	else if(ev->type == INEV_MOUSEDOWN && ev->key == MOUSE_RIGHT && !ev->intercepted)
+	else if(ie->type == INEV_MOUSEDOWN && ie->key == MOUSE_RIGHT && !ie->intercepted)
 	{
 		if(!m_over)
 			return;
 
 		if(rdownfunc != NULL)
 		{
-			Player* py = &g_player[g_curP];
-			int relx = py->mouse.x - m_pos[0];
-			int rely = py->mouse.y - m_pos[1];
-			int w = m_pos[2] - m_pos[0];
-			int h = m_pos[3] - m_pos[1];
-			ev->intercepted = rdownfunc(m_param, relx, rely, w, h);
+			int relx = g_mouse.x - (int)m_pos[0];
+			int rely = g_mouse.y - (int)m_pos[1];
+			int w = (int)( m_pos[2] - m_pos[0] );
+			int h = (int)( m_pos[3] - m_pos[1] );
+			ie->intercepted = rdownfunc(m_param, relx, rely, w, h);
 		}
 	}
-	else if(ev->type == INEV_MOUSEUP && ev->key == MOUSE_RIGHT && !ev->intercepted)
+	else if(ie->type == INEV_MOUSEUP && ie->key == MOUSE_RIGHT && !ie->intercepted)
 	{
+		if(!m_over)
+			return;
+
 		if(rupfunc != NULL)
 		{
-			Player* py = &g_player[g_curP];
-			int relx = py->mouse.x - m_pos[0];
-			int rely = py->mouse.y - m_pos[1];
-			int w = m_pos[2] - m_pos[0];
-			int h = m_pos[3] - m_pos[1];
-			ev->intercepted = rupfunc(m_param, relx, rely, w, h);
+			int relx = g_mouse.x - (int)m_pos[0];
+			int rely = g_mouse.y - (int)m_pos[1];
+			int w = (int)( m_pos[2] - m_pos[0] );
+			int h = (int)( m_pos[3] - m_pos[1] );
+			ie->intercepted = rupfunc(m_param, relx, rely, w, h);
 		}
 	}
-	else if(ev->type == INEV_MOUSEWHEEL && !ev->intercepted)
+	else if(ie->type == INEV_MOUSEWHEEL && !ie->intercepted)
 	{
+		if(!m_over)
+			return;
+
 		if(mousewfunc != NULL)
 		{
-			ev->intercepted = mousewfunc(m_param, ev->amount);
+			ie->intercepted = mousewfunc(m_param, ie->amount);
 		}
 	}
 }

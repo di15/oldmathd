@@ -1,10 +1,9 @@
-
 #include "../../widget.h"
 #include "../barbutton.h"
 #include "../button.h"
 #include "../checkbox.h"
 #include "../editbox.h"
-#include "../dropdowns.h"
+#include "../droplist.h"
 #include "../image.h"
 #include "../insdraw.h"
 #include "../link.h"
@@ -35,9 +34,9 @@ ResTicker::ResTicker(Widget* parent, const char* n, void (*reframef)(Widget* thi
 	Image righthlineblur;
 	Image whitebg;
 #endif
-	
-	//restext = Text(this, "res ticker", RichText("asdadasdasads"), MAINFONT16, NULL, true, 1, 1, 1, 1);
-	restext = Text(this, "res ticker", RichText("asdadasdasads"), MAINFONT16, NULL, false, 0.2, 0.7, 0.8, 1);
+
+	restext = Text(this, "res ticker", RichText("..."), MAINFONT16, NULL, true, 1, 1, 1, 1);
+	//restext = Text(this, "res ticker", RichText("..."), MAINFONT16, NULL, false, 0.2f, 0.7f, 0.8f, 1.0f);
 #if 0
 	leftinnerdiagblur = Image(this, "gui/frames/innerdiagblur32x24halfwht.png", true, NULL, 1, 1, 1, 1,		0, 0, 1, 1);
 	rightinnerdiagblur = Image(this, "gui/frames/innerdiagblur32x24halfwht.png", true, NULL, 1, 1, 1, 1,		1, 0, 0, 1);
@@ -65,7 +64,7 @@ void ResTicker::reframe()	//resized or moved
 	whitebg.m_pos[1] = m_pos[1];
 	whitebg.m_pos[2] = m_pos[2]-32;
 	whitebg.m_pos[3] = m_pos[1]+RESTICKER_HEIGHT;
-	
+
 	restext.m_pos[0] = m_pos[0]+32;
 	restext.m_pos[1] = m_pos[1];
 	restext.m_pos[2] = m_pos[2]-32;
@@ -75,7 +74,7 @@ void ResTicker::reframe()	//resized or moved
 	whitebg.m_pos[1] = m_pos[1];
 	whitebg.m_pos[2] = m_pos[2];
 	whitebg.m_pos[3] = m_pos[1]+24;
-	
+
 	restext.m_pos[0] = m_pos[0];
 	restext.m_pos[1] = m_pos[1];
 	restext.m_pos[2] = m_pos[2];
@@ -133,7 +132,7 @@ void ResTicker::draw()
 		(*i)->draw();
 
 
-	//RichText rt = RichText(")A)JJF)@J)(J)(F$KJ(0jfjfjoi3jfwkjlekf");
+	//RichText rt = RichText(")A)JJF)@J)(J)(score$KJ(0jfjfjoi3jfwkjlekf");
 	//DrawShadowedTextF(MAINFONT16, m_pos[0]+32, m_pos[1]+4, 0, 0, 50, 50, &rt);
 	restext.draw();
 
@@ -152,12 +151,12 @@ void ResTicker::drawover()
 		(*i)->drawover();
 }
 
-void ResTicker::inev(InEv* ev)
+void ResTicker::inev(InEv* ie)
 {
-	Player* py = &g_player[g_curP];
+	Player* py = &g_player[g_localP];
 
 	for(auto i=m_subwidg.rbegin(); i!=m_subwidg.rend(); i++)
-		(*i)->inev(ev);
+		(*i)->inev(ie);
 }
 
 void ResTicker::frameupd()

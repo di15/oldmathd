@@ -1,9 +1,9 @@
 
 #include "collision.h"
 #include "../sim/building.h"
-#include "../sim/buildingtype.h"
+#include "../sim/bltype.h"
 #include "../sim/unit.h"
-#include "../sim/unittype.h"
+#include "../sim/utype.h"
 #include "../render/heightmap.h"
 #include "../sim/crpipe.h"
 #include "../sim/powl.h"

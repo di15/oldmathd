@@ -6,7 +6,7 @@
 #include "../math/vec3f.h"
 #include "../platform.h"
 #include "resources.h"
-#include "buildingtype.h"
+#include "bltype.h"
 #include "../render/vertexarray.h"
 
 class VertexArray;

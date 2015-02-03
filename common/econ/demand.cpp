@@ -1,7 +1,7 @@
 #include "demand.h"
 #include "../sim/unit.h"
 #include "../sim/building.h"
-#include "../sim/sim.h"
+#include "../sim/simdef.h"
 #include "../sim/labourer.h"
 #include "../utils.h"
 #include "utility.h"
@@ -2265,7 +2265,7 @@ void CombCo(int btype, Bid* bid, int rtype, int ramt)
 			if(bt->input[ri] <= 0)
 				continue;
 
-			//int rstep = Ceili(minstep * bt->input[ri], RATIO_DENOM);
+			//int rstep = ceili(minstep * bt->input[ri], RATIO_DENOM);
 			int rstep = minstep * bt->input[ri] / RATIO_DENOM;
 			rstep = imin(rstep, stepleft[ri]);
 			stepcounted[ri] += rstep;
@@ -2300,7 +2300,7 @@ void CheckBlType(DemTree* dm, Player* p, int btype, int rtype, int ramt, Vec2i t
 
 	BlType* bt = &g_bltype[btype];
 
-	int prodlevel = Ceili(RATIO_DENOM * ramt, bt->output[rtype]);
+	int prodlevel = ceili(RATIO_DENOM * ramt, bt->output[rtype]);
 
 	if(prodlevel > RATIO_DENOM)
 		prodlevel = RATIO_DENOM;
@@ -2337,7 +2337,7 @@ void CheckBlType(DemTree* dm, Player* p, int btype, int rtype, int ramt, Vec2i t
 		if(bt->input[ri] <= 0)
 			continue;
 
-		int reqr = Ceili(prodlevel * bt->input[ri], RATIO_DENOM);
+		int reqr = ceili(prodlevel * bt->input[ri], RATIO_DENOM);
 
 		if(reqr <= 0)
 			continue;
@@ -2695,7 +2695,7 @@ void CheckBlTile(DemTree* dm, Player* p, int ri, RDemNode* pt, int x, int z, int
 			//find max profit based on cost composition and price
 			bool mpr = MaxPro(bid->costcompo, leastnext, demramt, &proramt, maxbudg, &currev, &curprofit);
 
-			//int ofmax = Ceili(proramt * RATIO_DENOM, bestmaxr);	//how much of max demanded is
+			//int ofmax = ceili(proramt * RATIO_DENOM, bestmaxr);	//how much of max demanded is
 			//curprofit += ofmax * bestrecur / RATIO_DENOM;	//bl recurring costs, scaled to demanded qty
 
 #if 0

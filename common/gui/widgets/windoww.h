@@ -21,6 +21,8 @@ public:
 	Image bg_image;
 	Image bg_logo_image;
 
+	Text title_text;
+
 	Image inner_top_mid_image;
 	Image inner_top_leftdiag_image;
 	Image inner_top_rightdiag_image;
@@ -41,15 +43,20 @@ public:
 	Image inner_bottom_leftvblur_image;
 	Image inner_bottom_rightvblur_image;
 
-	VScroll vscroll;
+	VScroll m_vscroll;
 
 	float m_minsz[2];
 	int m_mousedown[2];
+	
+	float innerleft;
+	float innertop;
+	float innerright;
+	float innerbottom;
 
 	WindowW();
 	WindowW(Widget* parent, const char* n, void (*reframef)(Widget* thisw));
 
-	void inev(InEv* ev);
+	void inev(InEv* ie);
 	void draw();
 	void drawover();
 	void reframe();

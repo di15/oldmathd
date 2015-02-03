@@ -3,45 +3,38 @@
 #define READPACKETS_H
 
 #include "../platform.h"
-
-#ifdef _SERVER
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#endif
-
 #include "packets.h"
 
-#ifdef _SERVER
-class Client;
-void TranslatePacket(char* buffer, int bytes, struct sockaddr_in from, bool checkprev);
-void PacketSwitch(int type, char* buffer, int bytes, struct sockaddr_in from, Client* c);
-void ReadLoginPacket(LoginPacket* p, struct sockaddr_in from, Client* c);
-void ReadRegistrationPacket(RegistrationPacket* p, struct sockaddr_in from, Client* c);
-void ReadAcknowledgmentPacket(AcknowledgmentPacket* ap, struct sockaddr_in from, Client* c);
-#else	//_SERVER
-void TranslatePacket(char* buffer, int bytes, bool checkprev);
-void PacketSwitch(int type, char* buffer, int bytes);
-void ReadAcknowledgmentPacket(AcknowledgmentPacket* ap);
-void ReadRegisteredPacket(RegisteredPacket* rp);
-void ReadSpawnUnitPacket(SpawnUnitPacket* sup);
-void ReadHeightPointPacket(HeightPointPacket* hpp);
-void ReadBuildingPacket(BuildingPacket* bp);
-void ReadGarrisonPacket(GarrisonPacket* gp);
-void ReadJoinInfoPacket(JoinInfoPacket* jip);
-void ReadDoneLoadingPacket(DoneLoadingPacket* dlp);
+class NetConn;
 
-void ReadUsernameExistsPacket(UsernameExistsPacket* uep);
-void ReadEmailExistsPacket(EmailExistsPacket* eep);
-void ReadIncorrectLoginPacket(IncorrectLoginPacket* ilp);
-void ReadIncorrectVersionPacket(IncorrectVersionPacket* ivp);
-void ReadLoginCorrectPacket(LoginCorrectPacket* lcp);
-void ReadTooManyClientsPacket(TooManyClientsPacket* tmcp);  
-void ReadRegDBErrorPacket(RegDBErrorPacket* rdbep);
-void ReadConnectionResetPacket(ConnectionResetPacket* crp);
-void ReadDisconnectPacket(DisconnectPacket* dp);
-#endif	//_SERVER
+void TranslatePacket(char* buffer, int bytes, bool checkprev, UDPsocket* sock, IPaddress* from);
+void PacketSwitch(int type, char* buffer, int bytes, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadPlaceBlPacket(PlaceBlPacket* pbp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadAckPacket(AckPacket* ap, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadDisconnectPacket(DisconnectPacket* dp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadNoConnPacket(NoConnectionPacket* ncp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadConnectPacket(ConnectPacket* cp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadDoneTurnPacket(DoneTurnPacket* dtp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadNetTurnPacket(NetTurnPacket* ntp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadJoinPacket(JoinPacket* jp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadAddSvPacket(AddSvPacket* asp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadAddedSvPacket(AddedSvPacket* asp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadSvAddrPacket(SvAddrPacket* sap, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadGetSvListPacket(GetSvListPacket* gslp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadSendNextHostPacket(SendNextHostPacket* snhp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadNoMoreHostsPacket(NoMoreHostsPacket* nmhp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadSvInfoPacket(SvInfoPacket* sip, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadGetSvInfoPacket(GetSvInfoPacket* gsip, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadAddClPacket(AddClientPacket* acp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadSelfClPacket(SelfClientPacket* scp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadSetClNamePacket(SetClNamePacket* scnp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadClientLeftPacket(ClientLeftPacket* clp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadClientRolePacket(ClientRolePacket* crp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadDoneJoinPacket(DoneJoinPacket* djp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadTooManyClPacket(TooManyClPacket* tmcp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadMapChangePacket(MapChangePacket* mcp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadChValPacket(ChValPacket* cvp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void ReadClDisconnectedPacket(ClDisconnectedPacket* cdp, NetConn* nc, IPaddress* from, UDPsocket* sock);
+void OnAck_Connect(OldPacket* p, NetConn* nc);
 
 #endif	//READPACKETS_H

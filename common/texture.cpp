@@ -47,7 +47,7 @@ LoadedTex *LoadBMP(const char *fullpath)
 	{
 		char msg[MAX_PATH+1];
 		sprintf(msg, "Unable to load BMP File: %s", fullpath);
-		ErrorMessage("Error", msg);
+		ErrMess("Error", msg);
 		return NULL;
 	}
 
@@ -109,6 +109,8 @@ LoadedTex *LoadBMP(const char *fullpath)
 		}
 	}*/
 
+	fclose(pFile);
+
 	return pImage;
 }
 
@@ -128,7 +130,7 @@ LoadedTex *LoadTGA(const char *fullpath)
 	{
 		char msg[MAX_PATH+1];
 		sprintf(msg, "Unable to load TGA File: %s", fullpath);
-		ErrorMessage("Error", msg);
+		ErrMess("Error", msg);
 		return NULL;
 	}
 
@@ -413,7 +415,7 @@ void DecodeJPG(jpeg_decompress_struct* cinfo, LoadedTex *pImageData)
 	{
 		// Read in the current row of pixels and increase the rowsRead count
 		rowsRead += jpeg_read_scanlines(cinfo,
-										&rowPtr[rowsRead], cinfo->output_height - rowsRead);
+		                                &rowPtr[rowsRead], cinfo->output_height - rowsRead);
 	}
 
 	// Delete the temporary row pointers
@@ -434,8 +436,8 @@ LoadedTex *LoadJPG(const char *fullpath)
 	{
 		// Display an error message saying the file was not found, then return NULL
 		char msg[MAX_PATH+1];
-		sprintf(msg, "Unable to load JPG File: %s", fullpath);
-		ErrorMessage("Error", msg);
+		sprintf(msg, "Unable to load JPG File: %s \n errno = %d", fullpath, errno);
+		ErrMess("Error", msg);
 		return NULL;
 	}
 
@@ -489,7 +491,7 @@ LoadedTex *LoadPNG(const char *fullpath)
 
 	g_log<<"PNG header "<<relative<<" "
 		<<(int)header[0]<<","<<(int)header[1]<<","<<(int)header[2]<<","<<(int)header[3]<<","
-		<<(int)header[4]<<","<<(int)header[5]<<","<<(int)header[6]<<","<<(int)header[7]<<endl;
+		<<(int)header[4]<<","<<(int)header[5]<<","<<(int)header[6]<<","<<(int)header[7]<<std::endl;
 	*/
 	if ((fp = fopen(fullpath, "rb")) == NULL)
 		return NULL;
@@ -591,11 +593,11 @@ LoadedTex *LoadPNG(const char *fullpath)
 		pImageData->channels = 3;
 		break;
 	default:
-		g_log<<fullpath<<" color type "<<png_get_color_type(png_ptr, info_ptr)<<" not supported"<<endl;
+		g_log<<fullpath<<" color type "<<png_get_color_type(png_ptr, info_ptr)<<" not supported"<<std::endl;
 		//std::cout << "Color type " << info_ptr->color_type << " not supported" << std::endl;
 		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 		fclose(fp);
-		free(pImageData);
+		delete pImageData;
 		return NULL;
 	}
 
@@ -606,6 +608,7 @@ LoadedTex *LoadPNG(const char *fullpath)
 	{
 		OutOfMem(__FILE__, __LINE__);
 		fclose(fp);
+		delete pImageData;
 		return NULL;
 	}
 
@@ -667,7 +670,7 @@ void FreeTexture(const char* relative)
 		{
 			t->loaded = false;
 			glDeleteTextures(1, &t->texname);
-			//g_log<<"Found texture "<<filepath<<" ("<<texture<<")"<<endl;
+			//g_log<<"Found texture "<<filepath<<" ("<<texture<<")"<<std::endl;
 			return;
 		}
 	}
@@ -755,7 +758,7 @@ void FreeTextures()
 			continue;
 
 		glDeleteTextures(1, &g_texture[i].texname);
-		//g_texture[i].loaded = false;	// Needed to reload textures
+		g_texture[i].loaded = false;	// Needed to reload textures. EDIT: not.
 	}
 }
 
@@ -816,7 +819,7 @@ bool Load1Texture()
 	if(g_lastLTex+1 < g_texLoad.size())
 		Status(g_texLoad[g_lastLTex+1].relative);
 
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 
 	if(g_lastLTex >= 0)
 	{
@@ -862,6 +865,21 @@ void RequeueTexture(unsigned int texindex, const char* relative, bool clamp, boo
 	g_texLoad.push_back(toLoad);
 }
 
+void ReloadTextures()
+{
+	for(int i=0; i<TEXTURES; i++)
+	{
+		Texture* t = &g_texture[i];
+
+		if(!t->loaded)
+			continue;
+
+		std::string rel;
+		rel = MakePathRelative(t->filepath);
+		RequeueTexture(i, rel.c_str(), t->clamp, t->mipmaps);
+	}
+}
+
 LoadedTex* LoadTexture(const char* full)
 {
 	if(strstr(full, ".jpg"))
@@ -885,38 +903,9 @@ LoadedTex* LoadTexture(const char* full)
 	return NULL;
 }
 
-// get a power of 2 number that is big enough to hold 'lowerbound' but does not exceed 2048
-int Max2Pow(int lowerbound)
-{
-	int twopow = 2;
-
-	while( twopow < lowerbound
-#if 0
-		&& twopow < 2048
-#endif
-		)
-		twopow *= 2;
-
-	return twopow;
-}
-
-int Max2Pow32(int lowerbound)
-{
-	int twopow = 32;
-
-	while( twopow < lowerbound
-#if 0
-		&& twopow < 2048
-#endif
-		)
-		twopow *= 2;
-
-	return twopow;
-}
-
 bool CreateTexture(unsigned int &texindex, const char* relative, bool clamp, bool mipmaps, bool reload)
 {
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 
 	if(!relative)
 		return false;
@@ -936,7 +925,7 @@ bool CreateTexture(unsigned int &texindex, const char* relative, bool clamp, boo
 	// Make sure valid image data was given to pImage, otherwise return false
 	if(pImage == NULL)
 	{
-		g_log<<"Failed to load "<<relative<<endl;
+		g_log<<"Failed to load "<<relative<<std::endl;
 		g_log.flush();
 
 		if(!reload)
@@ -949,15 +938,15 @@ bool CreateTexture(unsigned int &texindex, const char* relative, bool clamp, boo
 	// Generate a texture with the associative texture ID stored in the array
 	glGenTextures(1, &texname);
 
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 	// This sets the alignment requirements for the start of each pixel row in memory.
 	glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 
 	// Bind the texture to the texture arrays index and init the texture
 	glBindTexture(GL_TEXTURE_2D, texname);
 
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 	// Assume that the texture is a 24 bit RGB texture (We convert 16-bit ones to 24-bit)
 	int textureType = GL_RGB;
 	bool transp = false;
@@ -970,11 +959,11 @@ bool CreateTexture(unsigned int &texindex, const char* relative, bool clamp, boo
 	}
 
 
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 
 #if 1
 
-	//g_log<<"mipmaps:"<<(int)mipmaps<<" :"<<relative<<endl;
+	//g_log<<"mipmaps:"<<(int)mipmaps<<" :"<<relative<<std::endl;
 
 	if(mipmaps)
 	{
@@ -1001,7 +990,7 @@ bool CreateTexture(unsigned int &texindex, const char* relative, bool clamp, boo
 		glTexImage2D(GL_TEXTURE_2D, 0, textureType, pImage->sizeX, pImage->sizeY, 0, textureType, GL_UNSIGNED_BYTE, pImage->data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		CHECKGLERROR();
+		CheckGLError(__FILE__, __LINE__);
 	}
 	else
 	{
@@ -1022,10 +1011,10 @@ bool CreateTexture(unsigned int &texindex, const char* relative, bool clamp, boo
 
 		glTexImage2D(GL_TEXTURE_2D, 0, textureType, pImage->sizeX, pImage->sizeY, 0, textureType, GL_UNSIGNED_BYTE, pImage->data);
 
-		CHECKGLERROR();
+		CheckGLError(__FILE__, __LINE__);
 	}
 
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 #else
 	// Option 3: without mipmaps linear
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1215,7 +1204,7 @@ int SavePNG(const char* fullpath, LoadedTex* image)
 	 * in case we are using dynamically linked libraries.  REQUIRED.
 	 */
 	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
-									  (png_voidp) NULL, NULL, NULL);
+	                                  (png_voidp) NULL, NULL, NULL);
 
 	if (png_ptr == NULL)
 	{
@@ -1261,7 +1250,7 @@ int SavePNG(const char* fullpath, LoadedTex* image)
 	if(!row_pointers)
 	{
 		OutOfMem(__FILE__, __LINE__);
-		return 0;
+		return NULL;
 	}
 
 	for (int y=0; y<image->sizeY; y++)
@@ -1391,8 +1380,8 @@ int SaveBMP(const char* fullpath, LoadedTex* image)
 
 #if 0
 	for(int imageIdx = image->channels * (image->sizeX - 1);
-			imageIdx < image->sizeX * image->sizeY * image->channels;
-			imageIdx += image->channels * image->sizeX)
+	                imageIdx < image->sizeX * image->sizeY * image->channels;
+	                imageIdx += image->channels * image->sizeX)
 	{
 		image->data[imageIdx] = image->data[imageIdx-3];
 		image->data[imageIdx+1] = image->data[imageIdx-2];
@@ -1454,25 +1443,24 @@ void StreamRaw(FILE* fp, unsigned int* texname, Vec2i fullsz, Vec2i srcpos, Vec2
 	newtex.destroy();
 }
 
-
 void Resample(LoadedTex* original, LoadedTex* empty, Vec2i newdim)
 {
 #ifdef COMPILEB_DEBUG
-	g_log<<"resample...?"<<endl;
+	g_log<<"resample...?"<<std::endl;
 	g_log.flush();
 #endif
 
 	if(original == NULL || original->data == NULL || original->sizeX <= 0 || original->sizeY <= 0)
 	{
 #ifdef COMPILEB_DEBUG
-		g_log<<"resample NULL 1"<<endl;
+		g_log<<"resample NULL 1"<<std::endl;
 		g_log.flush();
 #endif
 
 		empty->data = NULL;
 
 #ifdef COMPILEB_DEBUG
-		g_log<<"resample NULL 2"<<endl;
+		g_log<<"resample NULL 2"<<std::endl;
 		g_log.flush();
 #endif
 
@@ -1486,7 +1474,7 @@ void Resample(LoadedTex* original, LoadedTex* empty, Vec2i newdim)
 	}
 
 #ifdef COMPILEB_DEBUG
-	g_log<<"resample "<<original->sizeX<<","<<original->sizeY<<" to "<<newdim.x<<","<<newdim.y<<endl;
+	g_log<<"resample "<<original->sizeX<<","<<original->sizeY<<" to "<<newdim.x<<","<<newdim.y<<std::endl;
 	g_log.flush();
 #endif
 
@@ -1512,7 +1500,7 @@ void Resample(LoadedTex* original, LoadedTex* empty, Vec2i newdim)
 	}
 
 #ifdef COMPILEB_DEBUG
-	g_log<<"\t done resample"<<endl;
+	g_log<<"\t done resample"<<std::endl;
 	g_log.flush();
 #endif
 }

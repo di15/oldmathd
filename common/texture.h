@@ -52,9 +52,9 @@ typedef struct
 class LoadedTex
 {
 public:
-	unsigned char channels;	// The channels in the image (3 = RGB : 4 = RGBA)
-	unsigned short sizeX;	// The width of the image in pixels
-	unsigned short sizeY;	// The height of the image in pixels
+	int channels;			// The channels in the image (3 = RGB : 4 = RGBA)
+	int sizeX;				// The width of the image in pixels
+	int sizeY;				// The height of the image in pixels
 	unsigned char *data;	// The image pixel data
 
 	void destroy();
@@ -108,8 +108,5 @@ void FlipImage(LoadedTex* image);
 int SaveBMP(const char* fullpath, LoadedTex* image);
 bool SaveRAW(const char* fullpath, LoadedTex* image);
 void Resample(LoadedTex* original, LoadedTex* empty, Vec2i newdim);
-// get a power of 2 number that is big enough to hold 'lowerbound' but does not exceed 2048
-int Max2Pow(int lowerbound);
-int Max2Pow32(int lowerbound);
 
 #endif

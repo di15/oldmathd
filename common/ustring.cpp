@@ -1,6 +1,7 @@
 #include "platform.h"
 #include "ustring.h"
 #include "utils.h"
+#include "sys/unicode.h"
 
 UString::UString()
 {
@@ -21,10 +22,10 @@ UString::~UString()
 		g_log.flush();
 	}
 
-	g_log<<endl;
+	g_log<<std::endl;
 	g_log.flush();
 
-	//g_log<<"'"<<rawstr()<<"'"<<endl;
+	//g_log<<"'"<<rawstr()<<"'"<<std::endl;
 	//g_log.flush();
 #endif
 
@@ -43,7 +44,7 @@ UString::UString(const UString& original)
 UString::UString(const char* cstr)
 {
 #ifdef USTR_DEBUG
-	g_log<<"UString::UString(const char* cstr)"<<endl;
+	g_log<<"UString::UString(const char* cstr)"<<std::endl;
 	g_log.flush();
 #endif
 
@@ -82,7 +83,7 @@ UString::UString(unsigned int* k)
 UString& UString::operator=(const UString& original)
 {
 #ifdef USTR_DEBUG
-	g_log<<"UString= ["<<rawstr()<<"] => ["<<original.rawstr()<<"]"<<endl;
+	g_log<<"UString= ["<<rawstr()<<"] => ["<<original.rawstr()<<"]"<<std::endl;
 	g_log.flush();
 #endif
 
@@ -123,6 +124,10 @@ UString UString::substr(int start, int len) const
 	if(len <= 0)
 		return newstr;
 
+	//important fix
+	if(start < 0 || start >= m_length)
+		return newstr;
+
 	delete [] newstr.m_data;
 	newstr.m_length = len;
 	newstr.m_data = new unsigned int[len+1];
@@ -132,7 +137,7 @@ UString UString::substr(int start, int len) const
 	newstr.m_data[len] = 0;
 
 #ifdef USTR_DEBUG
-	g_log<<"USt substr :: "<<newstr.rawstr()<<endl;
+	g_log<<"USt substr :: "<<newstr.rawstr()<<std::endl;
 	g_log.flush();
 #endif
 
@@ -167,10 +172,10 @@ std::string UString::rawstr() const
 
 //#ifdef USTR_DEBUG
 #if 0
-	g_log<<"\t\tstring UString::rawstr() const..."<<endl;
+	g_log<<"\t\tstring UString::rawstr() const..."<<std::endl;
 	g_log.flush();
 
-	g_log<<"\t\t\t"<<endl;
+	g_log<<"\t\t\t"<<std::endl;
 	g_log.flush();
 
 	for(int i=0; i<m_length; i++)
@@ -182,8 +187,15 @@ std::string UString::rawstr() const
 
 #endif
 
+#if 0
 	for(int i=0; i<m_length; i++)
 		finstr += (char)m_data[i];
+#else
+	//utf8
+	unsigned char* utf8 = ToUTF8(m_data);
+	finstr = (char*)utf8;
+	delete [] utf8;
+#endif
 
 	return finstr;
 }

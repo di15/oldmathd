@@ -3,7 +3,7 @@
 #include "button.h"
 #include "checkbox.h"
 #include "editbox.h"
-#include "dropdowns.h"
+#include "droplist.h"
 #include "image.h"
 #include "insdraw.h"
 #include "link.h"
@@ -55,9 +55,9 @@ Image::Image(Widget* parent, const char* filepath, bool clamp, void (*reframef)(
 	m_parent = parent;
 	m_type = WIDGET_IMAGE;
 	//CreateTexture(tex, filepath, true);
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 	CreateTexture(m_tex, filepath, clamp, false);
-	CHECKGLERROR();
+	CheckGLError(__FILE__, __LINE__);
 	//CreateTexture(tex, filepath, clamp);
 	reframefunc = reframef;
 	m_texc[0] = texleft;
@@ -73,6 +73,7 @@ Image::Image(Widget* parent, const char* filepath, bool clamp, void (*reframef)(
 	m_pos[1] = 0;
 	m_pos[2] = 0;
 	m_pos[3] = 0;
+	m_name = "";
 	reframe();
 }
 

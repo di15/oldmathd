@@ -7,7 +7,7 @@
 #include "road.h"
 #include "../render/shader.h"
 #include "../../game/gui/ggui.h"
-#include "buildingtype.h"
+#include "bltype.h"
 #include "../phys/collision.h"
 #include "../../game/gmain.h"
 #include "building.h"

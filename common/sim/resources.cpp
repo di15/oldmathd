@@ -1,7 +1,7 @@
 
 #include "resources.h"
 #include "building.h"
-#include "buildingtype.h"
+#include "bltype.h"
 
 Resource g_resource[RESOURCES];
 int g_resEd;

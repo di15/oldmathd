@@ -3,8 +3,6 @@
 
 #include "../platform.h"
 
-using namespace std;
-
 #define MAX_CHARS	256
 #define CODE_POINTS	110000
 
@@ -53,19 +51,21 @@ public:
 
 #define FONT_EUROSTILE32	0
 #define FONT_MSUIGOTHIC16	1
-#define FONT_SMALLFONTS10	2
+#define FONT_SMALLFONTS8	2
 #define FONT_GULIM32		3
 #define FONT_EUROSTILE16	4
 #define FONT_CALIBRILIGHT16	5
-#define FONTS				6
+#define FONT_MSUIGOTHIC10	6
+#define FONT_ARIAL8		7
+#define FONTS				8
 extern Font g_font[FONTS];
 
 //#define MAINFONT8 (FONT_SMALLFONTS10)
+#define MAINFONT8 (FONT_ARIAL8)
 //#define MAINFONT8 (FONT_CALIBRILIGHT16)
-#define MAINFONT8 (FONT_EUROSTILE16)
 //#define MAINFONT16 (FONT_MSUIGOTHIC16)
-#define MAINFONT16 (FONT_EUROSTILE16)
-//#define MAINFONT16 (FONT_CALIBRILIGHT16)
+//#define MAINFONT16 (FONT_EUROSTILE16)
+#define MAINFONT16 (FONT_CALIBRILIGHT16)
 //#define MAINFONT32 (FONT_EUROSTILE32)
 #define MAINFONT32 (FONT_GULIM32)
 
@@ -89,7 +89,7 @@ int EndX(const RichText* text, int lastc, int fnt, float startx, float starty);
 int MatchGlyphF(const RichText* text, int fnt, int matchx, float startx, float starty, float framex1, float framey1, float framex2, float framey2);
 void HighlightF(int fnt, float startx, float starty, float framex1, float framey1, float framex2, float framey2, const RichText* text, int highlstarti, int highlendi);
 void NextLineBreak();
-void AdvanceGlyph();
+void AdvGlyph();
 int TextWidth(int fnt, const RichText* text);
 
 #endif

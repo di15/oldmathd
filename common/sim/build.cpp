@@ -1,5 +1,5 @@
 #include "build.h"
-#include "buildingtype.h"
+#include "bltype.h"
 #include "road.h"
 #include "powl.h"
 #include "crpipe.h"
@@ -11,7 +11,7 @@
 #include "../math/hmapmath.h"
 #include "building.h"
 #include "../utils.h"
-#include "unittype.h"
+#include "utype.h"
 #include "unit.h"
 #include "../render/water.h"
 #include "../phys/collision.h"
@@ -21,9 +21,9 @@
 #include "../gui/icon.h"
 #include "player.h"
 #include "../../game/gmain.h"
-#include "../gui/widgets/spez/constructionview.h"
+#include "../gui/widgets/spez/cstrview.h"
 #include "../render/foliage.h"
-#include "unitmove.h"
+#include "umove.h"
 #include "map.h"
 
 void UpdateSBuild()

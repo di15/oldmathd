@@ -1,380 +1,234 @@
 
 
 
-#include "sendpackets.h"
-
-
 #include "net.h"
+#include "sendpackets.h"
 #include "../sim/player.h"
 #include "packets.h"
+#include "../sim/simdef.h"
+#include "lockstep.h"
 
-#ifdef _SERVER
-#include "../server/svmain.h"
-#include "client.h"
-#include "../utils.h"
-#endif
-
-#ifdef _SERVER
-void SendData(char* data, int size, struct sockaddr_in* paddr, bool reliable, Client* c)
-#else
-void SendData(char* data, int size, struct sockaddr_in* paddr, bool reliable)
-#endif
+void SendAll(char* data, int size, bool reliable, bool expires, IPaddress* exception)
 {
-#ifndef _SERVER
+	for(auto ci=g_conn.begin(); ci!=g_conn.end(); ci++)
+	{
+		//if(ci->ctype != CONN_CLIENT)
+		//	continue;
+
+		if(!ci->isclient)
+			continue;
+
+		if(exception &&
+			//memcmp(&ci->addr, exception, sizeof(IPaddress)) == 0
+				Same(&ci->addr, exception))
+			continue;
+
+		//InfoMess("sa", "sa");
+
+		SendData(data, size, &ci->addr, reliable, expires, &*ci, &g_sock, 0, NULL);
+	}
+}
+
+void SendData(char* data, int size, IPaddress * paddr, bool reliable, bool expires, NetConn* nc, UDPsocket* sock, int msdelay, void (*onackfunc)(OldPacket* p, NetConn* nc))
+{
+	UDPpacket *out = SDLNet_AllocPacket(65535);
+
 	g_lastS = GetTickCount64();
+
+#if 0
+	if(((PacketHeader*)data)->type == PACKET_NETTURN)
+	{
+		char msg[128];
+		sprintf(msg, "send netturn for netfr%u load=%u", ((NetTurnPacket*)data)->fornetfr, (unsigned int)((NetTurnPacket*)data)->loadsz);
+		//InfoMess("s", msg);
+		g_log<<msg<<std::endl;
+		FILE* fp = fopen("sntp.txt", "wb");
+		fwrite(msg, strlen(msg)+1, 1, fp);
+		fclose(fp);
+	}
 #endif
 
 	if(reliable)
 	{
-#ifdef _SERVER
-		((PacketHeader*)data)->ack = c->m_sendack;
-#else
-		((PacketHeader*)data)->ack = g_sendack;
-#endif
+		//InfoMess("sa", "s2");
+		((PacketHeader*)data)->ack = nc->sendack;
 		OldPacket p;
 		p.buffer = new char[ size ];
 		p.len = size;
 		memcpy(p.buffer, data, size);
-#ifdef _SERVER
-		memcpy((void*)&p.addr, (void*)paddr, sizeof(struct sockaddr_in));
-#endif
-		p.last = GetTickCount64();
+		memcpy((void*)&p.addr, (void*)paddr, sizeof(IPaddress));
+		//in msdelay milliseconds, p.last will be RESEND_DELAY millisecs behind GetTickCount64()
+		p.last = GetTickCount64() + msdelay - RESEND_DELAY;
 		p.first = p.last;
-		g_sent.push_back(p);
-#ifdef _SERVER
-		c->m_sendack = NextAck(c->m_sendack);
-#else
-		g_sendack = NextAck(g_sendack);
-#endif
+		p.expires = expires;
+		p.onackfunc = onackfunc;
+		g_outgo.push_back(p);
+		nc->sendack = NextAck(nc->sendack);
 	}
 
-#ifdef _SERVER
-	sendto(g_socket, data, size, 0, (struct sockaddr *)paddr, sizeof(struct sockaddr_in));
-#elif defined( _IOS )
-	// Address is NULL and the data is automatically sent to g_hostAddr by virtue of the fact that the socket is connected to that address
-	ssize_t bytes = sendto(sock, data, size, 0, NULL, 0);
+#ifdef NET_DEBUG
 	
-	int err;
-	int sock;
-	socklen_t addrLen;
-	sock = CFSocketGetNative(g_cfSocket);
+	//unsigned int ipaddr = SDL_SwapBE32(ip.host);
+	//unsigned short port = SDL_SwapBE16(ip.port);
+	if(paddr)
+	{
+		g_log<<"send to "<<SDL_SwapBE32(paddr->host)<<":"<<SDL_SwapBE16(paddr->port)<<" at tick "<<SDL_GetTicks()<<" ack"<<((PacketHeader*)data)->ack<<" t"<<((PacketHeader*)data)->type<<std::endl;
+		g_log.flush();
+	}
 
-	if(bytes < 0)
-		err = errno;
-	else if(bytes == 0)
-		err = EPIPE;
-	else
-		err = 0;
-	
-	if (err != 0)
-		NetError([NSError errorWithDomain:NSPOSIXErrorDomain code:err userInfo:nil]);
-#else
-	sendto(g_socket, data, size, 0, (struct sockaddr *)paddr, sizeof(struct sockaddr_in));
+	int nhs = 0;
+	for(auto ci=g_conn.begin(); ci!=g_conn.end(); ci++)
+		if(ci->handshook)
+			nhs++;
+
+	g_log<<"g_conn.sz = "<<g_conn.size()<<" numhandshook="<<nhs<<std::endl;
+	g_log.flush();
 #endif
+
+	if(reliable && msdelay > 0)
+		return;
+
+	memcpy(out->data, data, size);
+	out->len = size;
+	//out->data[size] = 0;
+
+
+	//if(bindaddr)
+	{
+		SDLNet_UDP_Unbind(*sock, 0);
+		if(SDLNet_UDP_Bind(*sock, 0, (const IPaddress*)paddr) == -1)
+		{
+			char msg[1280];
+			sprintf(msg, "SDLNet_UDP_Bind: %s\n",SDLNet_GetError());
+			ErrMess("Error", msg);
+			//printf("SDLNet_UDP_Bind: %s\n",SDLNet_GetError());
+			//exit(7);
+		}
+	}
+
+#if 0
+	g_log<<"send t"<<((PacketHeader*)data)->type<<std::endl;
+	g_log.flush();
+
+			char msg[128];
+			sprintf(msg, "send ack%u t%d", (unsigned int)((PacketHeader*)out->data)->ack, ((PacketHeader*)out->data)->type);
+			InfoMess("send", msg);
+#endif
+
+	//sendto(g_socket, data, size, 0, (struct addr *)paddr, sizeof(struct sockaddr_in));
+	SDLNet_UDP_Send(*sock, 0, out);
+	
+//#ifdef MATCHMAKER
+#if 1
+	g_transmitted += size;
+#endif
+
+	SDLNet_FreePacket(out);
 }
 
-void ResendPackets()
+void ResendPacks()
 {
 	OldPacket* p;
-	long long now = GetTickCount64();
-	long long due = now - RESEND_DELAY;
-	long long expire = now - RESEND_EXPIRE;
-	
-	auto i=g_sent.begin();
-	while(i!=g_sent.end())
+	unsigned long long now = GetTickCount64();
+	//unsigned long long due = now - RESEND_DELAY;
+	//unsigned long long expire = now - RESEND_EXPIRE;
+
+	auto i=g_outgo.begin();
+	while(i!=g_outgo.end())
 	{
 		p = &*i;
-		if(p->last > due)
-			continue;
 
-		if(p->first < expire)
+		unsigned long long passed = now - p->last;
+		
+		NetConn* nc = Match(&p->addr);
+
+#if 1
+		//increasing resend delay for the same outgoing packet
+
+		unsigned int nextdelay = RESEND_DELAY;
+		unsigned long long firstpassed = now - p->first;
+
+		if(nc && firstpassed >= RESEND_DELAY)
 		{
-			i = g_sent.erase(i);
+			nextdelay = firstpassed;
+		}
+#endif
 
-#ifdef _SERVER
-			g_log<<"expire at "<<DateTime()<<" dt="<<expire<<"-"<<p->first<<"="<<(expire-p->first)<<"(>"<<RESEND_EXPIRE<<") left = "<<g_sent.size()<<endl;
+		//if(p->last > due)
+		//if((nc && passed > (unsigned int)(0.8f * nc->ping)) || (!nc && passed > RESEND_DELAY))
+		//if(passed > RESEND_DELAY)
+		if(passed > nextdelay)
+		{
+			i++;
+			continue;
+		}
+		
+		//if(p->expires && p->first < expire)
+		if(p->expires && now - p->first > RESEND_EXPIRE)
+		{
+			//i->freemem();
+			i = g_outgo.erase(i);
+
+#if 0
+			g_log<<"expire at "<<DateTime()<<" dt="<<expire<<"-"<<p->first<<"="<<(expire-p->first)<<"(>"<<RESEND_EXPIRE<<") left = "<<g_outgo.size()<<endl;
 			g_log.flush();
 #endif
 
 			continue;
 		}
-		
-#ifdef _SERVER
-		SendData(p->buffer, p->len, &p->addr, false, NULL);
-#else
-		SendData(p->buffer, p->len, &g_sockaddr, false);
+
+#ifdef NET_DEBUG
+		g_log<<"\t resend...";
+		g_log.flush();
 #endif
+
+		SendData(p->buffer, p->len, &p->addr, false, p->expires, nc, &g_sock, 0, NULL);
+
 		p->last = now;
 #ifdef _IOS
 		NSLog(@"Resent at %lld", now);
 #endif
 
-#ifdef _SERVER
-			g_log<<"resent at "<<DateTime()<<" left = "<<g_sent.size()<<endl;
-			g_log.flush();
+#if 0
+		g_log<<"resent at "<<DateTime()<<" left = "<<g_outgo.size()<<endl;
+		g_log.flush();
 #endif
 
 		i++;
 	}
 }
 
-#ifdef _SERVER
-void Acknowledge(unsigned int ack, struct sockaddr_in from)
-#else
-void Acknowledge(unsigned int ack)
-#endif
+void Acknowledge(unsigned short ack, NetConn* nc, IPaddress* addr, UDPsocket* sock, char* buffer, int bytes)
 {
-	AcknowledgmentPacket p;
+#if 0	//actually, don't mess with RUDP protocol; build it on top of packets
+	//if it's a NetTurnPacket, we have to do something special...
+	if(((PacketHeader*)buffer)->type == PACKET_NETTURN)
+	{
+		NetTurnPacket* ntp = (NetTurnPacket*)buffer;
+		
+		//if it's not for the next turn, drop the ack so the server waits for us to complete up to the necessary turn
+		if(ntp->fornetfr != (g_netframe / NETTURN + 1) * NETTURN)
+		{
+			char msg[128];
+			sprintf(msg, "faulty turn fr%u", ntp->fornetfr);
+			InfoMess("Er", msg);
+			return;
+		}
+	}
+#endif
+
+	AckPacket p;
 	p.header.type = PACKET_ACKNOWLEDGMENT;
 	p.header.ack = ack;
-	
-#ifdef _SERVER
-	SendData((char*)&p, sizeof(AcknowledgmentPacket), &from, false, NULL);
-#else
-	SendData((char*)&p, sizeof(AcknowledgmentPacket), &g_sockaddr, false);
+
+#if 0
+	g_log<<"ack "<<ack<<std::endl;
+	g_log.flush();
 #endif
+
+	SendData((char*)&p, sizeof(AckPacket), addr, false, true, nc, sock, 0, NULL);
 }
 
-#ifdef _SERVER
 
-void SendAll(int player, char* data, int size, bool reliable)
-{
-	Client* c;
-	Player* p;
-
-	for(int i=0; i<CLIENTS; i++)
-	{
-		c = &g_client[i];
-
-		if(!c->m_on)
-			continue;
-
-		if(c->m_player < 0)
-			continue;
-
-		p = &g_player[c->m_player];
-
-		if(player >= 0 && c->m_player == player)
-			continue;
-
-		SendData(data, size, &c->m_addr, reliable, c);
-	}
-}
-
-void JoinInfo(Client* c)
-{
-	g_log<<"ji 1"<<endl;
-	g_log.flush();
-
-	JoinInfoPacket jip;
-	jip.header.type = PACKET_JOIN_INFO;
-	jip.playerid = c->m_player;
-	for(int i=0; i<PLANETS; i++)
-	{
-		Planet* p = &g_planet[i];
-		Heightmap* hm = &p->m_hmap;
-		jip.hmapwidth[i].x = hm->m_widthx;
-		jip.hmapwidth[i].y = hm->m_widthz;
-	}
-	SendData((char*)&jip, sizeof(struct JoinInfoPacket), &c->m_addr, true, c);
-	
-	/*
-	g_log<<"ji 2"<<endl;
-	g_log.flush();
-
-	for(int i=0; i<PLANETS; i++)
-	{
-		Planet* p = &g_planet[i];
-		Heightmap* hm = &p->m_hmap;
-		
-		for(int x=0; x<=hm->m_widthx; x++)
-			for(int z=0; z<=hm->m_widthz; z++)
-			{
-				HeightPointPacket hpp;
-				hpp.header.type = PACKET_HEIGHT_POINT;
-				hpp.planetid = i;
-				hpp.tx = x;
-				hpp.tz = z;
-				hpp.height = hm->getheight(x, z);
-				SendData((char*)&hpp, sizeof(struct HeightPointPacket), &c->m_addr, true, c);
-			}
-	}
-	
-	g_log<<"ji 3"<<endl;
-	g_log.flush();*/
-
-	for(int i=0; i<PLANETS; i++)
-	{
-		Player* p = &g_player[c->m_player];
-		Camera* cam = &p->m_planetcam[i];
-		PlanetCamPacket pcp;
-		pcp.header.type = PACKET_PLANET_CAM;
-		pcp.planetid = i;
-		pcp.cam = *cam;
-		SendData((char*)&pcp, sizeof(struct PlanetCamPacket), &c->m_addr, true, c);
-	}
-	
-	g_log<<"ji 4"<<endl;
-	g_log.flush();
-
-	// send buildings
-	for(int i=0; i<PLANETS; i++)
-	{
-		Planet* p = &g_planet[i];
-
-		for(int j=0; j<BUILDINGS; j++)
-		{
-			Building* b = &p->m_building[j];
-
-			if(!b->m_on)
-				continue;
-
-			/*
-			struct BuildingPacket
-{
-	PacketHeader header;
-	int planetid;
-	int bid;
-	bool on;
-	int type;
-	int state;
-	Vec3f pos;
-	float yaw;
-	int conmat[RESOURCES];
-	int stock[RESOURCES];
-	int conwage;	//construction wage
-};
-*/		
-			BuildingPacket bp;
-			bp.header.type = PACKET_BUILDING;
-			bp.planetid = i;
-			bp.bid = j;
-			bp.on = b->m_on;
-			bp.type = b->m_type;
-			bp.state = b->m_state;
-			bp.pos = b->m_pos;
-			bp.yaw = b->m_yaw;
-			for(int k=0; k<RESOURCES; k++)
-			{
-				bp.conmat[i] = b->m_conmat[i];
-				bp.stock[i] = b->m_stock[i];
-			}
-			bp.conwage = b->m_conwage;
-			SendData((char*)&bp, sizeof(struct BuildingPacket), &c->m_addr, true, c);
-
-			/*
-struct GarrisonPacket
-{
-	PacketHeader header;
-	int planetid;
-	int bid;
-	int uid;
-};
-*/
-
-			for(auto k=b->m_garrison.begin(); k!=b->m_garrison.end(); k++)
-			{
-				
-	g_log<<"ji 5"<<endl;
-	g_log.flush();
-
-				GarrisonPacket gp;
-				gp.header.type = PACKET_GARRISON;
-				gp.planetid = i;
-				gp.bid = j;
-				gp.uid = *k;
-				SendData((char*)&gp, sizeof(struct GarrisonPacket), &c->m_addr, true, c);
-			}
-		}
-	}
-
-	
-	g_log<<"ji 6"<<endl;
-	g_log.flush();
-
-	// send units
-	
-	for(int i=0; i<PLANETS; i++)
-	{
-		Planet* p = &g_planet[i];
-
-		for(int j=0; j<UNITS; j++)
-		{
-			Unit* u = &p->m_unit[j];
-
-			if(!u->m_on)
-				continue;
-
-			SpawnUnitPacket sup;
-			sup.header.type = PACKET_SPAWN_UNIT;
-			sup.planetid = i;
-			sup.uid = j;
-			sup.owner = u->m_owner;
-			sup.type = u->m_type;
-			sup.camera = u->m_camera;
-			sup.mode = u->m_mode;
-			sup.goal = u->m_goal;
-			sup.subgoal = u->m_subgoal;
-			sup.step = u->m_step;
-			sup.target = u->m_target;
-			sup.target2 = u->m_target2;
-			sup.targtype = u->m_targtype;
-			sup.driver = u->m_driver;
-			sup.targetunit = u->m_targetunit;
-			sup.underorder = u->m_underorder;
-			sup.fuel = u->m_fuel;
-			sup.labour = u->m_labour;
-			sup.transportres = u->m_transportres;
-			sup.transportamt = u->m_transportamt;
-			sup.actpoints = u->m_actpoints;
-			sup.hitpoints = u->m_hitpoints;
-			sup.passive = u->m_passive;
-			sup.distaccum = u->m_distaccum;
-			sup.drivewage = u->m_drivewage;
-
-			SendData((char*)&sup, sizeof(struct SpawnUnitPacket), &c->m_addr, true, c);
-		}
-	}
-
-	
-	g_log<<"ji 7"<<endl;
-	g_log.flush();
-
-	DoneLoadingPacket dlp;
-	dlp.header.type = PACKET_DONE_LOADING;
-	SendData((char*)&dlp, sizeof(struct DoneLoadingPacket), &c->m_addr, true, c);
-	
-	g_log<<"ji 8"<<endl;
-	g_log.flush();
-}
-
-#else
-
-void Register(char* username, char* password, char* email)
-{
-	RegistrationPacket p;
-	p.header.type = PACKET_REGISTRATION;
-	//strcpy(p.username, [username UTF8String]);
-	//strcpy(p.email, [email UTF8String]);
-	//strcpy(p.password, [password UTF8String]);
-	strcpy(p.username, username);
-	strcpy(p.email, email);
-	strcpy(p.password, password);
-
-	SendData((char*)&p, sizeof(struct RegistrationPacket), &g_sockaddr, true);
-}
-
-void Login(char* username, char* password)
-{
-	LoginPacket p;
-	p.header.type = PACKET_LOGIN;
-	p.version = VERSION;
-	strcpy(p.username, username);
-	strcpy(p.password, password);
-
-	SendData((char*)&p, sizeof(struct LoginPacket), &g_sockaddr, true);
-}
-
-#endif
 
 

@@ -1,16 +1,14 @@
 #include "../platform.h"
 #include "../render/shader.h"
 #include "draw2d.h"
-#include "../debug.h"
 
 void DrawImage(unsigned int tex, float left, float top, float right, float bottom, float texleft, float textop, float texright, float texbottom)
 {
 	glActiveTexture(GL_TEXTURE0);
-	CHECKGLERROR();
 	glBindTexture(GL_TEXTURE_2D, tex);
-	CHECKGLERROR();
+	glUniform1i(g_shader[SHADER_ORTHO].m_slot[SSLOT_TEXTURE0], 0);
 
-	const float vertices[] =
+	float vertices[] =
 	{
 		//posx, posy    texx, texy
 		left, top,          texleft, textop,
@@ -22,12 +20,14 @@ void DrawImage(unsigned int tex, float left, float top, float right, float botto
 		left, top,          texleft, textop
 	};
 
-	glVertexPointer(2, GL_FLOAT, sizeof(float) * 4, &vertices[0]);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 4, &vertices[2]);
-	CHECKGLERROR();
+	//glVertexPointer(2, GL_FLOAT, sizeof(float) * 4, &vertices[0]);
+	//glTexCoordPointer(2, GL_FLOAT, sizeof(float) * 4, &vertices[2]);
+	//glVertexAttribPointer(g_shader[g_curS].m_slot[SSLOT_POSITION], 2, GL_FLOAT, GL_FALSE, sizeof(float)*4, &vertices[0]);
+	glVertexPointer(3, GL_FLOAT, sizeof(float)*4, &vertices[0]);
+	//glVertexAttribPointer(g_shader[g_curS].m_slot[SSLOT_TEXCOORD0], 2, GL_FLOAT, GL_FALSE, sizeof(float)*4, &vertices[2]);
+	glTexCoordPointer(2, GL_FLOAT, sizeof(float)*4, &vertices[2]);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
-	CHECKGLERROR();
 }
 
 void DrawSquare(float r, float g, float b, float a, float left, float top, float right, float bottom)
@@ -61,8 +61,8 @@ void DrawSquare(float r, float g, float b, float a, float left, float top, float
 		left, top,0,          0, 0
 	};
 
-	glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
 	//glVertexAttribPointer(g_shader[SHADER_COLOR2D].m_slot[SSLOT_POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+	glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
 
 	//glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
 	//glTexCoordPointer(2, GL_FLOAT, sizeof(float)*5, &vertices[3]);
@@ -96,9 +96,8 @@ void DrawLine(float r, float g, float b, float a, float x1, float y1, float x2, 
 		x2, y2,0,         1, 0,
 	};
 
-
-	glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
 	//glVertexAttribPointer(g_shader[SHADER_COLOR2D].m_slot[SSLOT_POSITION], 3, GL_FLOAT, GL_FALSE, sizeof(float)*5, &vertices[0]);
+	glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
 
 	//glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
 	//glTexCoordPointer(2, GL_FLOAT, sizeof(float)*5, &vertices[3]);

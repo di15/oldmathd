@@ -6,32 +6,39 @@
 #include "../platform.h"
 #include "../utils.h"
 #include "../debug.h"
-#include "../sim/player.h"
 #include "../math/vec2i.h"
 #include "../math/camera.h"
-#include "../sim/planet.h"
+
+class NetConn;
 
 class OldPacket
 {
 public:
 	char* buffer;
 	int len;
-	long long last;
-	long long first;
-#ifdef _SERVER
-	struct sockaddr_in addr;
-#endif
-	
+	unsigned long long last;		//last time resent
+	unsigned long long first;	//first time sent
+	bool expires;
+
+	//sender/reciever
+	IPaddress addr;
+	void (*onackfunc)(OldPacket* op, NetConn* nc);
+
 	void freemem()
 	{
+		if(len <= 0)
+			return;
+
 		if(buffer != NULL)
 			delete [] buffer;
 		buffer = NULL;
 	}
-	
+
 	OldPacket()
 	{
+		len = 0;
 		buffer = NULL;
+		onackfunc = NULL;
 	}
 	~OldPacket()
 	{
@@ -40,6 +47,8 @@ public:
 
 	OldPacket(const OldPacket& original)
 	{
+		len = 0;
+		buffer = NULL;
 		*this = original;
 	}
 
@@ -48,269 +57,241 @@ public:
 		if(original.buffer && original.len > 0)
 		{
 			len = original.len;
-			buffer = new char[len];
-			memcpy((void*)buffer, (void*)original.buffer, len);
+			if(len > 0)
+			{
+				buffer = new char[len];
+				memcpy((void*)buffer, (void*)original.buffer, len);
+			}
 			last = original.last;
 			first = original.first;
-#ifdef _SERVER
-			memcpy((void*)&addr, (void*)&original.addr, sizeof(struct sockaddr_in));
+			expires = original.expires;
+			addr = original.addr;
+			onackfunc = original.onackfunc;
+#ifdef MATCHMAKER
+			//ipaddr = original.ipaddr;
+			//port = original.port;
+			//memcpy((void*)&addr, (void*)&original.addr, sizeof(struct sockaddr_in));
 #endif
 		}
 		else
 		{
 			buffer = NULL;
 			len = 0;
+			onackfunc = NULL;
 		}
 
 		return *this;
 	}
 };
 
-#define     PACKET_LOGIN					1
-#define     PACKET_INCORRECT_LOGIN			2
-#define     PACKET_INCORRECT_VERSION		3
-#define     PACKET_REGISTRATION				4
-#define     PACKET_USERNAME_EXISTS			5
-#define     PACKET_EMAIL_EXISTS				6
-#define		PACKET_ACKNOWLEDGMENT			7
-#define		PACKET_REGISTRATION_DONE		8
-#define		PACKET_LOGIN_CORRECT			9
-#define		PACKET_TOO_MANY_CLIENTS			10
-#define		PACKET_REG_DB_ERROR				11
-//#define		REG_SUCCESS					12
-#define		PACKET_DISCONNECT				13
-#define		PACKET_CONNECTION_RESET			14
-#define		PACKET_SPAWN_UNIT				15
-#define		PACKET_NEW_PLAYER				16
-#define		PACKET_HEIGHT_POINT				17
-#define		PACKET_DONE_LOADING				18
-//#define		PACKET_EXPLORED_TILE			19
-#define		PACKET_PLANET_CAM				20
-#define		PACKET_BUILDING					21
-#define		PACKET_JOIN_INFO				22
-#define		PACKET_GARRISON					23
-#define		PACKET_PLAYER					24
+//TODO merge some of these into multi-purpose packet types
+
+#define	PACKET_NULL						0
+#define PACKET_DISCONNECT				1
+#define PACKET_CONNECT					2
+#define	PACKET_ACKNOWLEDGMENT			3
+#define PACKET_PLACEBL					4
+#define PACKET_NETTURN					5
+#define PACKET_DONETURN					6
+#define PACKET_JOIN						7
+#define PACKET_ADDSV					8
+#define PACKET_ADDEDSV					9
+#define PACKET_KEEPALIVE				10
+#define PACKET_GETSVLIST				11
+#define PACKET_SVADDR					12
+#define PACKET_SVINFO					13
+#define PACKET_GETSVINFO				14
+#define PACKET_SENDNEXTHOST				15
+#define PACKET_NOMOREHOSTS				16
+#define PACKET_ADDCLIENT				17
+#define PACKET_SELFCLIENT				18
+#define PACKET_SETCLNAME				19
+#define PACKET_CLIENTLEFT				20
+#define PACKET_CLIENTROLE				21
+#define PACKET_DONEJOIN					22
+#define PACKET_TOOMANYCL				23
+#define PACKET_MAPCHANGE				24
+#define PACKET_CHVAL					25
+#define PACKET_CLDISCONNECTED			26
+#define PACKET_CLSTATE					27
+#define PACKET_NOCONN					28
+
+// byte-align structures
+#pragma pack(push, 1)
 
 struct PacketHeader
 {
-	int type;
-	unsigned int ack;
+	unsigned short type;
+	unsigned short ack;
 };
 
-struct LoginPacket
-{
-	PacketHeader header;
-	float version;
-	char username[UN_LEN];
-	char password[PW_LEN];
-};
-
-struct IncorrectLoginPacket
+struct BasePacket
 {
 	PacketHeader header;
 };
 
-struct IncorrectVersionPacket
+typedef BasePacket NoConnectionPacket;
+typedef BasePacket DoneJoinPacket;
+typedef BasePacket TooManyClPacket;
+typedef BasePacket SendNextHostPacket;
+typedef BasePacket NoMoreHostsPacket;
+typedef BasePacket GetSvInfoPacket;
+typedef BasePacket GetSvListPacket;
+typedef BasePacket KeepAlivePacket;
+typedef BasePacket AddSvPacket;
+typedef BasePacket AddedSvPacket;
+typedef BasePacket AckPacket;
+
+#define CLCH_UNRESP			0	//client became unresponsive
+#define CLCH_RESP			1	//became responsive again
+#define CLCH_PING			2
+
+struct ClStatePacket
 {
 	PacketHeader header;
-	float version;
+	unsigned char chtype;
+	short client;
+	float ping;
 };
 
-struct RegistrationPacket
+struct ClDisconnectedPacket
 {
 	PacketHeader header;
-	char username[UN_LEN];
-	char email[EM_LEN];
-	char password[PW_LEN];
+	short client;
 };
 
-struct UsernameExistsPacket
+#define CHVAL_BLPRICE					0
+#define CHVAL_BLWAGE					1
+#define CHVAL_TRWAGE					2
+#define CHVAL_TRPRICE					3
+#define CHVAL_CSTWAGE					4
+#define CHVAL_PRODLEV					5
+#define CHVAL_CDWAGE					6
+#define CHVAL_MANPRICE					7
+
+struct ChValPacket
 {
 	PacketHeader header;
+	unsigned char chtype;
+	int value;
+	unsigned char player;
+	unsigned char res;
+	unsigned short bi;
+	unsigned char x;
+	unsigned char y;
+	unsigned char cdtype;
+	unsigned char utype;
 };
 
-struct EmailExistsPacket
+//not counting null terminator
+#define MAPNAME_LEN		63
+#define SVNAME_LEN		63
+#define PYNAME_LEN		63
+
+struct MapChangePacket
 {
 	PacketHeader header;
+	char map[MAPNAME_LEN+1];
 };
 
-struct AcknowledgmentPacket
+struct JoinPacket
 {
 	PacketHeader header;
+	char name[PYNAME_LEN+1];
 };
 
-struct RegisteredPacket
+struct AddClientPacket
 {
 	PacketHeader header;
+	signed char client;
+	signed char player;
+	char name[PYNAME_LEN+1];
 };
 
-struct LoginCorrectPacket
+struct SelfClientPacket
 {
 	PacketHeader header;
+	int client;
 };
 
-struct TooManyClientsPacket
+struct SetClNamePacket
 {
 	PacketHeader header;
+	int client;
+	char name[PYNAME_LEN+1];
 };
 
-struct RegDBErrorPacket
+struct ClientLeftPacket
 {
 	PacketHeader header;
+	int client;
 };
 
-/*
-struct RegSuccessPacket
+struct ClientRolePacket
 {
 	PacketHeader header;
-};*/
+	signed char client;
+	signed char player;
+};
+
+struct SvAddrPacket
+{
+	PacketHeader header;
+	IPaddress addr;
+};
+
+class SendSvInfo	//sendable
+{
+public:
+	IPaddress addr;
+	char svname[SVNAME_LEN+1];
+	short nplayers;
+	char mapname[MAPNAME_LEN+1];
+};
+
+struct SvInfoPacket
+{
+	PacketHeader header;
+	SendSvInfo svinfo;
+};
+
+struct NetTurnPacket
+{
+	PacketHeader header;
+	unsigned int fornetfr;	//for net fr #..
+	unsigned short loadsz;
+	//commands go after
+};
+
+struct DoneTurnPacket
+{
+	PacketHeader header;
+	unsigned int fornetfr;	//for net fr #..
+	short player;	//should match sender
+};
+
+struct PlaceBlPacket
+{
+	PacketHeader header;
+	int btype;
+	Vec2i tpos;
+	int player;
+};
+
+struct ConnectPacket
+{
+	PacketHeader header;
+	bool reply;
+};
 
 struct DisconnectPacket
 {
 	PacketHeader header;
-	int id;
+	bool reply;
 };
 
-struct ConnectionResetPacket
-{
-	PacketHeader header;
-};
-
-struct SpawnUnitPacket
-{
-	PacketHeader header;
-	int planetid;
-	int uid;
-	int owner;
-	int type;
-	Camera camera;
-	int mode;
-	Vec3f goal;
-	Vec3f subgoal;
-	int step;
-	int target;
-	int target2;
-	int targtype;
-	int driver;
-	bool targetunit;
-	bool underorder;
-	int fuel;
-	int labour;
-	int transportres;
-	int transportamt;
-	int actpoints;
-	int hitpoints;
-	bool passive;
-	int distaccum;
-	int drivewage;
-};
-
-struct NewPlayerPacket
-{
-	PacketHeader header;
-	int playerid;
-	char username[UN_LEN];
-	char email[EM_LEN];
-	int local[RESOURCES];
-	int universal[RESOURCES];
-};
-
-struct HeightPointPacket
-{
-	PacketHeader header;
-	int planetid;
-	int tx;
-	int tz;
-	float height;
-};
-
-struct DoneLoadingPacket
-{
-	PacketHeader header;
-};
-
-/*
-struct ExploredTilePacket
-{
-	PacketHeader header;
-	int planetid;
-	int tx;
-	int tz;
-};*/
-
-struct PlanetCamPacket
-{
-	PacketHeader header;
-	int planetid;
-	Camera cam;
-};
-
-struct JoinInfoPacket
-{
-	PacketHeader header;
-	int playerid;
-	Vec2i hmapwidth[PLANETS];
-};
-
-/*
-	bool m_on;
-	int m_type;
-	int m_state;
-	Vec3f m_pos;
-	//EdBuilding m_model;
-	float m_yaw;
-	list<int> m_garrison;
-	TileVis m_vis;
-	int m_conmat[RESOURCES];
-	int m_stock[RESOURCES];
-	int m_conwage;	// construction wage
-	*/
-
-struct BuildingPacket
-{
-	PacketHeader header;
-	int planetid;
-	int bid;
-	bool on;
-	int type;
-	int state;
-	Vec3f pos;
-	float yaw;
-	int conmat[RESOURCES];
-	int stock[RESOURCES];
-	int conwage;	// construction wage
-};
-
-struct GarrisonPacket
-{
-	PacketHeader header;
-	int planetid;
-	int bid;
-	int uid;
-};
-
-/*
-	bool m_on;
-	int m_local[RESOURCES];	// used just for counting; cannot be used
-	int m_universal[RESOURCES];
-	int m_reschange[RESOURCES];
-	int m_conwage;	// construction wage
-	int m_truckwage;
-	int m_unitprice[UNIT_TYPES];
-	char m_username[UN_LEN];*/
-
-struct PlayerPacket
-{
-	PacketHeader header;
-	int playerid;
-	bool on;
-	int local[RESOURCES];
-	int universal[RESOURCES];
-	int reschange[RESOURCES];
-	//int conwage;
-	//int truckwage;
-
-};
+// Default alignment
+#pragma pack(pop)
 
 #endif
 

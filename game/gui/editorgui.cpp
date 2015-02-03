@@ -6,10 +6,10 @@
 #include "../../common/render/screenshot.h"
 #include "../../common/save/savemap.h"
 #include "ggui.h"
-#include "../../common/sim/unittype.h"
+#include "../../common/sim/utype.h"
 #include "editorgui.h"
 #include "../../common/save/savemap.h"
-#include "../../common/sim/buildingtype.h"
+#include "../../common/sim/bltype.h"
 #include "../../common/sim/player.h"
 
 void Resize_LeftPanel(Widget* thisw)

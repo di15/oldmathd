@@ -5,7 +5,7 @@
 #include "../window.h"
 #include "../math/camera.h"
 #include "../sim/unit.h"
-#include "../sim/unittype.h"
+#include "../sim/utype.h"
 #include "../math/hmapmath.h"
 #include "../render/foliage.h"
 #include "../sim/unit.h"

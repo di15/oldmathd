@@ -5,22 +5,13 @@
 
 #include "../platform.h"
 
-#define RESEND_DELAY	200
-#define RESEND_EXPIRE	(3*60*1000)
+class NetConn;
 
-#ifdef _SERVER
-class Client;
-void SendData(char* data, int size, struct sockaddr_in* paddr, bool reliable, Client* c);
-void Acknowledge(unsigned int ack, struct sockaddr_in from);
-void ResendPackets();
-void SendAll(int player, char* data, int size, bool reliable);
-void JoinInfo(Client* c);
-#else
-void SendData(char* data, int size, struct sockaddr_in* paddr, bool reliable);
-void Acknowledge(unsigned int ack);
-void ResendPackets();
+void SendAll(char* data, int size, bool reliable, bool expires, IPaddress* exception);
+void SendData(char* data, int size, IPaddress * paddr, bool reliable, bool expires, NetConn* nc, UDPsocket* sock, int msdelay, void (*onackfunc)(OldPacket* p, NetConn* nc));
+void Acknowledge(unsigned short ack, NetConn* nc, IPaddress* addr, UDPsocket* sock, char* buffer, int bytes);
+void ResendPacks();
 void Register(char* username, char* password, char* email);
 void Login(char* username, char* password);
-#endif
 
 #endif	//SENDPACKETS_H

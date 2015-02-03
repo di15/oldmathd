@@ -1,4 +1,3 @@
-
 #ifndef RESTICKER_H
 #define RESTICKER_H
 
@@ -20,7 +19,7 @@ public:
 	void draw();
 	void drawover();
 	void reframe();
-	void inev(InEv* ev);
+	void inev(InEv* ie);
 	void frameupd();
 };
 

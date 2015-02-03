@@ -7,7 +7,7 @@
 #include "resources.h"
 #include "../render/vertexarray.h"
 #include "../math/vec3i.h"
-#include "infrastructure.h"
+#include "conduit.h"
 
 class PowlTile : public ConduitTile
 {

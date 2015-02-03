@@ -1,8 +1,6 @@
 #ifndef VEC3F_H
 #define VEC3F_H
 
-#include "vec3i.h"
-
 class Matrix;
 
 class Vec3f
@@ -20,13 +18,6 @@ public:
 		x = X;
 		y = Y;
 		z = Z;
-	}
-
-	Vec3f(Vec3i v)
-	{
-		x = v.x;
-		y = v.y;
-		z = v.z;
 	}
 
 	Vec3f(const float* values)
@@ -73,6 +64,11 @@ public:
 	Vec3f operator/(const float num) const
 	{
 		return Vec3f(x / num, y / num, z / num);
+	}
+
+	float& operator[](const int i)
+	{
+		return *(float*)(this+i);
 	}
 
 	inline void set(const float* values)
