@@ -1,20 +1,82 @@
 #include "sprite.h"
 #include "../utils.h"
 #include "../texture.h"
+#include "../gui/gui.h"
+
+std::vector<SpriteToLoad> g_spriteload;
+int g_lastLSp = -1;
 
 Sprite::Sprite()
 {
-	texindex = 0;
+	difftexi = 0;
+	teamtexi = 0;
 	pixels = NULL;
 }
 
 Sprite::~Sprite()
+{
+    free();
+}
+
+void Sprite::free()
 {
     if(pixels)
     {
         delete pixels;
         pixels = NULL;
     }
+}
+
+bool Load1Sprite()
+{
+	if(g_lastLSp+1 < g_spriteload.size())
+		Status(g_spriteload[g_lastLSp+1].relative.c_str());
+
+	CHECKGLERROR();
+
+	if(g_lastLTex >= 0)
+	{
+		SpriteToLoad* s = &g_spriteload[g_lastLSp];
+		LoadSprite(s->relative.c_str(), s->sprite);
+	}
+
+	g_lastLSp ++;
+
+	if(g_lastLSp >= g_spriteload.size())
+	{
+		g_spriteload.clear();
+		return false;	// Done loading all textures
+	}
+
+	return true;	// Not finished loading textures
+}
+
+void QueueSprite(const char* relative, Sprite* s, bool loadteam)
+{
+	SpriteToLoad stl;
+	stl.relative = relative;
+	stl.sprite = s;
+	stl.loadteam = loadteam;
+	g_spriteload.push_back(stl);
+}
+
+void LoadSprite(const char* relative, Sprite* s, bool loadteam)
+{
+	char reltxt[MAX_PATH+1];
+	char relpng[MAX_PATH+1];
+	char relteampng[MAX_PATH+1];
+	sprintf(reltxt, "%s.txt", relative);
+	sprintf(relpng, "%s.png", relative);
+	sprintf(relteampng, "%s_team.png", relative);
+	ParseSprite(reltxt, s);
+
+	QueueTexture(&s->difftexi, relpng, true, false);
+	if(loadteam)
+		QueueTexture(&s->teamtexi, relteampng, true, false);
+	
+	char full[MAX_PATH+1];
+	FullPath(relpng, full);
+	s->pixels = LoadTexture(full);
 }
 
 void ParseSprite(const char* relative, Sprite* s)
@@ -41,7 +103,7 @@ void ParseSprite(const char* relative, Sprite* s)
 
 void DefS(const char* relative, Sprite* s, int offx, int offy)
 {
-	CreateTexture(s->texindex, relative, true, false);
+	CreateTexture(s->difftexi, relative, true, false);
 	s->offset[0] = offx;
 	s->offset[1] = offy;
 

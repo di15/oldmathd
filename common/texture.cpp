@@ -6,7 +6,7 @@
 #include "debug.h"
 
 Texture g_texture[TEXTURES];
-std::vector<TextureToLoad> g_texLoad;
+std::vector<TextureToLoad> g_texload;
 
 int g_texwidth;
 int g_texheight;
@@ -817,14 +817,14 @@ void FindTextureExtension(char *relative)
 
 bool Load1Texture()
 {
-	if(g_lastLTex+1 < g_texLoad.size())
-		Status(g_texLoad[g_lastLTex+1].relative);
+	if(g_lastLTex+1 < g_texload.size())
+		Status(g_texload[g_lastLTex+1].relative);
 
 	CHECKGLERROR();
 
 	if(g_lastLTex >= 0)
 	{
-		TextureToLoad* t = &g_texLoad[g_lastLTex];
+		TextureToLoad* t = &g_texload[g_lastLTex];
 		if(t->reload)
 			CreateTexture(t->texindex, t->relative, t->clamp, t->mipmaps, t->reload);
 		else
@@ -833,9 +833,9 @@ bool Load1Texture()
 
 	g_lastLTex ++;
 
-	if(g_lastLTex >= g_texLoad.size())
+	if(g_lastLTex >= g_texload.size())
 	{
-		g_texLoad.clear();
+		g_texload.clear();
 		return false;	// Done loading all textures
 	}
 
@@ -851,7 +851,7 @@ void QueueTexture(unsigned int* texindex, const char* relative, bool clamp, bool
 	toLoad.reload = false;
 	toLoad.mipmaps = mipmaps;
 
-	g_texLoad.push_back(toLoad);
+	g_texload.push_back(toLoad);
 }
 
 void RequeueTexture(unsigned int texindex, const char* relative, bool clamp, bool mipmaps)
@@ -863,7 +863,7 @@ void RequeueTexture(unsigned int texindex, const char* relative, bool clamp, boo
 	toLoad.reload = true;
 	toLoad.mipmaps = mipmaps;
 
-	g_texLoad.push_back(toLoad);
+	g_texload.push_back(toLoad);
 }
 
 void ReloadTextures()

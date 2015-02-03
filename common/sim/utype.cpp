@@ -1,14 +1,15 @@
 #include "utype.h"
 #include "../texture.h"
 #include "resources.h"
-#include "../render/model.h"
 
 UType g_utype[UNIT_TYPES];
 
-void DefU(int type, const char* modelrelative, Vec3f scale, Vec3f translate, Vec3i size, const char* name, int starthp, bool landborne, bool walker, bool roaded, bool seaborne, bool airborne, int cmspeed, bool military)
+void DefU(int type, const char* spriterelative, Vec3i size, const char* name, int starthp, bool landborne, bool walker, bool roaded, bool seaborne, bool airborne, int cmspeed, bool military)
 {
 	UType* t = &g_utype[type];
-	QueueModel(&t->model, modelrelative, scale, translate);
+
+	QueueTexture(
+	QueueModel(&t->model, spriterelative);
 	t->size = size;
 	strcpy(t->name, name);
 	t->starthp = starthp;

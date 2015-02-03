@@ -50,6 +50,10 @@ void UpdateLoading()
 	switch(stage)
 	{
 	case 0:
+		if(!Load1Sprite())
+			stage++;
+		break;
+	case 1:
 		if(!Load1Texture())
 		{
 			g_mode = APPMODE_MENU;
@@ -67,6 +71,10 @@ void UpdateReloading()
 	switch(g_reStage)
 	{
 	case 0:
+		if(!Load1Sprite())
+			g_reStage++;
+		break;
+	case 1:
 		if(!Load1Texture())
 		{
 			g_mode = APPMODE_MENU;

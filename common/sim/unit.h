@@ -23,7 +23,7 @@ public:
 	/*
 	The draw (floating-point) position vectory is used for drawing.
 	*/
-	Vec3f drawpos;
+	Vec2f drawpos;
 
 	/*
 	The real position is stored in integers.
@@ -77,7 +77,6 @@ public:
 	int opwage;	//transport driver wage	//edit: NOT USED, set globally in Player class
 	//std::list<TransportJob> bids;	//for trucks
 
-	//TO DO: save/read
 	std::list<Vec2s> tpath;	//tile path
 
 	Unit();
@@ -106,7 +105,7 @@ extern Unit g_unit[UNITS];
 #define UMODE_GOREST				9
 #define UMODE_RESTING				10
 #define	UMODE_GODRIVE				11	//going to transport job
-#define UMODE_DRIVE				12	//driving transport
+#define UMODE_DRIVE					12	//driving transport
 #define UMODE_GOSUP					13	//transporter going to supplier
 #define UMODE_GODEMB				14	//transporter going to demander bl
 #define UMODE_GOREFUEL				15
