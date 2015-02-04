@@ -1029,7 +1029,7 @@ bool CreateTexture(unsigned int &texindex, const char* relative, bool clamp, boo
 
 		delete pImage;								// Free the image structure
 
-		g_log<<relative<<"\n\r";
+		g_log<<relative<<std::endl;
 		g_log.flush();
 	}
 

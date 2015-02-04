@@ -53,7 +53,7 @@ bool Load1Sprite()
 
 	CHECKGLERROR();
 
-	if(g_lastLTex >= 0)
+	if(g_lastLSp >= 0)
 	{
 		SpriteToLoad* s = &g_spriteload[g_lastLSp];
 		LoadSprite(s->relative.c_str(), s->spindex, s->loadteam);
@@ -97,12 +97,14 @@ bool FindSprite(unsigned int &spriteidx, const char* relative)
 	char corrected[MAX_PATH+1];
 	strcpy(corrected, relative);
 	CorrectSlashes(corrected);
+	char fullpath[MAX_PATH+1];
+	FullPath(corrected, fullpath);
 
 	for(int i=0; i<SPRITES; i++)
 	{
 		Sprite* s = &g_sprite[i];
 
-		if(s->on && stricmp(s->fullpath.c_str(), corrected) == 0)
+		if(s->on && stricmp(s->fullpath.c_str(), fullpath) == 0)
 		{
 			//g_texindex = i;
 			//texture = t->texname;
@@ -141,12 +143,19 @@ void LoadSprite(const char* relative, unsigned int* spindex, bool loadteam)
 	sprintf(relteampng, "%s_team.png", relative);
 	ParseSprite(reltxt, s);
 
-	QueueTexture(&s->difftexi, relpng, true, false);
+	CreateTexture(s->difftexi, relpng, true, false);
 	if(loadteam)
-		QueueTexture(&s->teamtexi, relteampng, true, false);
+		CreateTexture(s->teamtexi, relteampng, true, false);
 	
 	FullPath(relpng, full);
 	s->pixels = LoadTexture(full);
+
+	if(!s->pixels)
+		g_log<<"Failed to load sprite "<<relative<<std::endl;
+	else
+		g_log<<relative<<std::endl;
+
+	g_log.flush();
 }
 
 void ParseSprite(const char* relative, Sprite* s)
@@ -161,8 +170,9 @@ void ParseSprite(const char* relative, Sprite* s)
 	float centery;
 	float width;
 	float height;
-
-	fscanf(fp, "%f %f %f %f", &centerx, &centery, &width, &height);
+	
+	fscanf(fp, "%f %f", &centerx, &centery);
+	fscanf(fp, "%f %f", &width, &height);
 	s->offset[0] = -centerx;
 	s->offset[1] = -centery;
 	s->offset[2] = s->offset[0] + width;

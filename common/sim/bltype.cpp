@@ -12,8 +12,8 @@ void DefB(int type,
 		  const char* name, 
 		  Vec2i size, 
 		  bool hugterr, 
-		  const char* modelrelative, 
-		  const char* cmodelrelative,  
+		  const char* sprel, 
+		  const char* csprel,  
 		  int foundation, 
 		  int reqdeposit,
 		  int maxhp)
@@ -22,8 +22,8 @@ void DefB(int type,
 	t->widthx = size.x;
 	t->widthy = size.y;
 	sprintf(t->name, name);
-	//QueueModel(&t->model, modelrelative, scale, translate);
-	//QueueModel(&t->cmodel, cmodelrelative, cscale, ctranslate);
+	//QueueModel(&t->model, sprel, scale, translate);
+	//QueueModel(&t->cmodel, csprel, cscale, ctranslate);
 	t->foundation = foundation;
 	t->hugterr = hugterr;
 

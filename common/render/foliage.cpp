@@ -29,7 +29,7 @@ void DefF(int type, const char* sprelative, Vec3f scale, Vec3f translate, Vec2s 
 {
 	FlType* t = &g_fltype[type];
 	//QueueTexture(&t->texindex, texrelative, true);
-	//QueueModel(&t->model, modelrelative, scale, translate);
+	//QueueModel(&t->model, sprel, scale, translate);
 	QueueSprite(sprelative, &t->sprite, false);
 	t->size = size;
 }

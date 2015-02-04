@@ -11,6 +11,7 @@
 #include "cursor.h"
 #include "../sim/player.h"
 #include "../debug.h"
+#include "../sim/utype.h"
 
 GUI g_gui;
 
@@ -57,9 +58,25 @@ void GUI::draw()
 		DrawImage(g_tiletexs[TILE_PRERENDER], 0, 0, 150, 150, 0, 1, 1, 0);
 #endif
 
+#if 1
 	unsigned int spi = g_cursor[g_curst];
 	Sprite* sp = &g_sprite[spi];
-	DrawImage(g_texture[sp->difftexi].texname, g_mouse.x-sp->offset[0], g_mouse.y-sp->offset[1], g_mouse.x-sp->offset[2], g_mouse.y-sp->offset[3]);
+	DrawImage(g_texture[sp->difftexi].texname, g_mouse.x+sp->offset[0], g_mouse.y+sp->offset[1], g_mouse.x+sp->offset[2], g_mouse.y+sp->offset[3]);
+#else
+	UType* ut = &g_utype[UNIT_LABOURER];
+	static int si = -100;
+	si++;
+	if(si >= 0)
+	{
+		//si = si%(DIRS*ut->nframes);
+		si = si%(ut->nframes);
+		unsigned int spi = ut->sprite[si/ut->nframes][si%ut->nframes];
+		//unsigned int spi = ut->sprite[0][si%ut->nframes];
+	
+		Sprite* sp = &g_sprite[spi];
+		DrawImage(g_texture[sp->difftexi].texname, g_mouse.x+sp->offset[0], g_mouse.y+sp->offset[1], g_mouse.x+sp->offset[2], g_mouse.y+sp->offset[3]);
+	}
+#endif
 
 	CHECKGLERROR();
 

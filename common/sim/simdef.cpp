@@ -29,19 +29,19 @@ void Queue()
 #define CU_STATES	13
 #endif
 
-	QueueSprite("gui/transp.png", &g_cursor[CU_NONE], false);
-	QueueSprite("gui/cursors/default.png", &g_cursor[CU_DEFAULT], false);
-	QueueSprite("gui/cursors/move.png", &g_cursor[CU_MOVE], false);
-	QueueSprite("gui/cursors/reszh.png", &g_cursor[CU_RESZL], false);
-	QueueSprite("gui/cursors/reszh.png", &g_cursor[CU_RESZR], false);
-	QueueSprite("gui/cursors/reszv.png", &g_cursor[CU_RESZT], false);
-	QueueSprite("gui/cursors/reszv.png", &g_cursor[CU_RESZB], false);
-	QueueSprite("gui/cursors/reszd2.png", &g_cursor[CU_RESZTL], false);
-	QueueSprite("gui/cursors/reszd1.png", &g_cursor[CU_RESZTR], false);
-	QueueSprite("gui/cursors/reszd1.png", &g_cursor[CU_RESZBL], false);
-	QueueSprite("gui/cursors/reszd2.png", &g_cursor[CU_RESZBR], false);
-	QueueSprite("gui/cursors/default.png", &g_cursor[CU_WAIT], false);
-	QueueSprite("gui/cursors/default.png", &g_cursor[CU_DRAG], false);
+	LoadSprite("gui/transp", &g_cursor[CU_NONE], false);
+	LoadSprite("gui/cursors/default", &g_cursor[CU_DEFAULT], false);
+	LoadSprite("gui/cursors/move", &g_cursor[CU_MOVE], false);
+	LoadSprite("gui/cursors/reszh", &g_cursor[CU_RESZL], false);
+	LoadSprite("gui/cursors/reszh", &g_cursor[CU_RESZR], false);
+	LoadSprite("gui/cursors/reszv", &g_cursor[CU_RESZT], false);
+	LoadSprite("gui/cursors/reszv", &g_cursor[CU_RESZB], false);
+	LoadSprite("gui/cursors/reszd2", &g_cursor[CU_RESZTL], false);
+	LoadSprite("gui/cursors/reszd1", &g_cursor[CU_RESZTR], false);
+	LoadSprite("gui/cursors/reszd1", &g_cursor[CU_RESZBL], false);
+	LoadSprite("gui/cursors/reszd2", &g_cursor[CU_RESZBR], false);
+	LoadSprite("gui/cursors/default", &g_cursor[CU_WAIT], false);
+	LoadSprite("gui/cursors/default", &g_cursor[CU_DRAG], false);
 
 
 	// Icons
@@ -190,19 +190,21 @@ void Queue()
 #endif
 
 	// Unit types
-
-	DefU(UNIT_BATTLECOMP, "models/battlecomp2011simp/battlecomp.ms3d", Vec2s(125, 250), "Droid", 100, true, true, false, false, false, 6, true);
-	UCost(UNIT_BATTLECOMP, RES_PRODUCTION, 10);
-	
-	DefU(UNIT_CARLYLE, "models/carlyle/carlyle.ms3d", Vec2s(250, 250), "Tank", 100, true, true, false, false, false, 16, true);
-	UCost(UNIT_CARLYLE, RES_PRODUCTION, 15);
 	
 	//DefU(UNIT_LABOURER, "models/labourer/labourer.ms3d", Vec3f(1,1,1)*182.0f/100.0f, Vec3f(0,0,0)*182.0f/100.0f, Vec3i(125, 250, 125), "Labourer", 100, true, true, false, false, false, 6, false);
-	DefU(UNIT_LABOURER, "models/labourer/labourer.ms3d", Vec2s(50, 150), "Labourer", 100, true, true, false, false, false, 6, false);
+	DefU(UNIT_LABOURER, "sprites/units/lab00/lab00", 30, Vec2s(50, 150), "Labourer", 100, true, true, false, false, false, 6, false);
+	
+	DefU(UNIT_BATTLECOMP, "sprites/units/lab00/lab00", 1, Vec2s(50, 150), "Droid", 100, true, true, false, false, false, 6, true);
+	UCost(UNIT_BATTLECOMP, RES_PRODUCTION, 10);
+	
+#if 0
+	DefU(UNIT_CARLYLE, "models/carlyle/carlyle.ms3d", Vec2s(250, 250), "Tank", 100, true, true, false, false, false, 16, true);
+	UCost(UNIT_CARLYLE, RES_PRODUCTION, 15);
 	
 	//DefU(UNIT_TRUCK, "models/truck/truck.ms3d", Vec3f(1,1,1)*30.0f, Vec3f(0,0,0), Vec3i(125, 250, 125), "Truck", 100, true, false, true, false, false, 30, false);
 	DefU(UNIT_TRUCK, "models/truck/truck.ms3d", Vec2s(100, 250), "Truck", 100, true, false, true, false, false, 30, false);
 	UCost(UNIT_TRUCK, RES_PRODUCTION, 1);
+#endif
 
 	// Foliage types
 

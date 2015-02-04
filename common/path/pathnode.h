@@ -40,26 +40,37 @@ const Vec2s diagonaloffsets[4] =
 
 //TODO check for memleak because app is taking too long to exit.
 
-#define DIR_NW      0
-#define DIR_N       1
-#define DIR_NE      2
-#define DIR_E       3
-#define DIR_SE      4
-#define DIR_S       5
-#define DIR_SW      6
-#define DIR_W       7
+#define DIR_S       0
+#define DIR_SW      1
+#define DIR_W       2
+#define DIR_NW      3
+#define DIR_N       4
+#define DIR_NE      5
+#define DIR_E       6
+#define DIR_SE      7
 #define DIRS        8
 
 const Vec2s offsets[DIRS] =
 {
+	Vec2s(0, 1), //S
+	Vec2s(-1, 1), //SW
+	Vec2s(-1, 0), //W
 	Vec2s(-1, -1), //NW
 	Vec2s(0, -1), //N
 	Vec2s(1, -1), //NE
 	Vec2s(1, 0), //E
-	Vec2s(1, 1), //SE
-	Vec2s(0, 1), //S
-	Vec2s(-1, 1), //SW
-	Vec2s(-1, 0) //W
+	Vec2s(1, 1) //SE
+};
+
+//vertical dirs
+#define VDIR_UP		0
+#define VDIR_MID	1
+#define VDIR_DOWN	2
+#define VDIRS		3
+
+const signed char voffsets[VDIRS] =
+{
+	1, 0, -1
 };
 
 #if 0

@@ -59,7 +59,7 @@ public:
 
 extern Foliage g_foliage[FOLIAGES];
 
-void DefF(int type, const char* modelrelative, Vec3f scale, Vec3f translate, Vec2s size);
+void DefF(int type, const char* sprel, Vec3f scale, Vec3f translate, Vec2s size);
 bool PlaceFol(int type, Vec3i ipos);
 void DrawFol(Vec3f zoompos, Vec3f vertical, Vec3f horizontal);
 void ClearFol(int cmminx, int cmminy, int cmmaxx, int cmmaxy);
