@@ -3,14 +3,12 @@
 #include "water.h"
 #include "shader.h"
 #include "../math/camera.h"
-#include "model.h"
 #include "../math/frustum.h"
 #include "vertexarray.h"
 #include "heightmap.h"
 #include "../utils.h"
 #include "../window.h"
 #include "../sim/player.h"
-#include "../render/shadow.h"
 #include "../path/pathnode.h"
 #include "../path/collidertile.h"
 #include "../phys/collision.h"
@@ -20,9 +18,6 @@
 
 FlType g_fltype[FL_TYPES];
 Foliage g_foliage[FOLIAGES];
-Matrix g_folmodmat[FOLIAGES];
-int g_folonsw[FOLIAGES];
-unsigned char g_drawframe = 255;	//unsigned char
 
 Foliage::Foliage()
 {
@@ -30,33 +25,12 @@ Foliage::Foliage()
 	lastdraw = 0;
 }
 
-void Foliage::reinstance()
-{
-	int i = this - g_foliage;
-	g_folonsw[i] = on ? 1 : 0;
-	Matrix* m = &g_folmodmat[i];
-
-	if(on)
-	{
-		float pitch = 0;
-		m->reset();
-		float radians[] = {(float)DEGTORAD(pitch), (float)DEGTORAD(yaw), 0};
-		m->translation((const float*)&drawpos);
-		Matrix rotation;
-		rotation.rotrad(radians);
-		m->postmult(rotation);
-	}
-	else
-	{
-		memset(m->m_matrix, 0, sizeof(float)*16);
-	}
-}
-
-void DefF(int type, const char* modelrelative, Vec3f scale, Vec3f translate, Vec3i size)
+void DefF(int type, const char* sprelative, Vec3f scale, Vec3f translate, Vec3i size)
 {
 	FlType* t = &g_fltype[type];
 	//QueueTexture(&t->texindex, texrelative, true);
-	QueueModel(&t->model, modelrelative, scale, translate);
+	//QueueModel(&t->model, modelrelative, scale, translate);
+	QueueSprite(sprelative, &t->sprite, false);
 	t->size = size;
 }
 
@@ -399,8 +373,8 @@ void ClearFol(int cmminx, int cmminy, int cmmaxx, int cmmaxy)
 void FillForest()
 {
 #if 0
-	for(int tx = 0; tx < g_hmap.m_widthx; tx++)
-		for(int tz = 0; tz < g_hmap.m_widthy; tz++)
+	for(int tx = 0; tx < g_mapsz.x; tx++)
+		for(int tz = 0; tz < g_mapsz.y; tz++)
 		{
 			int x = tz*TILE_SIZE + TILE_SIZE/2;
 			int z = tz*TILE_SIZE + TILE_SIZE/2;
@@ -417,13 +391,13 @@ void FillForest()
 			}
 		}
 #endif
-	//for(int condensation = 0; condensation < sqrt(g_hmap.m_widthx * g_hmap.m_widthy); condensation++)
+	//for(int condensation = 0; condensation < sqrt(g_mapsz.x * g_mapsz.y); condensation++)
 	{
 
-		int maxfoliage = FOLIAGES*g_hmap.m_widthx*g_hmap.m_widthy/MAX_MAP/MAX_MAP;
+		int maxfoliage = FOLIAGES*g_mapsz.x*g_mapsz.y/MAX_MAP/MAX_MAP;
 		maxfoliage = imin(FOLIAGES, maxfoliage);
 
-		Vec2i last = Vec2i((rand()%g_hmap.m_widthx)*TILE_SIZE + rand()%TILE_SIZE, (rand()%g_hmap.m_widthy)*TILE_SIZE + rand()%TILE_SIZE);
+		Vec2i last = Vec2i((rand()%g_mapsz.x)*TILE_SIZE + rand()%TILE_SIZE, (rand()%g_mapsz.y)*TILE_SIZE + rand()%TILE_SIZE);
 
 		for(int i=0; i<maxfoliage; i++)
 		{
@@ -432,7 +406,7 @@ void FillForest()
 			{
 				//new forest?
 				if(rand()%300 == 0)
-					last = Vec2i((rand()%g_hmap.m_widthx)*TILE_SIZE + rand()%TILE_SIZE, (rand()%g_hmap.m_widthy)*TILE_SIZE + rand()%TILE_SIZE);
+					last = Vec2i((rand()%g_mapsz.x)*TILE_SIZE + rand()%TILE_SIZE, (rand()%g_mapsz.y)*TILE_SIZE + rand()%TILE_SIZE);
 
 				//move from last seedling
 				int x = last.x + rand()%TILE_SIZE - TILE_SIZE/2;
@@ -446,13 +420,13 @@ void FillForest()
 				int tx = x / TILE_SIZE;
 				int tz = z / TILE_SIZE;
 
-				float y = g_hmap.accheight2(x, z);
+				//float y = g_hmap.accheight2(x, z);
 
 				Vec3f norm = g_hmap.getnormal(x/TILE_SIZE, z/TILE_SIZE);
 
-				float offequator = fabs( (float)g_hmap.m_widthy*TILE_SIZE/2.0f - z );
+				float offequator = fabs( (float)g_mapsz.y*TILE_SIZE/2.0f - z );
 
-				if(y >= ELEV_SANDONLYMAXY && y <= ELEV_GRASSONLYMAXY && 1.0f - norm.y <= 0.3f)
+				//if(y >= ELEV_SANDONLYMAXY && y <= ELEV_GRASSONLYMAXY && 1.0f - norm.y <= 0.3f)
 				{
 					//int type = rand()%10 == 1 ? UNIT_MECH : UNIT_LABOURER;
 #if 0
@@ -477,7 +451,7 @@ void FillForest()
 			}
 		}
 
-		//CondenseForest(0, 0, g_hmap.m_widthx-1, g_hmap.m_widthy-1);
+		//CondenseForest(0, 0, g_mapsz.x-1, g_mapsz.y-1);
 	}
 }
 

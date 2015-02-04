@@ -1,6 +1,5 @@
 #include "platform.h"
 #include "texture.h"
-#include "render/model.h"
 #include "gui/gui.h"
 #include "utils.h"
 #include "debug.h"
@@ -643,7 +642,7 @@ bool FindTexture(unsigned int &textureidx, const char* relative)
 	{
 		Texture* t = &g_texture[i];
 
-		if(t->loaded && _stricmp(t->filepath, corrected) == 0)
+		if(t->loaded && _stricmp(t->fullpath, corrected) == 0)
 		{
 			//g_texindex = i;
 			//texture = t->texname;
@@ -667,7 +666,7 @@ void FreeTexture(const char* relative)
 	{
 		Texture* t = &g_texture[i];
 
-		if(t->loaded && _stricmp(t->filepath, corrected) == 0)
+		if(t->loaded && _stricmp(t->fullpath, corrected) == 0)
 		{
 			t->loaded = false;
 			glDeleteTextures(1, &t->texname);
@@ -717,7 +716,7 @@ bool TextureLoaded(unsigned int texture, const char* relative, bool transp, bool
 	//g_texindex = texindex;
 	Texture* t = &g_texture[texindex];
 	t->loaded = true;
-	strcpy(t->filepath, corrected);
+	strcpy(t->fullpath, corrected);
 	t->texname = texture;
 	t->width = g_texwidth;
 	t->height = g_texheight;
@@ -876,7 +875,7 @@ void ReloadTextures()
 			continue;
 
 		std::string rel;
-		rel = MakePathRelative(t->filepath);
+		rel = MakePathRelative(t->fullpath);
 		RequeueTexture(i, rel.c_str(), t->clamp, t->mipmaps);
 	}
 }
@@ -1047,7 +1046,7 @@ void RequeueTextures()
 	for(int i=0; i<TEXTURES; i++)
 	{
 		if(g_texture[i].loaded)
-			RequeueTexture(i, g_texture[i].filepath, g_texture[i].clamp, g_texture[i].mipmaps);
+			RequeueTexture(i, g_texture[i].fullpath.c_str(), g_texture[i].clamp, g_texture[i].mipmaps);
 	}
 
 	//LoadParticles();

@@ -4,6 +4,7 @@
 #include "../platform.h"
 #include "../math/vec2i.h"
 #include "../math/vec2f.h"
+#include "../math/vec2uc.h"
 #include "../texture.h"
 #include "vertexarray.h"
 #include "tile.h"
@@ -23,16 +24,15 @@ class Plane3f;
 
 extern Vec2i g_mapview[2];
 
+/*
+Number of tiles, not heightpoints/corners.
+Number of height points/corners is +1.
+*/
+extern Vec2uc g_mapsz;
+
 class Heightmap
 {
 public:
-	/*
-	Number of tiles, not heightpoints/corners.
-	Number of height points/corners is +1.
-	*/
-	int m_widthx;
-	int m_widthz;
-
 	unsigned char *m_heightpoints;
 	Vec3f *m_3dverts;
 	Vec2f *m_texcoords0;
@@ -41,12 +41,6 @@ public:
 	bool *m_triconfig;
 	Plane3f *m_tridivider;
 	Tile *m_surftile;
-
-	Heightmap()
-	{
-		m_widthx = 0;
-		m_widthz = 0;
-	}
 
 	void alloc(int wx, int wz);
 	void remesh();

@@ -26,8 +26,8 @@ void ClearCoPlans(unsigned char ctype)
 	//if(!get)
 	//	return;
 
-	for(int x=0; x<g_hmap.m_widthx; x++)
-		for(int z=0; z<g_hmap.m_widthy; z++)
+	for(int x=0; x<g_mapsz.x; x++)
+		for(int z=0; z<g_mapsz.y; z++)
 			GetCd(ctype, x, z, true)->on = false;
 }
 
@@ -53,8 +53,8 @@ void ResetNetw(unsigned char ctype)
 
 	int lastnetw = 0;
 
-	for(int x=0; x<g_hmap.m_widthx; x++)
-		for(int z=0; z<g_hmap.m_widthy; z++)
+	for(int x=0; x<g_mapsz.x; x++)
+		for(int z=0; z<g_mapsz.y; z++)
 		{
 			CdTile* ctile = GetCd(ctype, x, z, false);
 
@@ -174,8 +174,8 @@ void MergeNetw(unsigned char ctype, int A, int B)
 			}
 		}
 
-	for(int x=0; x<g_hmap.m_widthx; x++)
-		for(int z=0; z<g_hmap.m_widthy; z++)
+	for(int x=0; x<g_mapsz.x; x++)
+		for(int z=0; z<g_mapsz.y; z++)
 		{
 			CdTile* ctile = GetCd(ctype, x, z, false);
 
@@ -323,8 +323,8 @@ bool ReNetwTiles(unsigned char ctype)
 {
 	bool change = false;
 
-	for(int x=0; x<g_hmap.m_widthx; x++)
-		for(int z=0; z<g_hmap.m_widthy; z++)
+	for(int x=0; x<g_mapsz.x; x++)
+		for(int z=0; z<g_mapsz.y; z++)
 		{
 			CdTile* ctile = GetCd(ctype, x, z, false);
 
@@ -336,11 +336,11 @@ bool ReNetwTiles(unsigned char ctype)
 
 			if(x > 0 && CompareCo(ctype, ctile, x-1, z))
 				change = true;
-			if(x < g_hmap.m_widthx-1 && CompareCo(ctype, ctile, x+1, z))
+			if(x < g_mapsz.x-1 && CompareCo(ctype, ctile, x+1, z))
 				change = true;
 			if(z > 0 && CompareCo(ctype, ctile, x, z-1))
 				change = true;
-			if(z < g_hmap.m_widthy-1 && CompareCo(ctype, ctile, x, z+1))
+			if(z < g_mapsz.y-1 && CompareCo(ctype, ctile, x, z+1))
 				change = true;
 
 			for(int i=0; i<BUILDINGS; i++)
@@ -512,7 +512,7 @@ bool CoLevel(unsigned char ctype, float iterx, float iterz, float testx, float t
 			if(GetCd(ctype, ix-1, iz, true)->on) w = true;
 	}
 
-	if(ix < g_hmap.m_widthx-1)
+	if(ix < g_mapsz.x-1)
 	{
 		if(GetCd(ctype, ix+1, iz, false)->on)	e = true;
 		//if(RoadPlanAt(ix+1, iz)->on)	e = true;
@@ -528,7 +528,7 @@ bool CoLevel(unsigned char ctype, float iterx, float iterz, float testx, float t
 			if(GetCd(ctype, ix, iz-1, true)->on) s= true;
 	}
 
-	if(iz < g_hmap.m_widthy-1)
+	if(iz < g_mapsz.y-1)
 	{
 		if(GetCd(ctype, ix, iz+1, false)->on)	n = true;
 		//if(RoadPlanAt(ix, iz+1)->on)	n = true;
@@ -578,81 +578,15 @@ bool CoLevel(unsigned char ctype, float iterx, float iterz, float testx, float t
 	return true;
 }
 
-void RemeshCd(unsigned char ctype, int tx, int tz, bool plan)
-{
-	CdTile* ctile = GetCd(ctype, tx, tz, plan);
-
-	if(!ctile->on)
-		return;
-#if 0
-	g_log<<"mesh on "<<tx<<","<<tz<<" plan?"<<plan<<std::endl;
-	g_log.flush();
-#endif
-
-	CdType* ct = &g_cdtype[ctype];
-	int mi = ct->model[ctile->conntype][ctile->finished];
-	Model* m = &g_model[mi];
-
-	VertexArray* cva = &ctile->drawva;
-	VertexArray* mva = &m->m_va[0];
-
-	cva->free();
-
-	//g_log<<"meshroad allocating "<<mva->numverts<<"...";
-	//g_log.flush();
-
-	cva->alloc( mva->numverts );
-
-	if(!cva->vertices)
-		OutOfMem(__FILE__, __LINE__);
-
-	if(!cva->texcoords)
-		OutOfMem(__FILE__, __LINE__);
-
-	if(!cva->normals)
-		OutOfMem(__FILE__, __LINE__);
-
-	float realx, realz;
-	ctile->drawpos = Vec3f(tx*TILE_SIZE, 0, tz*TILE_SIZE) + ct->drawoff;
-
-	for(int i=0; i<cva->numverts; i++)
-	{
-		cva->vertices[i] = mva->vertices[i];
-		cva->texcoords[i] = mva->texcoords[i];
-		cva->normals[i] = mva->normals[i];
-
-		realx = ctile->drawpos.x + cva->vertices[i].x;
-		realz = ctile->drawpos.z + cva->vertices[i].z;
-
-#if 0
-		cva->vertices[i].y += Bilerp(&g_hmap, realx, realz);
-#else
-		cva->vertices[i].y += g_hmap.accheight2(realx, realz);
-#endif
-	}
-
-	for(int i=0; i<cva->numverts; i+=3)
-	{
-		cva->normals[i+0] = Normal(&cva->vertices[i]);
-		cva->normals[i+1] = Normal(&cva->vertices[i]);
-		cva->normals[i+2] = Normal(&cva->vertices[i]);
-	}
-
-	//g_log<<"done meshroad"<<std::endl;
-	//g_log.flush();
-
-	cva->genvbo();
-}
-
 void UpdCoPlans(unsigned char ctype, char owner, Vec3f start, Vec3f end)
 {
 	ClearCoPlans(ctype);
 
-	int x1 = Clipi(start.x/TILE_SIZE, 0, g_hmap.m_widthx-1);
-	int z1 = Clipi(start.z/TILE_SIZE, 0, g_hmap.m_widthy-1);
+	int x1 = Clipi(start.x/TILE_SIZE, 0, g_mapsz.x-1);
+	int z1 = Clipi(start.z/TILE_SIZE, 0, g_mapsz.y-1);
 
-	int x2 = Clipi(end.x/TILE_SIZE, 0, g_hmap.m_widthx-1);
-	int z2 = Clipi(end.z/TILE_SIZE, 0, g_hmap.m_widthy-1);
+	int x2 = Clipi(end.x/TILE_SIZE, 0, g_mapsz.x-1);
+	int z2 = Clipi(end.z/TILE_SIZE, 0, g_mapsz.y-1);
 
 #if 0
 	g_log<<"road plan "<<x1<<","<<z1<<"->"<<x2<<","<<z2<<std::endl;
@@ -711,8 +645,8 @@ void UpdCoPlans(unsigned char ctype, char owner, Vec3f start, Vec3f end)
 			PlaceCo(ctype, prevx, z2, owner, true);
 	}
 
-	for(int x=0; x<g_hmap.m_widthx; x++)
-		for(int z=0; z<g_hmap.m_widthy; z++)
+	for(int x=0; x<g_mapsz.x; x++)
+		for(int z=0; z<g_mapsz.y; z++)
 			RemeshCd(ctype, x, z, true);
 }
 
@@ -780,9 +714,9 @@ bool CoPlaceable(int ctype, int x, int z)
 				continue;
 			if(tpos.y < 0)
 				continue;
-			if(tpos.x >= g_hmap.m_widthx)
+			if(tpos.x >= g_mapsz.x)
 				continue;
-			if(tpos.y >= g_hmap.m_widthy)
+			if(tpos.y >= g_mapsz.y)
 				continue;
 
 			CdTile* reqc = GetCd(reqctype, tpos.x, tpos.y, false);
@@ -839,15 +773,15 @@ bool CoPlaceable(int ctype, int x, int z)
 			if(cmmaxx >= cmpos.x && cmmaxz >= cmpos.y && cmminx <= cmpos.x && cmminz <= cmpos.y)
 				continue;
 
-		if(tpos.x+1 < g_hmap.m_widthx && tpos.y-1 >= 0 && GetCd(reqctype, tpos.x+1, tpos.y-1, false)->on)
+		if(tpos.x+1 < g_mapsz.x && tpos.y-1 >= 0 && GetCd(reqctype, tpos.x+1, tpos.y-1, false)->on)
 			if(cmmaxx2 >= cmpos.x && cmmaxz >= cmpos.y && cmminx2 <= cmpos.x && cmminz <= cmpos.y)
 				continue;
 
-		if(tpos.x+1 < g_hmap.m_widthx && tpos.y+1 < g_hmap.m_widthy && GetCd(reqctype, tpos.x+1, tpos.y+1, false)->on)
+		if(tpos.x+1 < g_mapsz.x && tpos.y+1 < g_mapsz.y && GetCd(reqctype, tpos.x+1, tpos.y+1, false)->on)
 			if(cmmaxx2 >= cmpos.x && cmmaxz2 >= cmpos.y && cmminx2 <= cmpos.x && cmminz2 <= cmpos.y)
 				continue;
 
-		if(tpos.x-1 >= 0 && tpos.y+1 < g_hmap.m_widthy && GetCd(reqctype, tpos.x-1, tpos.y+1, false)->on)
+		if(tpos.x-1 >= 0 && tpos.y+1 < g_mapsz.y && GetCd(reqctype, tpos.x-1, tpos.y+1, false)->on)
 			if(cmmaxx >= cmpos.x && cmmaxz2 >= cmpos.y && cmminx <= cmpos.x && cmminz2 <= cmpos.y)
 				continue;
 
@@ -883,17 +817,17 @@ bool CoPlaceable(int ctype, int x, int z)
 		else if(CollidesWithBuildings(nw_tile_center.x, nw_tile_center.y, nw_tile_center.x, nw_tile_center.y))
 			nw_occupied = true;
 
-		if(x<=0 || z>=g_hmap.m_widthy-1)
+		if(x<=0 || z>=g_mapsz.y-1)
 			sw_occupied = true;
 		else if(CollidesWithBuildings(sw_tile_center.x, sw_tile_center.y, sw_tile_center.x, sw_tile_center.y))
 			sw_occupied = true;
 
-		if(x>=g_hmap.m_widthx-1 || z>=g_hmap.m_widthy-1)
+		if(x>=g_mapsz.x-1 || z>=g_mapsz.y-1)
 			se_occupied = true;
 		else if(CollidesWithBuildings(se_tile_center.x, se_tile_center.y, se_tile_center.x, se_tile_center.y))
 			se_occupied = true;
 
-		if(x>=g_hmap.m_widthx-1 || z<=0)
+		if(x>=g_mapsz.x-1 || z<=0)
 			ne_occupied = true;
 		else if(CollidesWithBuildings(ne_tile_center.x, ne_tile_center.y, ne_tile_center.x, ne_tile_center.y))
 			ne_occupied = true;
@@ -909,24 +843,24 @@ int GetConn(unsigned char ctype, int x, int z, bool plan=false)
 {
 	bool n = false, e = false, s = false, w = false;
 
-	if(x+1 < g_hmap.m_widthx && GetCd(ctype, x+1, z, false)->on)
+	if(x+1 < g_mapsz.x && GetCd(ctype, x+1, z, false)->on)
 		e = true;
 	if(x-1 >= 0 && GetCd(ctype, x-1, z, false)->on)
 		w = true;
 
-	if(z+1 < g_hmap.m_widthy && GetCd(ctype, x, z+1, false)->on)
+	if(z+1 < g_mapsz.y && GetCd(ctype, x, z+1, false)->on)
 		s = true;
 	if(z-1 >= 0 && GetCd(ctype, x, z-1, false)->on)
 		n = true;
 
 	if(plan)
 	{
-		if(x+1 < g_hmap.m_widthx && GetCd(ctype, x+1, z, true)->on)
+		if(x+1 < g_mapsz.x && GetCd(ctype, x+1, z, true)->on)
 			e = true;
 		if(x-1 >= 0 && GetCd(ctype, x-1, z, true)->on)
 			w = true;
 
-		if(z+1 < g_hmap.m_widthy && GetCd(ctype, x, z+1, true)->on)
+		if(z+1 < g_mapsz.y && GetCd(ctype, x, z+1, true)->on)
 			s = true;
 		if(z-1 >= 0 && GetCd(ctype, x, z-1, true)->on)
 			n = true;
@@ -948,12 +882,12 @@ void ConnectCo(unsigned char ctype, int tx, int tz, bool plan)
 
 void ConnectCoAround(unsigned char ctype, int x, int z, bool plan)
 {
-	if(x+1 < g_hmap.m_widthx)
+	if(x+1 < g_mapsz.x)
 		ConnectCo(ctype, x+1, z, plan);
 	if(x-1 >= 0)
 		ConnectCo(ctype, x-1, z, plan);
 
-	if(z+1 < g_hmap.m_widthy)
+	if(z+1 < g_mapsz.y)
 		ConnectCo(ctype, x, z+1, plan);
 	if(z-1 >= 0)
 		ConnectCo(ctype, x, z-1, plan);
@@ -1002,16 +936,7 @@ void PlaceCo(unsigned char ctype, int tx, int tz, int owner, bool plan)
 		ctile->transporter[i] = -1;
 
 	//if(!plan)
-	//	ReRoadNetw();
-
-	if(!plan && !ct->cornerpl)
-	{
-		//ClearFol(tx*TILE_SIZE, tz*TILE_SIZE, tx*TILE_SIZE + TILE_SIZE, tz*TILE_SIZE + TILE_SIZE);
-
-		g_hmap.hidetile(tx, tz);
-
-		//ctile->fillcollider();
-	}
+	//	ReRoadNetw
 }
 
 void PlaceCo(unsigned char ctype)
@@ -1024,9 +949,9 @@ void PlaceCo(unsigned char ctype)
 	CdType* ct = &g_cdtype[ctype];
 	std::list<Vec2i>& csel = *(std::list<Vec2i>*)(((char*)&g_sel)+ct->seloff);
 
-	for(int x=0; x<g_hmap.m_widthx; x++)
+	for(int x=0; x<g_mapsz.x; x++)
 	{
-		for(int z=0; z<g_hmap.m_widthy; z++)
+		for(int z=0; z<g_mapsz.y; z++)
 		{
 			CdTile* plan = GetCd(ctype, x, z, true);
 
@@ -1049,9 +974,6 @@ void PlaceCo(unsigned char ctype)
 
 	ClearCoPlans(ctype);
 	ReNetw(ctype);
-
-	if(!ct->cornerpl)
-		g_hmap.genvbo();
 
 	if(g_mode == APPMODE_PLAY)
 	{
@@ -1077,8 +999,8 @@ void DrawCo(unsigned char ctype)
 	CdType* ct = &g_cdtype[ctype];
 	Shader* s = &g_shader[g_curS];
 
-	for(int x=0; x<g_hmap.m_widthx; x++)
-		for(int z=0; z<g_hmap.m_widthy; z++)
+	for(int x=0; x<g_mapsz.x; x++)
+		for(int z=0; z<g_mapsz.y; z++)
 		{
 			CdTile* ctile = GetCd(ctype, x, z, false);
 
@@ -1088,11 +1010,6 @@ void DrawCo(unsigned char ctype)
 			const float* owncol = g_player[ctile->owner].color;
 			glUniform4f(s->m_slot[SSLOT_OWNCOLOR], owncol[0], owncol[1], owncol[2], owncol[3]);
 
-			const int mi = ct->model[ctile->conntype][(int)ctile->finished];
-			const Model* m = &g_model[mi];
-			m->usetex();
-
-			DrawVA(&ctile->drawva, ctile->drawpos);
 		}
 
 	if(g_build != BL_TYPES + ctype)
@@ -1100,8 +1017,8 @@ void DrawCo(unsigned char ctype)
 
 	glUniform4f(s->m_slot[SSLOT_COLOR], 1, 1, 1, 0.5f);
 
-	for(int x=0; x<g_hmap.m_widthx; x++)
-		for(int z=0; z<g_hmap.m_widthy; z++)
+	for(int x=0; x<g_mapsz.x; x++)
+		for(int z=0; z<g_mapsz.y; z++)
 		{
 			CdTile* ctile = GetCd(ctype, x, z, true);
 
@@ -1111,11 +1028,6 @@ void DrawCo(unsigned char ctype)
 			const float* owncol = g_player[ctile->owner].color;
 			glUniform4f(s->m_slot[SSLOT_OWNCOLOR], owncol[0], owncol[1], owncol[2], owncol[3]);
 
-			const int mi = ct->model[ctile->conntype][(int)ctile->finished];
-			const Model* m = &g_model[mi];
-			m->usetex();
-
-			DrawVA(&ctile->drawva, ctile->drawpos);
 		}
 
 	glUniform4f(s->m_slot[SSLOT_COLOR], 1, 1, 1, 1);
@@ -1267,7 +1179,7 @@ void CdTile::freecollider()
 
 void DefConn(unsigned char conduittype, unsigned char connectiontype, bool finished, const char* modelfile, const Vec3f scale, Vec3f transl)
 {
-	int* tm = &g_cdtype[conduittype].model[connectiontype][(int)finished];
+	int* tm = &g_cdtype[conduittype].sprite[connectiontype][(int)finished];
 	QueueModel(tm, modelfile, scale, transl);
 }
 
@@ -1313,16 +1225,16 @@ void CdXZ(unsigned char ctype, CdTile* ctile, bool plan, int& tx, int& tz)
 	CdType* ct = &g_cdtype[ctype];
 	CdTile* tilearr = ct->cdtiles[(int)plan];
 	int off = ctile - tilearr;
-	tz = off / g_hmap.m_widthx;
-	tx = off % g_hmap.m_widthx;
+	tz = off / g_mapsz.x;
+	tx = off % g_mapsz.x;
 }
 
 void PruneCo(unsigned char ctype)
 {
 	CdType* ct = &g_cdtype[ctype];
 
-	for(int x=0; x<g_hmap.m_widthx; x++)
-		for(int z=0; z<g_hmap.m_widthy; z++)
+	for(int x=0; x<g_mapsz.x; x++)
+		for(int z=0; z<g_mapsz.y; z++)
 			if(GetCd(ctype, x, z, false)->on && !CoPlaceable(ctype, x, z))
 			{
 				GetCd(ctype, x, z, false)->on = false;

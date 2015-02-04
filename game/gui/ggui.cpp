@@ -244,9 +244,9 @@ void Click_NewGame()
 		for(int j=0; j<1; j++)
 		{
 
-			//Vec3i cmpos((g_hmap.m_widthx+4)*TILE_SIZE/2 + (i+2)*PATHNODE_SIZE, 0, g_hmap.m_widthy*TILE_SIZE/2 + (j+2)*PATHNODE_SIZE);
+			//Vec3i cmpos((g_mapsz.x+4)*TILE_SIZE/2 + (i+2)*PATHNODE_SIZE, 0, g_mapsz.y*TILE_SIZE/2 + (j+2)*PATHNODE_SIZE);
 			//cmpos.y = g_hmap.accheight(cmpos.x, cmpos.z);
-			Vec2i cmpos((g_hmap.m_widthx+4)*TILE_SIZE/2 + (i+2)*PATHNODE_SIZE*4, g_hmap.m_widthy*TILE_SIZE/2 + (j+2)*PATHNODE_SIZE*4);
+			Vec2i cmpos((g_mapsz.x+4)*TILE_SIZE/2 + (i+2)*PATHNODE_SIZE*4, g_mapsz.y*TILE_SIZE/2 + (j+2)*PATHNODE_SIZE*4);
 
 			//if(rand()%2 == 1)
 			//	PlaceUnit(UNIT_BATTLECOMP, cmpos, 0);
@@ -297,52 +297,52 @@ void Click_NewGame()
 	}
 
 #if 0
-	PlaceBl(BL_HARBOUR, Vec2i(g_hmap.m_widthx/2-1, g_hmap.m_widthy/2-3), true, 0);
-	PlaceBl(BL_HOUSE, Vec2i(g_hmap.m_widthx/2+2, g_hmap.m_widthy/2-2), true, 0);
-	PlaceBl(BL_HOUSE, Vec2i(g_hmap.m_widthx/2+4, g_hmap.m_widthy/2-3), true, 0);
-	PlaceBl(BL_HOUSE, Vec2i(g_hmap.m_widthx/2+6, g_hmap.m_widthy/2-3), true, 0);
-	PlaceRoad(g_hmap.m_widthx/2+1, g_hmap.m_widthy/2-1, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+2, g_hmap.m_widthy/2-1, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+3, g_hmap.m_widthy/2-1, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+3, g_hmap.m_widthy/2-2, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+4, g_hmap.m_widthy/2-2, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+5, g_hmap.m_widthy/2-2, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+6, g_hmap.m_widthy/2-2, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+7, g_hmap.m_widthy/2-2, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+7, g_hmap.m_widthy/2-3, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+7, g_hmap.m_widthy/2-4, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+7, g_hmap.m_widthy/2-5, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+7, g_hmap.m_widthy/2-6, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+7, g_hmap.m_widthy/2-7, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+8, g_hmap.m_widthy/2-2, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+9, g_hmap.m_widthy/2-2, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+10, g_hmap.m_widthy/2-2, 1, false);
-	PlaceBl(BL_FACTORY, Vec2i(g_hmap.m_widthx/2+9, g_hmap.m_widthy/2-3), true, 0);
-	PlaceBl(BL_REFINERY, Vec2i(g_hmap.m_widthx/2+11, g_hmap.m_widthy/2-3), true, 0);
-	PlaceBl(BL_NUCPOW, Vec2i(g_hmap.m_widthx/2+13, g_hmap.m_widthy/2-3), true, 0);
-	PlaceRoad(g_hmap.m_widthx/2+11, g_hmap.m_widthy/2-2, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+12, g_hmap.m_widthy/2-2, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+13, g_hmap.m_widthy/2-2, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+14, g_hmap.m_widthy/2-2, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+14, g_hmap.m_widthy/2-3, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+14, g_hmap.m_widthy/2-4, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+14, g_hmap.m_widthy/2-5, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+14, g_hmap.m_widthy/2-6, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+14, g_hmap.m_widthy/2-7, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+15, g_hmap.m_widthy/2-2, 1, false);
-	PlaceBl(BL_FARM, Vec2i(g_hmap.m_widthx/2+6, g_hmap.m_widthy/2-0), true, 0);
-	PlaceRoad(g_hmap.m_widthx/2+10, g_hmap.m_widthy/2-1, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+10, g_hmap.m_widthy/2-0, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+10, g_hmap.m_widthy/2+1, 1, false);
-	PlaceBl(BL_STORE, Vec2i(g_hmap.m_widthx/2+9, g_hmap.m_widthy/2-1), true, 0);
-	PlaceBl(BL_OILWELL, Vec2i(g_hmap.m_widthx/2+9, g_hmap.m_widthy/2-0), true, 0);
-	PlaceBl(BL_MINE, Vec2i(g_hmap.m_widthx/2+11, g_hmap.m_widthy/2-0), true, 0);
-	PlaceBl(BL_MINE, Vec2i(g_hmap.m_widthx/2+12, g_hmap.m_widthy/2-0), true, 0);
-	PlaceRoad(g_hmap.m_widthx/2+13, g_hmap.m_widthy/2-1, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+13, g_hmap.m_widthy/2-0, 1, false);
-	PlaceRoad(g_hmap.m_widthx/2+13, g_hmap.m_widthy/2+1, 1, false);
+	PlaceBl(BL_HARBOUR, Vec2i(g_mapsz.x/2-1, g_mapsz.y/2-3), true, 0);
+	PlaceBl(BL_HOUSE, Vec2i(g_mapsz.x/2+2, g_mapsz.y/2-2), true, 0);
+	PlaceBl(BL_HOUSE, Vec2i(g_mapsz.x/2+4, g_mapsz.y/2-3), true, 0);
+	PlaceBl(BL_HOUSE, Vec2i(g_mapsz.x/2+6, g_mapsz.y/2-3), true, 0);
+	PlaceRoad(g_mapsz.x/2+1, g_mapsz.y/2-1, 1, false);
+	PlaceRoad(g_mapsz.x/2+2, g_mapsz.y/2-1, 1, false);
+	PlaceRoad(g_mapsz.x/2+3, g_mapsz.y/2-1, 1, false);
+	PlaceRoad(g_mapsz.x/2+3, g_mapsz.y/2-2, 1, false);
+	PlaceRoad(g_mapsz.x/2+4, g_mapsz.y/2-2, 1, false);
+	PlaceRoad(g_mapsz.x/2+5, g_mapsz.y/2-2, 1, false);
+	PlaceRoad(g_mapsz.x/2+6, g_mapsz.y/2-2, 1, false);
+	PlaceRoad(g_mapsz.x/2+7, g_mapsz.y/2-2, 1, false);
+	PlaceRoad(g_mapsz.x/2+7, g_mapsz.y/2-3, 1, false);
+	PlaceRoad(g_mapsz.x/2+7, g_mapsz.y/2-4, 1, false);
+	PlaceRoad(g_mapsz.x/2+7, g_mapsz.y/2-5, 1, false);
+	PlaceRoad(g_mapsz.x/2+7, g_mapsz.y/2-6, 1, false);
+	PlaceRoad(g_mapsz.x/2+7, g_mapsz.y/2-7, 1, false);
+	PlaceRoad(g_mapsz.x/2+8, g_mapsz.y/2-2, 1, false);
+	PlaceRoad(g_mapsz.x/2+9, g_mapsz.y/2-2, 1, false);
+	PlaceRoad(g_mapsz.x/2+10, g_mapsz.y/2-2, 1, false);
+	PlaceBl(BL_FACTORY, Vec2i(g_mapsz.x/2+9, g_mapsz.y/2-3), true, 0);
+	PlaceBl(BL_REFINERY, Vec2i(g_mapsz.x/2+11, g_mapsz.y/2-3), true, 0);
+	PlaceBl(BL_NUCPOW, Vec2i(g_mapsz.x/2+13, g_mapsz.y/2-3), true, 0);
+	PlaceRoad(g_mapsz.x/2+11, g_mapsz.y/2-2, 1, false);
+	PlaceRoad(g_mapsz.x/2+12, g_mapsz.y/2-2, 1, false);
+	PlaceRoad(g_mapsz.x/2+13, g_mapsz.y/2-2, 1, false);
+	PlaceRoad(g_mapsz.x/2+14, g_mapsz.y/2-2, 1, false);
+	PlaceRoad(g_mapsz.x/2+14, g_mapsz.y/2-3, 1, false);
+	PlaceRoad(g_mapsz.x/2+14, g_mapsz.y/2-4, 1, false);
+	PlaceRoad(g_mapsz.x/2+14, g_mapsz.y/2-5, 1, false);
+	PlaceRoad(g_mapsz.x/2+14, g_mapsz.y/2-6, 1, false);
+	PlaceRoad(g_mapsz.x/2+14, g_mapsz.y/2-7, 1, false);
+	PlaceRoad(g_mapsz.x/2+15, g_mapsz.y/2-2, 1, false);
+	PlaceBl(BL_FARM, Vec2i(g_mapsz.x/2+6, g_mapsz.y/2-0), true, 0);
+	PlaceRoad(g_mapsz.x/2+10, g_mapsz.y/2-1, 1, false);
+	PlaceRoad(g_mapsz.x/2+10, g_mapsz.y/2-0, 1, false);
+	PlaceRoad(g_mapsz.x/2+10, g_mapsz.y/2+1, 1, false);
+	PlaceBl(BL_STORE, Vec2i(g_mapsz.x/2+9, g_mapsz.y/2-1), true, 0);
+	PlaceBl(BL_OILWELL, Vec2i(g_mapsz.x/2+9, g_mapsz.y/2-0), true, 0);
+	PlaceBl(BL_MINE, Vec2i(g_mapsz.x/2+11, g_mapsz.y/2-0), true, 0);
+	PlaceBl(BL_MINE, Vec2i(g_mapsz.x/2+12, g_mapsz.y/2-0), true, 0);
+	PlaceRoad(g_mapsz.x/2+13, g_mapsz.y/2-1, 1, false);
+	PlaceRoad(g_mapsz.x/2+13, g_mapsz.y/2-0, 1, false);
+	PlaceRoad(g_mapsz.x/2+13, g_mapsz.y/2+1, 1, false);
 	CHECKGLERROR();
-	PlaceBl(BL_GASSTATION, Vec2i(g_hmap.m_widthx/2+14, g_hmap.m_widthy/2-1), true, 0);
+	PlaceBl(BL_GASSTATION, Vec2i(g_mapsz.x/2+14, g_mapsz.y/2-1), true, 0);
 	g_hmap.genvbo();
 #endif
 

@@ -19,8 +19,8 @@
 
 void DrawQueue()
 {
-	for(int x=0; x<g_hmap.m_widthx; x++)
-		for(int z=0; z<g_hmap.m_widthz; z++)
+	for(int x=0; x<g_mapsz.x; x++)
+		for(int z=0; z<g_mapsz.z; z++)
 		{
 #if 0
 			Vec2i screenpos = CartToIso(Vec3i( x * TILE_SIZE, y * TILE_SIZE / 2, z * TILE_SIZE ));

@@ -912,7 +912,7 @@ void AddReq(DemGraph* dm, Player* p, std::list<DemNode*>* nodes, DemNode* parent
 	Resource* r = &g_resource[rtype];
 
 #if 0
-	Vec2i demtpos = Vec2i(g_hmap.m_widthx, g_hmap.m_widthy)/2;
+	Vec2i demtpos = Vec2i(g_mapsz.x, g_mapsz.y)/2;
 	Vec2i demcmpos = demtpos * TILE_SIZE + Vec2i(TILE_SIZE,TILE_SIZE)/2;
 	DemsAtB* pardemb = NULL;
 	DemsAtU* pardemu = NULL;
@@ -3368,8 +3368,8 @@ void CheckBl(DemGraph* dm, Player* p, int* fixcost, int* recurprof, bool* succes
 		//if(!r->physical)
 		//	continue;
 
-		for(int z=0; z<g_hmap.m_widthy; z++)
-			for(int x=0; x<g_hmap.m_widthx; x++)
+		for(int z=0; z<g_mapsz.y; z++)
+			for(int x=0; x<g_mapsz.x; x++)
 			{
 				char msg[128];
 				sprintf(msg, "\t\t1\tstart %x,%d", x,z);

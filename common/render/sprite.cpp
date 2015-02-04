@@ -5,9 +5,11 @@
 
 std::vector<SpriteToLoad> g_spriteload;
 int g_lastLSp = -1;
+Sprite g_sprite[SPRITES];
 
 Sprite::Sprite()
 {
+	on = false;
 	difftexi = 0;
 	teamtexi = 0;
 	pixels = NULL;
@@ -25,6 +27,10 @@ void Sprite::free()
         delete pixels;
         pixels = NULL;
     }
+
+	//Free textures?
+
+	on = false;
 }
 
 bool Load1Sprite()
@@ -37,7 +43,7 @@ bool Load1Sprite()
 	if(g_lastLTex >= 0)
 	{
 		SpriteToLoad* s = &g_spriteload[g_lastLSp];
-		LoadSprite(s->relative.c_str(), s->sprite);
+		LoadSprite(s->relative.c_str(), s->spindex, s->loadteam);
 	}
 
 	g_lastLSp ++;
@@ -45,23 +51,75 @@ bool Load1Sprite()
 	if(g_lastLSp >= g_spriteload.size())
 	{
 		g_spriteload.clear();
-		return false;	// Done loading all textures
+		return false;	// Done loading all
 	}
 
-	return true;	// Not finished loading textures
+	return true;	// Not finished loading
 }
 
-void QueueSprite(const char* relative, Sprite* s, bool loadteam)
+void QueueSprite(const char* relative, unsigned int* spindex, bool loadteam)
 {
 	SpriteToLoad stl;
 	stl.relative = relative;
-	stl.sprite = s;
+	stl.spindex = spindex;
 	stl.loadteam = loadteam;
 	g_spriteload.push_back(stl);
 }
 
-void LoadSprite(const char* relative, Sprite* s, bool loadteam)
+int NewSprite()
 {
+	for(int i=0; i<SPRITES; i++)
+	{
+		Sprite* s = &g_sprite[i];
+
+		if(!s->on)
+			return i;
+	}
+
+	return -1;
+}
+
+bool FindSprite(unsigned int &spriteidx, const char* relative)
+{
+	char corrected[MAX_PATH+1];
+	strcpy(corrected, relative);
+	CorrectSlashes(corrected);
+
+	for(int i=0; i<SPRITES; i++)
+	{
+		Sprite* s = &g_sprite[i];
+
+		if(s->on && stricmp(s->fullpath.c_str(), corrected) == 0)
+		{
+			//g_texindex = i;
+			//texture = t->texname;
+			spriteidx = i;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void LoadSprite(const char* relative, unsigned int* spindex, bool loadteam)
+{
+	if(FindSprite(*spindex, relative))
+		return;
+
+	int i = NewSprite();
+
+	if(i < 0)
+		return;
+
+	Sprite* s = &g_sprite[i];
+	s->on = true;
+	*spindex = i;
+
+	char full[MAX_PATH+1];
+	FullPath(relative, full);
+	CorrectSlashes(full);
+	s->fullpath = full;
+
 	char reltxt[MAX_PATH+1];
 	char relpng[MAX_PATH+1];
 	char relteampng[MAX_PATH+1];
@@ -74,7 +132,6 @@ void LoadSprite(const char* relative, Sprite* s, bool loadteam)
 	if(loadteam)
 		QueueTexture(&s->teamtexi, relteampng, true, false);
 	
-	char full[MAX_PATH+1];
 	FullPath(relpng, full);
 	s->pixels = LoadTexture(full);
 }
@@ -99,17 +156,6 @@ void ParseSprite(const char* relative, Sprite* s)
 	s->offset[3] = s->offset[1] + height;
 
 	fclose(fp);
-}
-
-void DefS(const char* relative, Sprite* s, int offx, int offy)
-{
-	CreateTexture(s->difftexi, relative, true, false);
-	s->offset[0] = offx;
-	s->offset[1] = offy;
-
-	char full[1024];
-	FullPath(relative, full);
-    s->pixels = LoadTexture(full);
 }
 
 bool PlayAnimation(float& frame, int first, int last, bool loop, float rate)

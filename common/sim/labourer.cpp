@@ -1040,7 +1040,7 @@ bool CanDrive(Unit* op)
 
 	if(Trapped(tr, op))
 	{
-		short tin = (tr->cmpos.x/TILE_SIZE) + (tr->cmpos.y/TILE_SIZE)*g_hmap.m_widthx;
+		short tin = (tr->cmpos.x/TILE_SIZE) + (tr->cmpos.y/TILE_SIZE)*g_mapsz.x;
 		TileNode* tn = &g_tilenode[tin];
 		tn->jams = imin(tn->jams + 3, 6);
 		return false;

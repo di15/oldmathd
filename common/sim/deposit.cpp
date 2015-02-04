@@ -29,7 +29,7 @@ void FreeDeposits()
 
 void DrawDeposits(const Matrix projection, const Matrix viewmat)
 {
-	if(g_hmap.m_widthx <= 0 || g_hmap.m_widthy <= 0)
+	if(g_mapsz.x <= 0 || g_mapsz.y <= 0)
 		return;
 
 	Shader* s = &g_shader[g_curS];

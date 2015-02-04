@@ -264,57 +264,6 @@ int SelectOneBuilding(Vec3f *line)
 		const int cmx = (cmminx+cmmaxx)/2;
 		const int cmz = (cmminz+cmmaxz)/2;
 
-		const float y = g_hmap.accheight(cmx, cmz);
-
-		const int maxy = (int)y + imax(t->widthx, t->widthy) * TILE_SIZE;
-
-		Vec3f normals[6];
-		float dists[6];
-
-		Vec3f vmin = Vec3f(cmminx, y, cmminz);
-		Vec3f vmax = Vec3f(cmmaxx, maxy, cmmaxz);
-
-		//MakeHull(normals, dists, b->drawpos, vmin, vmax);
-		MakeHull(normals, dists, Vec3f(0,0,0), vmin, vmax);
-
-		Vec3f intersection;
-
-		if(!LineInterHull(line, normals, dists, 6, &intersection))
-			continue;
-		bool ispolyinter = false;
-
-		const VertexArray* va = &b->drawva;
-		Vec3f poly[3];
-
-		for(int v=0; v<va->numverts; v+=3)
-		{
-			poly[0] = va->vertices[v+0] + b->drawpos;
-			poly[1] = va->vertices[v+1] + b->drawpos;
-			poly[2] = va->vertices[v+2] + b->drawpos;
-
-			Vec3f polyinter;
-
-			if(InterPoly(poly, line, 3, &polyinter))
-			{
-				ispolyinter = true;
-
-				float thisd = Magnitude(line[0] - polyinter);
-
-				if(thisd < closestd || closestd < 0)
-					intersection = polyinter;
-			}
-		}
-
-		if(!ispolyinter)
-			continue;
-
-		float thisd = Magnitude(line[0] - intersection);
-
-		if(thisd < closestd || closestd < 0)
-		{
-			sel = i;
-			closestd = thisd;
-		}
 	}
 
 	return sel;
@@ -340,20 +289,6 @@ int SelectOneUnit(Vec3f *line)
 		Vec3f vmin = Vec3f(-t->size.x/2, 0, -t->size.z/2);
 		Vec3f vmax = Vec3f(t->size.x/2, t->size.y, t->size.z/2);
 
-		MakeHull(normals, dists, u->drawpos, vmin, vmax);
-
-		Vec3f intersection;
-
-		if(!LineInterHull(line, normals, dists, 6, &intersection))
-			continue;
-
-		float thisd = Magnitude(line[0] - intersection);
-
-		if(thisd < closestd || closestd < 0)
-		{
-			unitsel = i;
-			closestd = thisd;
-		}
 	}
 
 	return unitsel;

@@ -362,9 +362,11 @@
     <ClInclude Include="..\common\math\polygon.h" />
     <ClInclude Include="..\common\math\quaternion.h" />
     <ClInclude Include="..\common\math\triangle.h" />
+    <ClInclude Include="..\common\math\vec2c.h" />
     <ClInclude Include="..\common\math\vec2f.h" />
     <ClInclude Include="..\common\math\vec2i.h" />
     <ClInclude Include="..\common\math\vec2s.h" />
+    <ClInclude Include="..\common\math\vec2uc.h" />
     <ClInclude Include="..\common\math\vec3f.h" />
     <ClInclude Include="..\common\math\vec3i.h" />
     <ClInclude Include="..\common\math\vec4f.h" />

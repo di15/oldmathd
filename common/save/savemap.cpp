@@ -67,7 +67,7 @@ void PlaceUnits()
 
 		for(; ntries < 100; ntries++)
 		{
-			Vec2i cmpos(rand()%g_hmap.m_widthx*TILE_SIZE, rand()%g_hmap.m_widthy*TILE_SIZE);
+			Vec2i cmpos(rand()%g_mapsz.x*TILE_SIZE, rand()%g_mapsz.y*TILE_SIZE);
 			Vec2i tpos = cmpos / TILE_SIZE;
 			Vec2i npos = cmpos / PATHNODE_SIZE;
 
@@ -86,114 +86,6 @@ void PlaceUnits()
 	}
 }
 
-void LoadJPGMap(const char* relative)
-{
-	g_hmap.destroy();
-	g_hmap2.destroy();
-	g_hmap4.destroy();
-	g_hmap8.destroy();
-
-	CHECKGLERROR();
-
-	LoadedTex *pImage = NULL;
-
-	char full[1024];
-	FullPath(relative, full);
-
-	pImage = LoadJPG(full);
-
-	if(!pImage)
-		return;
-
-	CHECKGLERROR();
-
-	g_hmap.allocate((pImage->sizeX-1), (pImage->sizeY-1));
-#if 0
-	g_hmap2.allocate((pImage->sizeX-1)/2, (pImage->sizeY-1)/2);
-	g_hmap4.allocate((pImage->sizeX-1)/4, (pImage->sizeY-1)/4);
-	g_hmap8.allocate((pImage->sizeX-1)/8, (pImage->sizeY-1)/8);
-#endif
-
-	CHECKGLERROR();
-	for(int x=0; x<pImage->sizeX; x++)
-	{
-		for(int z=0; z<pImage->sizeY; z++)
-		{
-			float r = (float)(unsigned int)pImage->data[ z*pImage->sizeX*3 + x*3 + 0 ];
-			float g = (float)(unsigned int)pImage->data[ z*pImage->sizeX*3 + x*3 + 1 ];
-			float b = (float)(unsigned int)pImage->data[ z*pImage->sizeX*3 + x*3 + 2 ];
-
-			// Apply exponential scale to height data.
-			float y = ConvertHeight((r+g+b)/3.0f);
-
-			g_hmap.setheight(x, z, y);
-
-#if 0
-			if(x%2 == 0 && z%2 == 0)
-				g_hmap2.setheight(x/2, z/2, y);
-
-			if(x%4 == 0 && z%4 == 0)
-				g_hmap4.setheight(x/4, z/4, y);
-
-			if(x%8 == 0 && z%8 == 0)
-				g_hmap8.setheight(x/8, z/8, y);
-#endif
-		}
-	}
-
-	CHECKGLERROR();
-	AllocWater(g_hmap.m_widthx, g_hmap.m_widthy);
-	CHECKGLERROR();
-
-	g_hmap.remesh(1);
-#if 0
-	g_hmap2.remesh(2);
-	g_hmap4.remesh(4);
-	g_hmap8.remesh(8);
-#endif
-	CHECKGLERROR();
-
-#if 1
-	AllocPathGrid(g_hmap.m_widthx*TILE_SIZE, g_hmap.m_widthy*TILE_SIZE);
-	AllocGrid((pImage->sizeX-1), (pImage->sizeY-1));
-	FillColliderGrid();
-#endif
-
-	CHECKGLERROR();
-	FillForest();
-	//PlaceUnits();
-
-	Player* py = &g_player[g_localP];
-	Camera* c = &g_cam;
-
-	Vec3f center = Vec3f( g_hmap.m_widthx * TILE_SIZE/2.0f, g_hmap.getheight(g_hmap.m_widthx/2, g_hmap.m_widthy/2), g_hmap.m_widthy * TILE_SIZE/2.0f );
-	Vec3f delta = center - c->m_view;
-	c->move(delta);
-	Vec3f viewvec = c->m_view - c->m_pos;
-	viewvec = Normalize(viewvec) * imax(g_hmap.m_widthx, g_hmap.m_widthy) * TILE_SIZE;
-	c->m_pos = c->m_view - viewvec;
-	g_zoom = INI_ZOOM;
-
-	if(pImage)
-	{
-		//free(pImage);								// Free the image structure
-		delete pImage;
-
-		g_log<<relative<<"\n\r";
-		g_log.flush();
-	}
-
-	c->position(
-	        -1000.0f/3, 1000.0f/3 + 5000, -1000.0f/3,
-	        0, 5000, 0,
-	        0, 1, 0);
-
-	c->position(1000.0f/3, 1000.0f/3, 1000.0f/3, 0, 0, 0, 0, 1, 0);
-
-	c->move( Vec3f(g_hmap.m_widthx*TILE_SIZE/2, 1000, g_hmap.m_widthy*TILE_SIZE/2) );
-
-	//CalcMapView();
-}
 
 void FreeMap()
 {
@@ -207,16 +99,16 @@ void FreeMap()
 	g_sel.clear();
 	FreeParts();
 	FreeTransx();
-	FreeGraphs();
+	//FreeGraphs();
 }
 
 void SaveHmap(FILE *fp)
 {
-	fwrite(&g_hmap.m_widthx, sizeof(int), 1, fp);
-	fwrite(&g_hmap.m_widthy, sizeof(int), 1, fp);
+	fwrite(&g_mapsz.x, sizeof(int), 1, fp);
+	fwrite(&g_mapsz.y, sizeof(int), 1, fp);
 
-	fwrite(g_hmap.m_heightpoints, sizeof(float), (g_hmap.m_widthx+1)*(g_hmap.m_widthy+1), fp);
-	//fwrite(g_hmap.m_countryowner, sizeof(int), g_hmap.m_widthx*g_hmap.m_widthy, fp);
+	fwrite(g_hmap.m_heightpoints, sizeof(float), (g_mapsz.x+1)*(g_mapsz.y+1), fp);
+	//fwrite(g_hmap.m_countryowner, sizeof(int), g_mapsz.x*g_mapsz.y, fp);
 }
 
 void ReadHmap(FILE *fp)
@@ -880,7 +772,7 @@ void SaveCo(FILE* fp)
 	{
 		CdType* ct = &g_cdtype[ctype];
 
-		for(int i=0; i<g_hmap.m_widthx*g_hmap.m_widthy; i++)
+		for(int i=0; i<g_mapsz.x*g_mapsz.y; i++)
 		{
 #if 0
 	bool on;
@@ -922,7 +814,7 @@ void ReadCo(FILE* fp)
 	{
 		CdType* ct = &g_cdtype[ctype];
 
-		for(int i=0; i<g_hmap.m_widthx*g_hmap.m_widthy; i++)
+		for(int i=0; i<g_mapsz.x*g_mapsz.y; i++)
 		{
 			CdTile* ctile = &ct->cdtiles[(int)false][i];
 
@@ -940,21 +832,7 @@ void ReadCo(FILE* fp)
 			fread(&ctile->drawpos, sizeof(Vec3f), 1, fp);
 			fread(&ctile->conwage, sizeof(int), 1, fp);
 		}
-
-		for(int x=0; x<g_hmap.m_widthx; x++)
-			for(int y=0; y<g_hmap.m_widthy; y++)
-			{
-				if(!GetCd(ctype, x, y, false)->on)
-					continue;
-
-				if(!ct->cornerpl)
-					g_hmap.hidetile(x, y);
-
-				RemeshCd(ctype, x, y, false);
-			}
 	}
-
-	g_hmap.genvbo();	//call once
 }
 
 void ReadPys(FILE* fp)
@@ -1079,10 +957,10 @@ void ReadJams(FILE* fp)
 {
 	//return;
 
-	for(short x=0; x<g_hmap.m_widthx; x++)
-		for(short y=0; y<g_hmap.m_widthy; y++)
+	for(short x=0; x<g_mapsz.x; x++)
+		for(short y=0; y<g_mapsz.y; y++)
 		{
-			int tin = x + y * g_hmap.m_widthx;
+			int tin = x + y * g_mapsz.x;
 			TileNode* tn = &g_tilenode[tin];
 			fread(&tn->jams, sizeof(unsigned char), 1, fp);
 		}
@@ -1090,10 +968,10 @@ void ReadJams(FILE* fp)
 
 void SaveJams(FILE* fp)
 {
-	for(short x=0; x<g_hmap.m_widthx; x++)
-		for(short y=0; y<g_hmap.m_widthy; y++)
+	for(short x=0; x<g_mapsz.x; x++)
+		for(short y=0; y<g_mapsz.y; y++)
 		{
-			int tin = x + y * g_hmap.m_widthx;
+			int tin = x + y * g_mapsz.x;
 			TileNode* tn = &g_tilenode[tin];
 			fwrite(&tn->jams, sizeof(unsigned char), 1, fp);
 		}

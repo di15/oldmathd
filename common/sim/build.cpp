@@ -121,8 +121,8 @@ void DrawSBl()
 			glUniform4f(s->m_slot[SSLOT_COLOR], 1, 0, 0, 0.5f);
 
 		const BlType* t = &g_bltype[g_build];
-		Model* m = &g_model[ t->model ];
-		m->draw(0, g_vdrag[0], 0);
+		Sprite* sp = &g_sprite[ t->sprite ];
+		//m->draw(0, g_vdrag[0], 0);
 	}
 	else if(g_build == BL_ROAD)
 	{
@@ -236,20 +236,20 @@ bool BlLevel(int type, Vec2i tpos)
 			if(thisy < WATER_LEVEL)
 			{
 				// If z is along building edge and x and x+1 are water tiles
-				if((z==tmin.y || z==tmax.y) && x+1 <= g_hmap.m_widthx && x+1 <= tmax.x && g_hmap.getheight(x+1, z) < WATER_LEVEL)
+				if((z==tmin.y || z==tmax.y) && x+1 <= g_mapsz.x && x+1 <= tmax.x && g_hmap.getheight(x+1, z) < WATER_LEVEL)
 					haswater = true;
 				// If x is along building edge and z and z+1 are water tiles
-				if((x==tmin.x || x==tmax.x) && z+1 <= g_hmap.m_widthy && z+1 <= tmax.y && g_hmap.getheight(x, z+1) < WATER_LEVEL)
+				if((x==tmin.x || x==tmax.x) && z+1 <= g_mapsz.y && z+1 <= tmax.y && g_hmap.getheight(x, z+1) < WATER_LEVEL)
 					haswater = true;
 			}
 			// Must have two adjacent land tiles to be road-accessible
 			else if(thisy > WATER_LEVEL)
 			{
 				// If z is along building edge and x and x+1 are land tiles
-				if((z==tmin.y || z==tmax.y) && x+1 <= g_hmap.m_widthx && x+1 <= tmax.x && g_hmap.getheight(x+1, z) > WATER_LEVEL)
+				if((z==tmin.y || z==tmax.y) && x+1 <= g_mapsz.x && x+1 <= tmax.x && g_hmap.getheight(x+1, z) > WATER_LEVEL)
 					hasland = true;
 				// If x is along building edge and z and z+1 are land tiles
-				if((x==tmin.x || x==tmax.x) && z+1 <= g_hmap.m_widthy && z+1 <= tmax.y && g_hmap.getheight(x, z+1) > WATER_LEVEL)
+				if((x==tmin.x || x==tmax.x) && z+1 <= g_mapsz.y && z+1 <= tmax.y && g_hmap.getheight(x, z+1) > WATER_LEVEL)
 					hasland = true;
 			}
 		}
@@ -327,8 +327,8 @@ bool BlLevel(int type, Vec2i tpos)
 bool Offmap(int minx, int minz, int maxx, int maxz)
 {
 	if(minx < 0 || minz < 0
-	                || maxx >= g_hmap.m_widthx*TILE_SIZE
-	                || maxz >= g_hmap.m_widthy*TILE_SIZE)
+	                || maxx >= g_mapsz.x*TILE_SIZE
+	                || maxz >= g_mapsz.y*TILE_SIZE)
 	{
 		g_collidertype = COLLIDER_OFFMAP;
 		return true;
@@ -556,11 +556,11 @@ bool PlaceBAb(int btype, Vec2i tabout, Vec2i* tplace)
 
 			if(cmstartx < 0)
 				continue;
-			else if(cmendx >= g_hmap.m_widthx * TILE_SIZE)
+			else if(cmendx >= g_mapsz.x * TILE_SIZE)
 				continue;
 			if(cmstarty < 0)
 				continue;
-			else if(cmendz >= g_hmap.m_widthy * TILE_SIZE)
+			else if(cmendz >= g_mapsz.y * TILE_SIZE)
 				continue;
 
 			//char msg[128];
@@ -595,11 +595,11 @@ bool PlaceBAb(int btype, Vec2i tabout, Vec2i* tplace)
 
 			if(cmstartx < 0)
 				continue;
-			else if(cmendx >= g_hmap.m_widthx * TILE_SIZE)
+			else if(cmendx >= g_mapsz.x * TILE_SIZE)
 				continue;
 			if(cmstarty < 0)
 				continue;
-			else if(cmendz >= g_hmap.m_widthy * TILE_SIZE)
+			else if(cmendz >= g_mapsz.y * TILE_SIZE)
 				continue;
 
 			//char msg[128];
@@ -634,11 +634,11 @@ bool PlaceBAb(int btype, Vec2i tabout, Vec2i* tplace)
 
 			if(cmstartx < 0)
 				continue;
-			else if(cmendx >= g_hmap.m_widthx * TILE_SIZE)
+			else if(cmendx >= g_mapsz.x * TILE_SIZE)
 				continue;
 			if(cmstarty < 0)
 				continue;
-			else if(cmendz >= g_hmap.m_widthy * TILE_SIZE)
+			else if(cmendz >= g_mapsz.y * TILE_SIZE)
 				continue;
 
 			//char msg[128];
@@ -673,11 +673,11 @@ bool PlaceBAb(int btype, Vec2i tabout, Vec2i* tplace)
 
 			if(cmstartx < 0)
 				continue;
-			else if(cmendx >= g_hmap.m_widthx * TILE_SIZE)
+			else if(cmendx >= g_mapsz.x * TILE_SIZE)
 				continue;
 			if(cmstarty < 0)
 				continue;
-			else if(cmendz >= g_hmap.m_widthy * TILE_SIZE)
+			else if(cmendz >= g_mapsz.y * TILE_SIZE)
 				continue;
 
 			//char msg[128];
@@ -705,7 +705,7 @@ bool PlaceBAb(int btype, Vec2i tabout, Vec2i* tplace)
 		//Chat(msg);
 
 		shell++;
-	} while(shell < g_hmap.m_widthx || shell < g_hmap.m_widthy);
+	} while(shell < g_mapsz.x || shell < g_mapsz.y);
 
 	return false;
 }
@@ -748,11 +748,11 @@ bool PlaceUAb(int utype, Vec2i cmabout, Vec2i* cmplace)
 
 			if(cmstartx < 0)
 				continue;
-			else if(cmendx >= g_hmap.m_widthx * TILE_SIZE)
+			else if(cmendx >= g_mapsz.x * TILE_SIZE)
 				continue;
 			if(cmstarty < 0)
 				continue;
-			else if(cmendz >= g_hmap.m_widthy * TILE_SIZE)
+			else if(cmendz >= g_mapsz.y * TILE_SIZE)
 				continue;
 
 			//if(!CheckCanPlace(btype, cmtry))
@@ -775,11 +775,11 @@ bool PlaceUAb(int utype, Vec2i cmabout, Vec2i* cmplace)
 
 			if(cmstartx < 0)
 				continue;
-			else if(cmendx >= g_hmap.m_widthx * TILE_SIZE)
+			else if(cmendx >= g_mapsz.x * TILE_SIZE)
 				continue;
 			if(cmstarty < 0)
 				continue;
-			else if(cmendz >= g_hmap.m_widthy * TILE_SIZE)
+			else if(cmendz >= g_mapsz.y * TILE_SIZE)
 				continue;
 
 			if(UnitCollides(NULL, cmtry, utype))
@@ -801,11 +801,11 @@ bool PlaceUAb(int utype, Vec2i cmabout, Vec2i* cmplace)
 
 			if(cmstartx < 0)
 				continue;
-			else if(cmendx >= g_hmap.m_widthx * TILE_SIZE)
+			else if(cmendx >= g_mapsz.x * TILE_SIZE)
 				continue;
 			if(cmstarty < 0)
 				continue;
-			else if(cmendz >= g_hmap.m_widthy * TILE_SIZE)
+			else if(cmendz >= g_mapsz.y * TILE_SIZE)
 				continue;
 
 			if(UnitCollides(NULL, cmtry, utype))
@@ -827,11 +827,11 @@ bool PlaceUAb(int utype, Vec2i cmabout, Vec2i* cmplace)
 
 			if(cmstartx < 0)
 				continue;
-			else if(cmendx >= g_hmap.m_widthx * TILE_SIZE)
+			else if(cmendx >= g_mapsz.x * TILE_SIZE)
 				continue;
 			if(cmstarty < 0)
 				continue;
-			else if(cmendz >= g_hmap.m_widthy * TILE_SIZE)
+			else if(cmendz >= g_mapsz.y * TILE_SIZE)
 				continue;
 
 			if(UnitCollides(NULL, cmtry, utype))
@@ -847,7 +847,7 @@ bool PlaceUAb(int utype, Vec2i cmabout, Vec2i* cmplace)
 		}
 
 		shell++;
-	} while(shell < g_hmap.m_widthx || shell < g_hmap.m_widthy);
+	} while(shell < g_mapsz.x || shell < g_mapsz.y);
 
 	return false;
 }

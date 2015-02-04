@@ -30,36 +30,6 @@ void MouseWheel(int delta)
 {
 	if(g_mode == APPMODE_PLAY || g_mode == APPMODE_EDITOR)
 	{
-		Player* py = &g_player[g_curP];
-		Camera* c = &py->camera;
-
-		if(py->zoom <= MIN_ZOOM && delta < 0)
-			return;
-
-		if(py->zoom >= MAX_ZOOM && delta > 0)
-			return;
-
-		float oldzoom = py->zoom;
-		Vec3f line[2];
-		line[0] = c->zoompos();
-
-		py->zoom *= 1.0f + (float)delta / 10.0f;
-		line[1] = c->zoompos();
-
-		Vec3f ray = Normalize( line[1] - line[0] );
-
-		line[0] = line[0] - ray;
-		line[1] = line[1] + ray;
-
-		Vec3f clip;
-#if 0
-		if(GetMapIntersection(&g_hmap, line, &clip))
-#else
-		if(FastMapIntersect(&g_hmap, line, &clip))
-#endif
-			py->zoom = oldzoom;
-		//else
-		//	CalcMapView();
 	}
 }
 

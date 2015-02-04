@@ -29,6 +29,12 @@
 Vec2i g_mapview[2];
 Heightmap g_hmap;
 
+/*
+Number of tiles, not heightpoints/corners.
+Number of height points/corners is +1.
+*/
+Vec2uc g_mapsz(0,0);
+
 void AllocGrid(int wx, int wz)
 {
 	g_log<<"allocating class arrays "<<wx<<","<<wz<<endl;
@@ -153,11 +159,11 @@ float Heightmap::accheight(int x, int z)
 	if(tz < 0)
 		tz = 0;
 
-	if(tx >= g_hmap.m_widthx)
-		tx = g_hmap.m_widthx-1;
+	if(tx >= g_mapsz.x)
+		tx = g_mapsz.x-1;
 
-	if(tz >= g_hmap.m_widthz)
-		tz = g_hmap.m_widthz-1;
+	if(tz >= g_mapsz.z)
+		tz = g_mapsz.z-1;
 
 	int tileindex = tz*m_widthx + tx;
 	int tileindex6v = tileindex * 6;
@@ -208,8 +214,8 @@ void Heightmap::remesh()
 	{
 		changed = false;
 
-		for(int x=0; x<g_hmap.m_widthx; x++)
-			for(int z=0; z<g_hmap.m_widthz; z++)
+		for(int x=0; x<g_mapsz.x; x++)
+			for(int z=0; z<g_mapsz.z; z++)
 			{
 				unsigned short h0 = getheight(x, z);
 				unsigned short h1 = getheight(x+1, z);
@@ -246,8 +252,8 @@ void Heightmap::remesh()
 	}while(changed);
 #endif
 
-	for(int x=0; x<g_hmap.m_widthx; x++)
-		for(int z=0; z<g_hmap.m_widthz; z++)
+	for(int x=0; x<g_mapsz.x; x++)
+		for(int z=0; z<g_mapsz.z; z++)
 		{
 			unsigned char h0 = getheight(x, z);
 			unsigned char h1 = getheight(x+1, z);

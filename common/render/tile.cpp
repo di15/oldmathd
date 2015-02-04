@@ -46,5 +46,5 @@ void DefTl(int tiletype, const char* texpath, Vec2i spriteoffset, Vec2i spritesz
 
 Tile &SurfTile(int tx, int tz)
 {
-	return g_hmap.m_surftile[ tz * g_hmap.m_widthx + tx ];
+	return g_hmap.m_surftile[ tz * g_mapsz.x + tx ];
 }

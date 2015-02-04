@@ -151,7 +151,7 @@ void Order(int mousex, int mousey, int viewwidth, int viewheight, Vec3f campos, 
 	//Chat(msg);
 
 	Vec3f vmin = Vec3f(0,0,0);
-	Vec3f vmax = Vec3f(g_hmap.m_widthx*TILE_SIZE, 0, g_hmap.m_widthy*TILE_SIZE);
+	Vec3f vmax = Vec3f(g_mapsz.x*TILE_SIZE, 0, g_mapsz.y*TILE_SIZE);
 	Vec3f center(0,0,0);
 
 #if 0
@@ -174,8 +174,8 @@ void Order(int mousex, int mousey, int viewwidth, int viewheight, Vec3f campos, 
 #if 0
 		g_order.push_back(OrderMarker(order, GetTickCount(), 100));
 #endif
-		//order.x = Clip(order.x, 0, g_hmap.m_widthX*TILE_SIZE);
-		//order.z = Clip(order.z, 0, g_hmap.m_widthZ*TILE_SIZE);
+		//order.x = Clip(order.x, 0, g_mapsz.X*TILE_SIZE);
+		//order.z = Clip(order.z, 0, g_mapsz.Z*TILE_SIZE);
 		Vec3f p;
 
 		auto selitr = g_sel.units.begin();
@@ -327,8 +327,8 @@ void Order(int mousex, int mousey, int viewwidth, int viewheight, Vec3f campos, 
 				u->target = -1;
 				t = &g_utype[u->type];
 				int radius = t->size.x;
-				//u->goal.x = Clip(u->goal.x, 0 + radius, g_hmap.m_widthX*TILE_SIZE - radius);
-				//u->goal.z = Clip(u->goal.z, 0 + radius, g_hmap.m_widthZ*TILE_SIZE - radius);
+				//u->goal.x = Clip(u->goal.x, 0 + radius, g_mapsz.X*TILE_SIZE - radius);
+				//u->goal.z = Clip(u->goal.z, 0 + radius, g_mapsz.Z*TILE_SIZE - radius);
 				//u->pathblocked = false;
 				g_order.push_back(OrderMarker(goal, GetTickCount(), radius*0.5f));
 				selitr++;

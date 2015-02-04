@@ -22,8 +22,8 @@ public:
 	int widthx;
 	int widthy;
 
-	int model;
-	int cmodel;
+	unsigned int sprite;
+	unsigned int csprite;
 
 	char name[64];
 	std::string desc;

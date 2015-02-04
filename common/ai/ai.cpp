@@ -7,6 +7,7 @@
 #include "../sim/simdef.h"
 #include "../econ/utility.h"
 #include "../sim/unit.h"
+#include "../sim/simflow.h"
 
 //#define AI_FRAMES	CYCLE_FRAMES/30
 //#define AI_FRAMES	CYCLE_FRAMES
@@ -36,7 +37,9 @@ void UpdAI()
 	if(g_simframe - lastthink < AI_FRAMES)
 		return;
 
-	//CalcDem1();
+	CalcDem1();
+
+	unsigned int timer = GetTickCount();
 
 	for(int i=0; i<PLAYERS; i++)
 	{
@@ -51,6 +54,10 @@ void UpdAI()
 		UpdAI(p);
 	}
 
+	char msg[128];
+	sprintf(msg, "elapsed %u", GetTickCount()-timer);
+	InfoMess("elapsed", msg);
+
 	if(g_simframe - lastthink >= AI_FRAMES)
 		lastthink = g_simframe;
 }
@@ -58,9 +65,9 @@ void UpdAI()
 //build buildings
 bool Build(Player* p)
 {
-	//DemTree* dm = &g_demtree;
+	//DemGraph* dm = &g_demgraph;
 	int pi = p - g_player;
-	DemTree* dm = &g_demtree2[pi];
+	DemGraph* dm = &g_demgraph2[pi];
 
 	for(auto biter = dm->supbpcopy.begin(); biter != dm->supbpcopy.end(); biter ++)
 	{
@@ -73,7 +80,7 @@ bool Build(Player* p)
 
 		Vec2i tpos;
 
-		if(!PlaceBAb(btype, Vec2i(g_hmap.m_widthx/2, g_hmap.m_widthz/2), &tpos))
+		if(!PlaceBAb(btype, Vec2i(g_mapsz.x/2, g_mapsz.y/2), &tpos))
 			continue;
 		
 #if 0
@@ -84,7 +91,7 @@ bool Build(Player* p)
 			Vec2i supcmpos = tpos * TILE_SIZE + Vec2i(TILE_SIZE,TILE_SIZE)/2;
 			cmdist = Magnitude(demcmpos - supcmpos);
 			sprintf(msg, "placebl p%d bt:%s margpr%d profit%d minutil%d cmdist%d", pi, g_bltype[btype].name, demb->bid.marginpr, demb->bid.maxbid, demb->bid.minutil, cmdist);
-			InfoMessage("r", msg);
+			InfoMess("r", msg);
 		}
 #endif
 
@@ -145,6 +152,11 @@ bool Build(Player* p)
 #endif
 
 		Building* b = &g_building[demb->bi];
+
+		//TO DO some func to figure out wages
+		b->conwage = 12000;
+		b->opwage = 12000;
+
 		AdjPr(b);
 #if 1
 		//react to new price
@@ -197,6 +209,39 @@ bool Build(Player* p)
 //manufacture units
 void Manuf(Player* p)
 {
+	int numlab = CountU(UNIT_LABOURER);
+	int numtruck = CountU(UNIT_TRUCK);
+	int reqtruck = numlab / 3;
+	
+	if(reqtruck - numtruck <= 0)
+		return;
+
+	ManufJob mj;
+	mj.owner = p - g_player;
+	mj.utype = UNIT_TRUCK;
+
+	//TO DO: find cheapest builder
+
+	for(int bi=0; bi<BUILDINGS; bi++)
+	{
+		Building* b = &g_building[bi];
+
+		if(!b->on)
+			continue;
+
+		if(!b->finished)
+			continue;
+
+		if(b->type != BL_FACTORY)
+			continue;
+
+		b->manufjob.push_back(mj);
+
+		if(b->trymanuf())
+			return;
+
+		b->manufjob.clear();
+	}
 }
 
 //adjust prices at building
@@ -204,7 +249,7 @@ bool AdjPr(Building* b)
 {
 	int pi = b->owner;
 	Player* p = &g_player[pi];
-	DemTree* dm = &g_demtree2[pi];
+	DemGraph* dm = &g_demgraph2[pi];
 	BlType* bt = &g_bltype[b->type];
 	Vec2i supcmpos = b->tilepos * TILE_SIZE + Vec2i(TILE_SIZE,TILE_SIZE)/2;
 	bool change = false;
@@ -285,8 +330,8 @@ bool AdjPr(Building* b)
 				//if(ri == RES_RETFOOD)
 				{
 					char msg[256];
-					sprintf(msg, "adjpr?1 from$%d p%d %s b%d margpr%d minutil%d ramt%d cmdist%d", b->prodprice[ri], pi, g_resource[ri].name.c_str(), b-g_building, margpr, requtil, rdem->ramt, cmdist);
-					InfoMessage("ap1", msg);
+					sprintf(msg, "adjpr?1 from$%d p%d %s b%d margpr%d minutil%d ramt%d cmdist%d", b->price[ri], pi, g_resource[ri].name.c_str(), b-g_building, margpr, requtil, rdem->ramt, cmdist);
+					InfoMess("ap1", msg);
 				}
 #endif
 			}
@@ -299,8 +344,8 @@ bool AdjPr(Building* b)
 				//if(ri == RES_RETFOOD)
 				{
 					char msg[256];
-					sprintf(msg, "adjpr?2 from$%d p%d %s b%d margpr%d minutil%d ramt%d cmdist%d", b->prodprice[ri], pi, g_resource[ri].name.c_str(), b-g_building, margpr, requtil, rdem->ramt, cmdist);
-					InfoMessage("ap2", msg);
+					sprintf(msg, "adjpr?2 from$%d p%d %s b%d margpr%d minutil%d ramt%d cmdist%d", b->price[ri], pi, g_resource[ri].name.c_str(), b-g_building, margpr, requtil, rdem->ramt, cmdist);
+					InfoMess("ap2", msg);
 				}
 #endif
 
@@ -324,7 +369,7 @@ bool AdjPr(Building* b)
 			{
 				char msg[256];
 				sprintf(msg, "p%d %s b%d margpr%d minutil%d ramt%d cmdist%d", pi, g_resource[ri].name.c_str(), b-g_building, margpr, rdem->bid.minutil, rdem->ramt, cmdist);
-				InfoMessage("ap3", msg);
+				InfoMess("ap3", msg);
 			}
 #endif
 
@@ -384,7 +429,7 @@ bool AdjPr(Building* b)
 			//find max profit based on cost composition and price
 			MaxPro(bid.costcompo, leastnext, demramt, &proramt, maxbudg, &currev, &curprofit);
 
-			//int ofmax = ceili(proramt * RATIO_DENOM, bestmaxr);	//how much of max demanded is
+			//int ofmax = iceil(proramt * RATIO_DENOM, bestmaxr);	//how much of max demanded is
 			//curprofit += ofmax * bestrecur / RATIO_DENOM;	//bl recurring costs, scaled to demanded qty
 
 			if(curprofit <= bestprofit)
@@ -400,19 +445,17 @@ bool AdjPr(Building* b)
 
 		if(bestprofit <= 0)
 		{
-			b->prodprice[ri] = 1;
-			continue;
-		}
+			b->price[ri] = 1;
 
-#if 0
-		if(ri == RES_HOUSING)
+#if 1
+		//if(ri == RES_HOUSING)
 		//if(ri == RES_RETFOOD)
 		//if(ri == RES_ENERGY)
 		{
 			char msg[1280];
 			int bi = b - g_building;
 
-			sprintf(msg, "adjpr %s b%d to$%d from$%d", g_resource[ri].name.c_str(), bi, bestprc, b->prodprice[ri]);
+			sprintf(msg, "nopr adjpr %s b%d to$%d from$%d", g_resource[ri].name.c_str(), bi, bestprc, b->price[ri]);
 			
 			for(int bi=0; bi<BUILDINGS; bi++)
 			{
@@ -427,20 +470,56 @@ bool AdjPr(Building* b)
 					continue;
 
 				char submsg[128];
-				sprintf(submsg, "\n p%d b%d pr$%d", b2->owner, bi, b2->prodprice[ri]);
+				sprintf(submsg, "\n p%d b%d pr$%d", b2->owner, bi, b2->price[ri]);
 				strcat(msg, submsg);
 			}
 
-			//InfoMessage("info", msg);
+			//InfoMess("info", msg);
 			g_log<<"----"<<std::endl<<msg<<std::endl;
 			g_log.flush();
 		}
 #endif
 
-		if(b->prodprice[ri] == bestprc)
+			continue;
+		}
+
+#if 1
+		//if(ri == RES_HOUSING)
+		//if(ri == RES_RETFOOD)
+		//if(ri == RES_ENERGY)
+		{
+			char msg[1280];
+			int bi = b - g_building;
+
+			sprintf(msg, "adjpr %s b%d to$%d from$%d", g_resource[ri].name.c_str(), bi, bestprc, b->price[ri]);
+			
+			for(int bi=0; bi<BUILDINGS; bi++)
+			{
+				Building* b2 = &g_building[bi];
+
+				if(!b2->on)
+					continue;
+
+				BlType* b2t = &g_bltype[b2->type];
+
+				if(b2t->output[ri] <= 0)
+					continue;
+
+				char submsg[128];
+				sprintf(submsg, "\n p%d b%d pr$%d", b2->owner, bi, b2->price[ri]);
+				strcat(msg, submsg);
+			}
+
+			//InfoMess("info", msg);
+			g_log<<"----"<<std::endl<<msg<<std::endl;
+			g_log.flush();
+		}
+#endif
+
+		if(b->price[ri] == bestprc)
 			continue;
 
-		b->prodprice[ri] = bestprc;
+		b->price[ri] = bestprc;
 
 		change = true;
 	}

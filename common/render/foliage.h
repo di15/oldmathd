@@ -6,6 +6,7 @@
 #include "../math/vec3i.h"
 #include "../math/matrix.h"
 #include "vertexarray.h"
+#include "sprite.h"
 
 class FlType
 {
@@ -14,6 +15,7 @@ public:
 	Vec3i size;
 	unsigned int texindex;
 	int model;
+	Sprite sprite;
 };
 
 

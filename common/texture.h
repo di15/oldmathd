@@ -8,7 +8,7 @@ class Texture
 {
 public:
 	unsigned int texname;
-	char filepath[MAX_PATH];
+	std::string fullpath;
 	bool loaded;
 	int width, height;
 	bool transp;
@@ -24,7 +24,7 @@ public:
 
 	Texture()
 	{
-		filepath[0] = '\0';
+		fullpath = '\0';
 		loaded = false;
 	}
 };

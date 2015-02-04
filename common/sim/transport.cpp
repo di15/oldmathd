@@ -287,7 +287,7 @@ void TBid(int target, int target2, int targtype, int umode, int cdtype, int res,
 
 		if(Trapped(u, NULL))
 		{
-			short tin = (u->cmpos.x/TILE_SIZE) + (u->cmpos.y/TILE_SIZE)*g_hmap.m_widthx;
+			short tin = (u->cmpos.x/TILE_SIZE) + (u->cmpos.y/TILE_SIZE)*g_mapsz.x;
 			TileNode* tn = &g_tilenode[tin];
 			tn->jams = imin(tn->jams + 3, 6);
 			continue;
@@ -1034,8 +1034,8 @@ void ManageTrips()
 		}
 	}
 
-	for(int x=0; x<g_hmap.m_widthx; x++)
-		for(int y=0; y<g_hmap.m_widthy; y++)
+	for(int x=0; x<g_mapsz.x; x++)
+		for(int y=0; y<g_mapsz.y; y++)
 			for(unsigned char cti=0; cti<CONDUIT_TYPES; cti++)
 			{
 				CdTile* ctile = GetCd(cti, x, y, false);

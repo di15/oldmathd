@@ -11,25 +11,29 @@ public:
 	~Sprite();
 	void free();
 
+	bool on;
 	unsigned int difftexi;
 	unsigned int teamtexi;
 	float offset[4];
 	LoadedTex* pixels;
+	std::string fullpath;
 };
+
+#define SPRITES	1024
+extern Sprite g_sprite[SPRITES];
 
 class SpriteToLoad
 {
 public:
 	std::string relative;
-	Sprite* sprite;
+	unsigned int* spindex;
 	bool loadteam;
 };
 
 bool Load1Sprite();
-void LoadSprite(const char* relative, Sprite* s, bool loadteam);
-void QueueSprite(const char* relative, Sprite* s, bool loadteam);
+void LoadSprite(const char* relative, unsigned int* spindex, bool loadteam);
+void QueueSprite(const char* relative, unsigned int* spindex, bool loadteam);
 void ParseSprite(const char* relative, Sprite* s);
-void DefS(const char* relative, Sprite* s, int offx, int offy);
 bool PlayAnimation(float& frame, int first, int last, bool loop, float rate);
 bool PlayAnimationB(float& frame, int first, int last, bool loop, float rate);	//Play animation backwards
 

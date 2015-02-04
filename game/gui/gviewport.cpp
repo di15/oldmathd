@@ -212,8 +212,8 @@ void DrawMMFrust()
 		&interBottomRight);
 #endif
 
-	float mmxscale = (float)MINIMAP_SIZE / (g_hmap.m_widthx*TILE_SIZE);
-	float mmzscale = (float)MINIMAP_SIZE / (g_hmap.m_widthy*TILE_SIZE);
+	float mmxscale = (float)MINIMAP_SIZE / (g_mapsz.x*TILE_SIZE);
+	float mmzscale = (float)MINIMAP_SIZE / (g_mapsz.y*TILE_SIZE);
 
 	interTopLeft.x = interTopLeft.x * mmxscale;
 	interTopRight.x = interTopRight.x * mmxscale;
@@ -245,114 +245,46 @@ void DrawMMFrust()
 	glDrawArrays(GL_LINE_STRIP, 0, 5);
 }
 
-void DrawMinimap(Matrix projection, Matrix viewmat, Matrix modelmat, Matrix modelviewinv, float lightpos[3], float lightdir[3])
+void DrawMinimap()
 {
-	Matrix mvpmat;
-	mvpmat.set(projection.m_matrix);
-	mvpmat.postmult(viewmat);
-
 	//g_frustum.construct(projection.m_matrix, viewmat.m_matrix);
 
 	CHECKGLERROR();
-#if 1
-	UseShadow(SHADER_MAPTILESMM, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	glActiveTexture(GL_TEXTURE8);
-	glBindTexture(GL_TEXTURE_2D, g_depth);
-	glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 8);
-	g_hmap.draw2();
-	EndS();
-#endif
-	CHECKGLERROR();
 
-#if 1
-	UseShadow(SHADER_WATERMM, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	CHECKGLERROR();
-	glActiveTexture(GL_TEXTURE8);
-	glBindTexture(GL_TEXTURE_2D, g_depth);
-	glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 8);
-	CHECKGLERROR();
-	DrawWater2();
-	CHECKGLERROR();
-	EndS();
-#endif
-
-	CHECKGLERROR();
-#if 0
-	UseShadow(SHADER_BORDERSMM, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	//glActiveTexture(GL_TEXTURE8);
-	//glBindTexture(GL_TEXTURE_2D, g_depth);
-	//glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 8);
-	Shader* s = &g_shader[g_curS];
-	glUniform1f(s->m_slot[SSLOT_MAPMINZ], 0);
-	glUniform1f(s->m_slot[SSLOT_MAPMAXZ], g_hmap.m_widthy*TILE_SIZE);
-	glUniform1f(s->m_slot[SSLOT_MAPMINX], 0);
-	glUniform1f(s->m_slot[SSLOT_MAPMAXX], g_hmap.m_widthx*TILE_SIZE);
-	glUniform1f(s->m_slot[SSLOT_MAPMINY], ConvertHeight(0));
-	glUniform1f(s->m_slot[SSLOT_MAPMAXY], ConvertHeight(255));
-	glUniform4f(g_shader[g_curS].m_slot[SSLOT_COLOR], 1, 1, 1, 0.5f);
-	DrawBorders();
-	EndS();
-#endif
-
-	glDisable(GL_DEPTH_TEST);
-
-	UseS(SHADER_COLOR2D);
-	glUniform1f(g_shader[SHADER_COLOR2D].m_slot[SSLOT_WIDTH], (float)MINIMAP_SIZE);
-	glUniform1f(g_shader[SHADER_COLOR2D].m_slot[SSLOT_HEIGHT], (float)MINIMAP_SIZE);
-	glUniform4f(g_shader[SHADER_COLOR2D].m_slot[SSLOT_COLOR], 1, 1, 1, 0.5f);
-	DrawMMFrust();
-	EndS();
-	CHECKGLERROR();
 }
 
-void DrawMinimapDepth()
+void DrawPreview()
 {
-	//if(rand()%2 == 1)
-	g_hmap.draw2();
-}
-
-void DrawPreview(Matrix projection, Matrix viewmat, Matrix modelmat, Matrix modelviewinv, float lightpos[3], float lightdir[3])
-{
-	Matrix mvpmat;
-	mvpmat.set(projection.m_matrix);
-	mvpmat.postmult(viewmat);
-
-	UseShadow(SHADER_OWNED, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	//UseShadow(SHADER_UNIT, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	glActiveTexture(GL_TEXTURE8);
-	glBindTexture(GL_TEXTURE_2D, g_depth);
-	glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 8);
-
 	Shader* s = &g_shader[g_curS];
 	Player* py = &g_player[g_localP];
 	float* color = py->color;
 	glUniform4f(s->m_slot[SSLOT_OWNCOLOR], color[0], color[1], color[2], color[3]);
 	//glUniform4f(s->m_slot[SSLOT_OWNCOLOR], 1, 0, 0, 0);
 
-	Model* m = NULL;
+	Sprite* sp = NULL;
 
 	if(g_bptype >= 0 && g_bptype < BL_TYPES)
 	{
 		BlType* t = &g_bltype[g_bptype];
-		m = &g_model[t->model];
+		sp = &g_sprite[t->sprite];
 	}
 	else if(g_bptype == BL_ROAD)
 	{
 		CdType* ct = &g_cdtype[CONDUIT_ROAD];
-		m = &g_model[ct->model[CONNECTION_EASTWEST][1]];
+		sp = &g_sprite[ct->sprite[CONNECTION_EASTWEST][1]];
 	}
 	else if(g_bptype == BL_POWL)
 	{
 		CdType* ct = &g_cdtype[CONDUIT_POWL];
-		m = &g_model[ct->model[CONNECTION_EASTWEST][1]];
+		sp = &g_sprite[ct->sprite[CONNECTION_EASTWEST][1]];
 	}
 	else if(g_bptype == BL_CRPIPE)
 	{
 		CdType* ct = &g_cdtype[CONDUIT_CRPIPE];
-		m = &g_model[ct->model[CONNECTION_EASTWEST][1]];
+		sp = &g_sprite[ct->sprite[CONNECTION_EASTWEST][1]];
 	}
 
-	if(!m)
+	if(!sp)
 		return;
 
 	g_bpyaw += g_drawfrinterval * 100.0f;
@@ -583,7 +515,7 @@ void DrawViewport(int which, int x, int y, int width, int height)
 		{
 			//RenderToShadowMap(projection, viewmat, modelmat, c->m_view);
 			//RenderToShadowMap(projection, viewmat, modelmat, Vec3f(0,0,0));
-			Vec3f focus(g_hmap.m_widthx*TILE_SIZE, 0, g_hmap.m_widthy*TILE_SIZE);
+			Vec3f focus(g_mapsz.x*TILE_SIZE, 0, g_mapsz.y*TILE_SIZE);
 			Vec3f vLine[2];
 			Vec3f ray = Normalize(c->m_view - posvec);
 			Vec3f onnear = posvec;	//OnNear(g_width/2, g_height/2);

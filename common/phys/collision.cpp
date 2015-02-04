@@ -156,13 +156,13 @@ bool OffMap(int minx, int minz, int maxx, int maxz)
 	if(minx < 0)
 		return true;
 
-	if(maxx >= (g_hmap.m_widthx-1)*TILE_SIZE)
+	if(maxx >= (g_mapsz.x-1)*TILE_SIZE)
 		return true;
 
 	if(minz < 0)
 		return true;
 
-	if(maxz >= (g_hmap.m_widthz-1)*TILE_SIZE)
+	if(maxz >= (g_mapsz.z-1)*TILE_SIZE)
 		return true;
 
 	return false;
@@ -306,8 +306,8 @@ bool Unit::collidesfast(Unit* ignoreUnit, int ignoreBuilding)
 
 	//int startx = std::max(0, fstartx/cellwx);
 	//int startz = std::max(0, fstartz/cellwz);
-	//int endx = std::min(ceil(fendx/cellwx), g_hmap.m_widthX*TILE_SIZE/cellwx-1);
-	//int endz = std::min(ceil(fendz/cellwz), g_hmap.m_widthZ*TILE_SIZE/cellwz-1);
+	//int endx = std::min(ceil(fendx/cellwx), g_mapsz.X*TILE_SIZE/cellwx-1);
+	//int endz = std::min(ceil(fendz/cellwz), g_mapsz.Z*TILE_SIZE/cellwz-1);
 	int startx = fstartx/cellwx;
 	int startz = fstartz/cellwz;
 	int endx = ceil(fendx/cellwx);
@@ -315,7 +315,7 @@ bool Unit::collidesfast(Unit* ignoreUnit, int ignoreBuilding)
 	//int endx = startx+extentx;
 	//int endz = startz+extentz;
 
-	if(startx < 0 || startz < 0 || endx >= g_hmap.m_widthX*TILE_SIZE/cellwx || endz >= g_hmap.m_widthZ*TILE_SIZE/cellwz)
+	if(startx < 0 || startz < 0 || endx >= g_mapsz.X*TILE_SIZE/cellwx || endz >= g_mapsz.Z*TILE_SIZE/cellwz)
 	{
 		g_lastcollider = -1;
 		g_collidertype = COLLIDER_TERRAIN;

@@ -952,6 +952,12 @@
     <ClInclude Include="..\common\render\infoov.h">
       <Filter>Source Files\common\render</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\math\vec2c.h">
+      <Filter>Source Files\common\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\math\vec2uc.h">
+      <Filter>Source Files\common\math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res.rc">

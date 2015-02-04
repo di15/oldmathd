@@ -52,7 +52,7 @@ bool FindJob(Unit* u)
 
 	if(Trapped(u, NULL))
 	{
-		short tin = (u->cmpos.x/TILE_SIZE) + (u->cmpos.y/TILE_SIZE)*g_hmap.m_widthx;
+		short tin = (u->cmpos.x/TILE_SIZE) + (u->cmpos.y/TILE_SIZE)*g_mapsz.x;
 		TileNode* tn = &g_tilenode[tin];
 		tn->jams = imin(tn->jams + 3, 6);
 		StopTimer(TIMER_FINDJOB);
@@ -396,9 +396,9 @@ bool FindJob(Unit* u)
 	{
 		CdType* ct = &g_cdtype[ctype];
 
-		for(int x=0; x<g_hmap.m_widthx; x++)
+		for(int x=0; x<g_mapsz.x; x++)
 		{
-			for(int z=0; z<g_hmap.m_widthy; z++)
+			for(int z=0; z<g_mapsz.y; z++)
 			{
 				CdTile* ctile = GetCd(ctype, x, z, false);
 
@@ -537,7 +537,7 @@ bool FindJob(Unit* u)
 #else
 		if(Trapped( u, j->ignoreu ))
 		{
-			short tin = (u->cmpos.x/TILE_SIZE) + (u->cmpos.y/TILE_SIZE)*g_hmap.m_widthx;
+			short tin = (u->cmpos.x/TILE_SIZE) + (u->cmpos.y/TILE_SIZE)*g_mapsz.x;
 			TileNode* tn = &g_tilenode[tin];
 			tn->jams = imin(tn->jams + 3, 6);
 			continue;
@@ -551,7 +551,7 @@ bool FindJob(Unit* u)
 			u, j->ignoreu, j->ignoreb,
 			j->goal.x, j->goal.y,
 			j->goal.x, j->goal.y, j->goal.x, j->goal.y,
-			g_hmap.m_widthx*g_hmap.m_widthy);
+			g_mapsz.x*g_mapsz.y);
 
 		if(tpath.size() <= 0)
 			continue;
@@ -573,7 +573,7 @@ bool FindJob(Unit* u)
 			//	InfoMess("15t", "15t");
 
 			Unit* tu = &g_unit[j->target];
-			short tin = (tu->cmpos.x/TILE_SIZE) + (tu->cmpos.y/TILE_SIZE)*g_hmap.m_widthx;
+			short tin = (tu->cmpos.x/TILE_SIZE) + (tu->cmpos.y/TILE_SIZE)*g_mapsz.x;
 			TileNode* tn = &g_tilenode[tin];
 			tn->jams = imin(tn->jams + 3, 6);
 
@@ -862,7 +862,7 @@ void NewJob(int jobtype, int target, int target2, int cdtype)
 				Trapped( &g_unit[target], u ))
 			{
 				Unit* tu = &g_unit[target];
-				short tin = (tu->cmpos.x/TILE_SIZE) + (tu->cmpos.y/TILE_SIZE)*g_hmap.m_widthx;
+				short tin = (tu->cmpos.x/TILE_SIZE) + (tu->cmpos.y/TILE_SIZE)*g_mapsz.x;
 				TileNode* tn = &g_tilenode[tin];
 				tn->jams = imin(tn->jams + 3, 6);
 				continue;

@@ -46,7 +46,7 @@ public:
 	unsigned short netwoff;	//offset to network list in Building class
 	unsigned short seloff;	//offset to selection list in Selection class
 	//TO DO elevation inclines
-	int sprite[CONNECTION_TYPES][2];	//0 = not finished, 1 = finished/constructed
+	unsigned int sprite[CONNECTION_TYPES][2];	//0 = not finished, 1 = finished/constructed
 	unsigned short maxforwincl;
 	unsigned short maxsideincl;
 	bool blconduct;	//do buildings conduct this resource (also act as conduit in a network?)
@@ -86,7 +86,7 @@ inline CdTile* GetCd(unsigned char ctype, int tx, int tz, bool plan)
 {
 	CdType* ct = &g_cdtype[ctype];
 	CdTile* tilesarr = ct->cdtiles[(int)plan];
-	return &tilesarr[ tx + tz*g_hmap.m_widthx ];
+	return &tilesarr[ tx + tz*g_mapsz.x ];
 }
 
 class Building;
