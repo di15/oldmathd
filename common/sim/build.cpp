@@ -476,7 +476,6 @@ bool PlaceBl(int type, Vec2i pos, bool finished, int owner, int* bid)
 
 #endif
 
-	b->remesh();
 	b->fillcollider();
 
 	if(g_mode == APPMODE_PLAY)

@@ -1,7 +1,4 @@
-//
-// gviewport.cpp
-//
-//
+
 
 #include "../../common/render/shader.h"
 #include "../../common/gui/gui.h"
@@ -345,78 +342,6 @@ void DrawPreview()
 	EndS();
 }
 
-void DrawPreviewDepth()
-{
-	Shader* s = &g_shader[g_curS];
-
-	Model* m = NULL;
-
-	Player* py = &g_player[g_localP];
-
-	if(g_bptype >= 0 && g_bptype < BL_TYPES)
-	{
-		BlType* t = &g_bltype[g_bptype];
-		m = &g_model[t->model];
-	}
-	else if(g_bptype == BL_ROAD)
-	{
-		CdType* ct = &g_cdtype[CONDUIT_ROAD];
-		m = &g_model[ct->model[CONNECTION_EASTWEST][1]];
-	}
-	else if(g_bptype == BL_POWL)
-	{
-		CdType* ct = &g_cdtype[CONDUIT_POWL];
-		m = &g_model[ct->model[CONNECTION_EASTWEST][1]];
-	}
-	else if(g_bptype == BL_CRPIPE)
-	{
-		CdType* ct = &g_cdtype[CONDUIT_CRPIPE];
-		m = &g_model[ct->model[CONNECTION_EASTWEST][1]];
-	}
-
-	if(!m)
-		return;
-
-	//g_bpyaw = (int)(g_bpyaw+2)%360;
-
-	float pitch = 0;
-	float yaw = g_bpyaw;
-	int frame = 0;
-	Vec3f pos(0,0,0);
-	Matrix modelmat;
-	float radians[] = {(float)DEGTORAD(pitch), (float)DEGTORAD(yaw), 0};
-	modelmat.translation((const float*)&pos);
-	Matrix rotation;
-	rotation.rotrad(radians);
-	modelmat.postmult(rotation);
-	glUniformMatrix4fv(s->m_slot[SSLOT_MODELMAT], 1, 0, modelmat.m_matrix);
-
-	Matrix mvp;
-#if 0
-	mvp.set(modelview.m_matrix);
-	mvp.postmult(g_camproj);
-#elif 0
-	mvp.set(g_camproj.m_matrix);
-	mvp.postmult(modelview);
-#else
-	mvp.set(g_camproj.m_matrix);
-	mvp.postmult(g_camview);
-	mvp.postmult(modelmat);
-#endif
-	glUniformMatrix4fv(s->m_slot[SSLOT_MVP], 1, 0, mvp.m_matrix);
-
-	VertexArray* va = &m->m_va[frame];
-
-	m->usetex();
-
-	//glVertexAttribPointer(s->m_slot[SSLOT_POSITION], 3, GL_FLOAT, GL_FALSE, 0, va->vertices);
-	glVertexPointer(3, GL_FLOAT, 0, va->vertices);
-	//glVertexAttribPointer(s->m_slot[SSLOT_TEXCOORD0], 2, GL_FLOAT, GL_FALSE, 0, va->texcoords);
-	glTexCoordPointer(2, GL_FLOAT, 0, va->texcoords);
-	//glVertexAttribPointer(s->m_slot[SSLOT_NORMAL], 3, GL_FLOAT, GL_FALSE, 0, va->normals);
-
-	glDrawArrays(GL_TRIANGLES, 0, va->numverts);
-}
 
 void DrawViewport(int which, int x, int y, int width, int height)
 {
@@ -428,59 +353,9 @@ void DrawViewport(int which, int x, int y, int width, int height)
 	Viewport* v = &g_viewport[which];
 	VpType* t = &g_vptype[v->m_type];
 	Player* py = &g_player[g_localP];
-	Camera* c = &g_cam;
-
-
-	Matrix oldview = g_camview;
 
 	if(which == VIEWPORT_ENTVIEW)
 	{
-		float aspect = fabsf((float)width / (float)height);
-		Matrix projection = PerspProj(FIELD_OF_VIEW, aspect, MIN_DISTANCE, MAX_DISTANCE);
-		//Matrix projection = OrthoProj(-PROJ_RIGHT*aspect/g_zoom, PROJ_RIGHT*aspect/g_zoom, PROJ_RIGHT/g_zoom, -PROJ_RIGHT/g_zoom, MIN_DISTANCE, MAX_DISTANCE);
-
-		Vec3f focusvec = g_bpcam.m_view;
-		Vec3f posvec = g_bpcam.m_pos;
-		Vec3f upvec = g_bpcam.m_up;
-
-#if 1
-		Matrix viewmat = LookAt(posvec.x, posvec.y, posvec.z, focusvec.x, focusvec.y, focusvec.z, upvec.x, upvec.y, upvec.z);
-#else
-		Matrix viewmat = gluLookAt2(posvec.x, posvec.y, posvec.z, focusvec.x, focusvec.y, focusvec.z, upvec.x, upvec.y, upvec.z);
-#endif
-
-		g_camview = viewmat;
-
-		Matrix modelview;
-		Matrix modelmat;
-		float translation[] = {0, 0, 0};
-		modelview.translation(translation);
-		modelmat.translation(translation);
-		modelview.postmult(viewmat);
-
-		Matrix mvpmat;
-		mvpmat.set(projection.m_matrix);
-		mvpmat.postmult(viewmat);
-
-		//RenderToShadowMap(projection, viewmat, modelmat, c->m_view);
-		//RenderToShadowMap(projection, viewmat, modelmat, Vec3f(0,0,0));
-		Vec3f focus(0, 0, 0);
-		Vec3f vLine[2];
-		Vec3f ray = Normalize(c->m_view - posvec);
-		Vec3f onnear = posvec;	//OnNear(g_width/2, g_height/2);
-#if 0
-		vLine[0] = onnear;
-		vLine[1] = onnear + (ray * 100000.0f);
-		//if(!GetMapIntersection(&g_hmap, vLine, &focus))
-		if(!FastMapIntersect(&g_hmap, vLine, &focus))
-			//if(!GetMapIntersection(&g_hmap, vLine, &focus))
-			GetMapIntersection2(&g_hmap, vLine, &focus);
-#endif
-
-		CHECKGLERROR();
-		//RenderToShadowMap(projection, viewmat, modelmat, focus, focus + g_lightoff, DrawPreviewDepth);
-		CHECKGLERROR();
-		RenderShadowedScene(projection, viewmat, modelmat, modelview, DrawPreview);
 		CHECKGLERROR();
 	}
 
@@ -488,69 +363,10 @@ void DrawViewport(int which, int x, int y, int width, int height)
 	{
 		StartTimer(TIMER_DRAWMINIMAP);
 
-		float aspect = fabsf((float)width / (float)height);
-		Matrix projection = PerspProj(FIELD_OF_VIEW, aspect, MIN_DISTANCE, MAX_DISTANCE/g_zoom);
-		//Matrix projection = OrthoProj(-PROJ_RIGHT*aspect/g_zoom, PROJ_RIGHT*aspect/g_zoom, PROJ_RIGHT/g_zoom, -PROJ_RIGHT/g_zoom, MIN_DISTANCE, MAX_DISTANCE);
-
-		Vec3f focusvec = c->m_view;
-		Vec3f posvec = c->zoompos();
-		Vec3f upvec = c->m_up;
-
-		Matrix viewmat = LookAt(posvec.x, posvec.y, posvec.z, focusvec.x, focusvec.y, focusvec.z, upvec.x, upvec.y, upvec.z);
-
-		g_camview = viewmat;
-
-		Matrix modelview;
-		Matrix modelmat;
-		float translation[] = {0, 0, 0};
-		modelview.translation(translation);
-		modelmat.translation(translation);
-		modelview.postmult(viewmat);
-
-		Matrix mvpmat;
-		mvpmat.set(projection.m_matrix);
-		mvpmat.postmult(viewmat);
-
-		//if(v->m_type == VIEWPORT_MAIN3D)
-		{
-			//RenderToShadowMap(projection, viewmat, modelmat, c->m_view);
-			//RenderToShadowMap(projection, viewmat, modelmat, Vec3f(0,0,0));
-			Vec3f focus(g_mapsz.x*TILE_SIZE, 0, g_mapsz.y*TILE_SIZE);
-			Vec3f vLine[2];
-			Vec3f ray = Normalize(c->m_view - posvec);
-			Vec3f onnear = posvec;	//OnNear(g_width/2, g_height/2);
-#if 0
-			vLine[0] = onnear;
-			vLine[1] = onnear + (ray * 100000.0f);
-			//if(!GetMapIntersection(&g_hmap, vLine, &focus))
-			if(!FastMapIntersect(&g_hmap, vLine, &focus))
-				//if(!GetMapIntersection(&g_hmap, vLine, &focus))
-				GetMapIntersection2(&g_hmap, vLine, &focus);
-#endif
-			CHECKGLERROR();
-			//RenderToShadowMap(projection, viewmat, modelmat, focus, focus + g_lightoff / MIN_ZOOM, DrawMinimapDepth);
-			CHECKGLERROR();
-			RenderShadowedScene(projection, viewmat, modelmat, modelview, DrawMinimap);
-			CHECKGLERROR();
-		}
+		CHECKGLERROR();
 
 		StopTimer(TIMER_DRAWMINIMAP);
 	}
-
-	g_camview = oldview;
-
-#if 0
-	EndS();
-	CHECKGLERROR();
-	Ortho(width, height, 1, 0, 0, 1);
-	glDisable(GL_DEPTH_TEST);
-	RichText rt = RichText(t->m_label);
-	DrawShadowedText(MAINFONT8, 0, 0, &rt, NULL, -1);
-	EndS();
-#endif
-
-	//if(persp)
-	//	DrawVertexDebug(&projection, &modelmat, &viewmat, width, height);
 
 	glDisable(GL_DEPTH_TEST);
 	glFlush();

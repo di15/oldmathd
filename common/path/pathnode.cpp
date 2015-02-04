@@ -101,9 +101,9 @@ bool AtGoal(PathJob* pj, PathNode* node)
 	UType* ut = &g_utype[pj->utype];
 
 	int cmminx = cmposx - ut->size.x/2;
-	int cmminz = cmposz - ut->size.z/2;
+	int cmminz = cmposz - ut->size.x/2;
 	int cmmaxx = cmminx + ut->size.x - 1;
-	int cmmaxz = cmminz + ut->size.z - 1;
+	int cmmaxz = cmminz + ut->size.x - 1;
 
 	if(cmminx <= pj->goalmaxx && cmminz <= pj->goalmaxy && cmmaxx >= pj->goalminx && cmmaxz >= pj->goalminy)
 		return true;

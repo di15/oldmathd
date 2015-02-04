@@ -10,7 +10,8 @@ void DefTl(int tiletype, const char* texpath, Vec2i spriteoffset, Vec2i spritesz
 {
 	TlType* t = &g_tiletype[tiletype];
 	//QueueTexture(&t->sprite.texindex, texpath, true);
-	CreateTexture(t->sprite.texindex, texpath, true, false);
+	//CreateTexture(t->sprite.texindex, texpath, true, false);
+	QueueSprite(texpath, &t->sprite, false);
 #if 0
 	t->sprite.offset[0] = spriteoffset.x;
 	t->sprite.offset[1] = spriteoffset.y;

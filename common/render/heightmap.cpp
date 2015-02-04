@@ -162,8 +162,8 @@ float Heightmap::accheight(int x, int z)
 	if(tx >= g_mapsz.x)
 		tx = g_mapsz.x-1;
 
-	if(tz >= g_mapsz.z)
-		tz = g_mapsz.z-1;
+	if(tz >= g_mapsz.y)
+		tz = g_mapsz.y-1;
 
 	int tileindex = tz*m_widthx + tx;
 	int tileindex6v = tileindex * 6;
@@ -215,7 +215,7 @@ void Heightmap::remesh()
 		changed = false;
 
 		for(int x=0; x<g_mapsz.x; x++)
-			for(int z=0; z<g_mapsz.z; z++)
+			for(int z=0; z<g_mapsz.y; z++)
 			{
 				unsigned short h0 = getheight(x, z);
 				unsigned short h1 = getheight(x+1, z);
@@ -253,7 +253,7 @@ void Heightmap::remesh()
 #endif
 
 	for(int x=0; x<g_mapsz.x; x++)
-		for(int z=0; z<g_mapsz.z; z++)
+		for(int z=0; z<g_mapsz.y; z++)
 		{
 			unsigned char h0 = getheight(x, z);
 			unsigned char h1 = getheight(x+1, z);

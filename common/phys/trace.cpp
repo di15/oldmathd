@@ -22,9 +22,10 @@
 
 #define EPSILON_I		1
 
+//experimental, so far, haven't found a way to use fixmath instead of floats for pass ratios
 bool PassUnits(Vec2i vstart, Vec2i vend,
-			   int cmminx, int cmminz, int cmmaxx, int cmmaxz,
-			   Unit* u2)
+               int cmminx, int cmminz, int cmmaxx, int cmmaxz,
+               Unit* u2)
 {
 	float startratio = -1.0f;
 	float endratio = 1.0f;
@@ -100,7 +101,7 @@ bool PassUnits(Vec2i vstart, Vec2i vend,
 					tw->trytostep = true;
 
 					//if(debugb)
-					//	InfoMessage("asd", "try step");
+					//	InfoMess("asd", "try step");
 				}
 
 				if(tw->collisionnormal.y > 0.2f)
@@ -110,7 +111,7 @@ bool PassUnits(Vec2i vstart, Vec2i vend,
 		}
 		else
 		{
-			float ratio = (startdistance + EPSILON_I) / (startdistance - enddistance);
+			float ratio = (float)( (startdistance + EPSILON_I) / (startdistance - enddistance) );
 
 			if(ratio < endratio)
 				endratio = ratio;
@@ -155,15 +156,15 @@ bool PassUnits(Vec2i vstart, Vec2i vend,
 }
 
 int Trace(int utype, int umode,
-		  Vec2i vstart, Vec2i vend,
-		  Unit* thisu, Unit* ignoreu, Building* ignoreb)
+          Vec2i vstart, Vec2i vend,
+          Unit* thisu, Unit* ignoreu, Building* ignoreb)
 {
 	UType* ut = &g_utype[utype];
 
 	int cmminx = -ut->size.x/2;
-	int cmminz = -ut->size.z/2;
+	int cmminz = -ut->size.x/2;
 	int cmmaxx = cmminx + ut->size.x;
-	int cmmaxz = cmminx + ut->size.z;
+	int cmmaxz = cmminx + ut->size.x;
 
 	Vec2i absmin( imin(vstart.x + cmmaxx, vend.x + cmmaxx), imin(vstart.y + cmmaxz, vend.y + cmmaxz) );
 	Vec2i absmax( imax(vstart.x + cmmaxx, vend.x + cmmaxx), imax(vstart.y + cmmaxz, vend.y + cmmaxz) );
@@ -176,7 +177,7 @@ int Trace(int utype, int umode,
 	for(int nx = cminx; nx <= cmaxx; nx++)
 		for(int nz = cminz; nz <= cmaxz; nz++)
 		{
-			ColliderTile* cell = ColliderTileAt(nx, nz);
+			ColliderTile* cell = ColliderAt(nx, nz);
 
 			for(short uiter = 0; uiter < 4; uiter++)
 			{

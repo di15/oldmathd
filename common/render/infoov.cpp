@@ -34,10 +34,8 @@ void DrawOv(Matrix* mvp)
 			//if(!b->finished)
 			//	continue;
 
-			if(!g_frustum.pointin(b->drawpos.x, b->drawpos.y, b->drawpos.z))
-				continue;
-
-			Vec4f screenpos = ScreenPos(mvp, b->drawpos, g_width, g_height, true);
+			//if(!g_frustum.pointin(b->drawpos.x, b->drawpos.y, b->drawpos.z))
+			//	continue;
 		
 			bool showcd[CONDUIT_TYPES];
 			memset(showcd, -1, sizeof(showcd));
@@ -102,8 +100,8 @@ void DrawOv(Matrix* mvp)
 			if(showcnt <= 0)
 				continue;
 
-			int x = screenpos.x - (25 * showcnt)/2;
-			int y = screenpos.y + 25;
+			int x = b->drawpos.x - (25 * showcnt)/2;
+			int y = b->drawpos.y + 25;
 
 			for(int ci=0; ci<CONDUIT_TYPES; ci++)
 			{
@@ -138,10 +136,8 @@ void DrawOv(Matrix* mvp)
 			if(!b->finished)
 				continue;
 
-			if(!g_frustum.pointin(b->drawpos.x, b->drawpos.y, b->drawpos.z))
-				continue;
-
-			Vec4f screenpos = ScreenPos(mvp, b->drawpos, g_width, g_height, true);
+			//if(!g_frustum.pointin(b->drawpos.x, b->drawpos.y, b->drawpos.z))
+			//	continue;
 		
 #if 0
 			std::string t;
@@ -163,8 +159,8 @@ void DrawOv(Matrix* mvp)
 			float pos[4];
 
 			//HP
-			pos[0] = screenpos.x - bt->maxhp / 100 / 2;
-			pos[1] = screenpos.y;
+			pos[0] = b->drawpos.x - bt->maxhp / 100 / 2;
+			pos[1] = b->drawpos.y;
 			pos[2] = pos[0] + bt->maxhp / 100;
 			pos[3] = pos[1] + 2;
 			DrawSquare(0, 0, 0, 1, pos[0], pos[1], pos[2], pos[3]);
@@ -174,7 +170,7 @@ void DrawOv(Matrix* mvp)
 			//production met %
 			pos[1] = pos[3] + 1;
 			pos[3] = pos[1] + 2;
-			pos[0] = screenpos.x - b->prodlevel / 2 / 5;
+			pos[0] = b->drawpos.x - b->prodlevel / 2 / 5;
 			pos[2] = pos[0] + b->prodlevel / 5;
 			DrawSquare(0, 0, 0, 1, pos[0], pos[1], pos[2], pos[3]);
 			pos[2] = pos[0] + b->cymet / 5;
@@ -183,7 +179,7 @@ void DrawOv(Matrix* mvp)
 			//cycle count down timer
 			pos[1] = pos[3] + 1;
 			pos[3] = pos[1] + 2;
-			pos[0] = screenpos.x - 30;
+			pos[0] = b->drawpos.x - 30;
 			pos[2] = pos[0] + 60;
 			DrawSquare(0, 0, 0, 1, pos[0], pos[1], pos[2], pos[3]);
 			pos[2] = pos[0] + (g_simframe-b->lastcy)/SIM_FRAME_RATE;
@@ -212,10 +208,9 @@ void DrawOv(Matrix* mvp)
 		if(u->hidden())
 			continue;
 
-		if(!g_frustum.pointin(u->drawpos.x, u->drawpos.y, u->drawpos.z))
-			continue;
+		//if(!g_frustum.pointin(u->drawpos.x, u->drawpos.y, u->drawpos.z))
+		//	continue;
 
-		Vec4f screenpos = ScreenPos(mvp, u->drawpos, g_width, g_height, true);
 		RichText rt;
 
 		std::string mode;
@@ -316,7 +311,7 @@ void DrawOv(Matrix* mvp)
 		//mode += "\n";
 
 		rt.m_part.push_back(RichPart(UString(mode.c_str())));
-		DrawCenterShadText(MAINFONT8, screenpos.x, screenpos.y, &rt);
+		DrawCenterShadText(MAINFONT8, u->drawpos.x, u->drawpos.y, &rt);
 		//DrawBoxShadText(MAINFONT8, screenpos.x, screenpos.y, g_width, g_height, &rt, color, 0, -1);
 		
 		RichText rt2;
@@ -380,7 +375,7 @@ void DrawOv(Matrix* mvp)
 
 		Font* f = &g_font[MAINFONT8];
 		//DrawCenterShadText(MAINFONT8, screenpos.x, screenpos.y + f->gheight, &rt2);
-		DrawBoxShadText(MAINFONT8, screenpos.x - f->gheight*2, screenpos.y + f->gheight, g_width, g_height, &rt2, color, 0, -1);
+		DrawBoxShadText(MAINFONT8, u->drawpos.x - f->gheight*2, u->drawpos.y + f->gheight, g_width, g_height, &rt2, color, 0, -1);
 	}
 
 	//RichText rt("lkajslkdlads");

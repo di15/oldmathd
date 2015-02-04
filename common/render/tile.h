@@ -8,7 +8,7 @@
 class TlType
 {
 public:
-	Sprite sprite;
+	unsigned int sprite;
 };
 
 #define TILE_0000		0

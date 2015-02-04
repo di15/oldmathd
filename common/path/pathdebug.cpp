@@ -181,7 +181,7 @@ void DrawGrid()
 #if 0
 		//debug pathing
 		double unminx = (u->cmpos.x - t->size.x/2) / (double)PATHNODE_SIZE;
-		double unminz = (u->cmpos.y - t->size.z/2) / (double)PATHNODE_SIZE;
+		double unminz = (u->cmpos.y - t->size.x/2) / (double)PATHNODE_SIZE;
 
 		static bool first = false;
 
@@ -331,12 +331,12 @@ void DrawUnitSquares()
 		 glVertex3f(p.x - r, 0 + 1, p.z - r);
 		 */
 
-		Vec3i vmin(u->cmpos.x - t->size.x/2, 0, u->cmpos.y - t->size.z/2);
+		Vec3i vmin(u->cmpos.x - t->size.x/2, 0, u->cmpos.y - t->size.x/2);
 
 		std::vector<Vec3f> vecs;
 		vecs.push_back(Vec3f(vmin.x, 0 + 1, vmin.z));
-		vecs.push_back(Vec3f(vmin.x, 0 + 1, vmin.z + t->size.z));
-		vecs.push_back(Vec3f(vmin.x + t->size.x, 0 + 1, vmin.z + t->size.z));
+		vecs.push_back(Vec3f(vmin.x, 0 + 1, vmin.z + t->size.x));
+		vecs.push_back(Vec3f(vmin.x + t->size.x, 0 + 1, vmin.z + t->size.x));
 		vecs.push_back(Vec3f(vmin.x + t->size.x, 0 + 1, vmin.z));
 		vecs.push_back(Vec3f(vmin.x, 0 + 1, vmin.z));
 

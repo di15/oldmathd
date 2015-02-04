@@ -20,7 +20,7 @@
 void DrawQueue()
 {
 	for(int x=0; x<g_mapsz.x; x++)
-		for(int z=0; z<g_mapsz.z; z++)
+		for(int z=0; z<g_mapsz.y; z++)
 		{
 #if 0
 			Vec2i screenpos = CartToIso(Vec3i( x * TILE_SIZE, y * TILE_SIZE / 2, z * TILE_SIZE ));
@@ -34,8 +34,8 @@ void DrawQueue()
 			//cmpos.y = 0;
 			Vec2i screenpos = CartToIso(cmpos);
 			//screenpos = CartToIso(Vec3i( x * TILE_SIZE, y * TILE_SIZE / 2, z * TILE_SIZE ));
-			Sprite* sprite = &tiletype->sprite;
-			Texture* tex = &g_texture[sprite->texindex];
+			Sprite* sprite = &g_sprite[tiletype->sprite];
+			Texture* tex = &g_texture[sprite->difftexi];
 
 			//g_log<<"xyz "<<cmpos.x<<","<<cmpos.y<<","<<cmpos.z<<" screen "<<screenpos.x<<","<<screenpos.y<<endl;
 
@@ -60,7 +60,7 @@ void DrawQueue()
 			CHECKGLERROR();
 		}
 
-	DrawBls();
+	//DrawBls();
 	DrawUnits();
 
 #if 0

@@ -286,8 +286,8 @@ int SelectOneUnit(Vec3f *line)
 		Vec3f normals[6];
 		float dists[6];
 
-		Vec3f vmin = Vec3f(-t->size.x/2, 0, -t->size.z/2);
-		Vec3f vmax = Vec3f(t->size.x/2, t->size.y, t->size.z/2);
+		Vec3f vmin = Vec3f(-t->size.x/2, 0, -t->size.x/2);
+		Vec3f vmax = Vec3f(t->size.x/2, t->size.y, t->size.x/2);
 
 	}
 
@@ -371,11 +371,11 @@ std::list<int> SelectAreaUnits()
 
 		UType* t = &g_utype[ u->type ];
 
-		Vec3f vmin = u->drawpos + Vec3f(-t->size.x/2, 0, -t->size.z/2);
+		Vec3f vmin = u->drawpos + Vec3f(-t->size.x/2, 0, -t->size.x/2);
 #if 1
-		Vec3f vmax = u->drawpos + Vec3f(t->size.x/2, t->size.y, t->size.z/2);
+		Vec3f vmax = u->drawpos + Vec3f(t->size.x/2, t->size.y, t->size.x/2);
 #else
-		Vec3f vmax = u->drawpos + Vec3f(t->size.x/2, 0, t->size.z/2);
+		Vec3f vmax = u->drawpos + Vec3f(t->size.x/2, 0, t->size.x/2);
 #endif
 
 		if(!g_selfrust.boxin2(vmin.x, vmin.y, vmin.z, vmax.x, vmax.y, vmax.z))

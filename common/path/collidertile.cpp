@@ -331,9 +331,9 @@ void Unit::fillcollider()
 
 	//cm = centimeter position
 	int cmminx = cmpos.x - t->size.x/2;
-	int cmminz = cmpos.y - t->size.z/2;
+	int cmminz = cmpos.y - t->size.x/2;
 	int cmmaxx = cmminx + t->size.x - 1;
-	int cmmaxz = cmminz + t->size.z - 1;
+	int cmmaxz = cmminz + t->size.x - 1;
 
 	//c = cell position
 	int cminx = cmminx / PATHNODE_SIZE;
@@ -395,9 +395,9 @@ void Unit::freecollider()
 
 	//cm = centimeter position
 	int cmminx = cmpos.x - t->size.x/2;
-	int cmminz = cmpos.y - t->size.z/2;
+	int cmminz = cmpos.y - t->size.x/2;
 	int cmmaxx = cmminx + t->size.x - 1;
-	int cmmaxz = cmminz + t->size.z - 1;
+	int cmmaxz = cmminz + t->size.x - 1;
 
 	//c = cell position
 	int cminx = cmminx / PATHNODE_SIZE;
@@ -488,9 +488,9 @@ bool Standable2(const PathJob* pj, int cmposx, int cmposz)
 	UType* ut = &g_utype[pj->utype];
 
 	int cmminx = cmposx - ut->size.x/2;
-	int cmminz = cmposz - ut->size.z/2;
+	int cmminz = cmposz - ut->size.x/2;
 	int cmmaxx = cmminx + ut->size.x - 1;
-	int cmmaxz = cmminz + ut->size.z - 1;
+	int cmmaxz = cmminz + ut->size.x - 1;
 
 	int cminx = cmminx/PATHNODE_SIZE;
 	int cminz = cmminz/PATHNODE_SIZE;
@@ -558,9 +558,9 @@ bool Standable2(const PathJob* pj, int cmposx, int cmposz)
 					UType* t = &g_utype[u->type];
 
 					int cmminx2 = u->cmpos.x - t->size.x/2;
-					int cmminz2 = u->cmpos.y - t->size.z/2;
+					int cmminz2 = u->cmpos.y - t->size.x/2;
 					int cmmaxx2 = cmminx2 + t->size.x - 1;
-					int cmmaxz2 = cmminz2 + t->size.z - 1;
+					int cmmaxz2 = cmminz2 + t->size.x - 1;
 
 					if(cmmaxx >= cmminx2 && cmmaxz >= cmminz2 && cmminx <= cmmaxx2 && cmminz <= cmmaxz2)
 					{
@@ -654,9 +654,9 @@ bool Standable(const PathJob* pj, const int nx, const int nz)
 	const int cmposz = nz * PATHNODE_SIZE + PATHNODE_SIZE/2;
 
 	const int cmminx = cmposx - ut->size.x/2;
-	const int cmminz = cmposz - ut->size.z/2;
+	const int cmminz = cmposz - ut->size.x/2;
 	const int cmmaxx = cmminx + ut->size.x - 1;
-	const int cmmaxz = cmminz + ut->size.z - 1;
+	const int cmmaxz = cmminz + ut->size.x - 1;
 
 	const int cminx = cmminx/PATHNODE_SIZE;
 	const int cminz = cmminz/PATHNODE_SIZE;
@@ -778,9 +778,9 @@ bool Standable(const PathJob* pj, const int nx, const int nz)
 					UType* t = &g_utype[u->type];
 
 					int cmminx2 = u->cmpos.x - t->size.x/2;
-					int cmminz2 = u->cmpos.y - t->size.z/2;
+					int cmminz2 = u->cmpos.y - t->size.x/2;
 					int cmmaxx2 = cmminx2 + t->size.x - 1;
-					int cmmaxz2 = cmminz2 + t->size.z - 1;
+					int cmmaxz2 = cmminz2 + t->size.x - 1;
 
 					if(cmmaxx >= cmminx2 && cmmaxz >= cmminz2 && cmminx <= cmmaxx2 && cmminz <= cmmaxz2)
 					{
@@ -913,9 +913,9 @@ bool TileStandable(const PathJob* pj, const int nx, const int nz)
 
 #if 0
 	const int cmminx = cmposx - ut->size.x/2;
-	const int cmminz = cmposz - ut->size.z/2;
+	const int cmminz = cmposz - ut->size.x/2;
 	const int cmmaxx = cmminx + ut->size.x - 1;
-	const int cmmaxz = cmminz + ut->size.z - 1;
+	const int cmmaxz = cmminz + ut->size.x - 1;
 
 	const int cminx = cmminx/PATHNODE_SIZE;
 	const int cminz = cmminz/PATHNODE_SIZE;
@@ -1043,9 +1043,9 @@ bool TileStandable(const PathJob* pj, const int nx, const int nz)
 					UType* t = &g_utype[u->type];
 
 					int cmminx2 = u->cmpos.x - t->size.x/2;
-					int cmminz2 = u->cmpos.y - t->size.z/2;
+					int cmminz2 = u->cmpos.y - t->size.x/2;
 					int cmmaxx2 = cmminx2 + t->size.x - 1;
-					int cmmaxz2 = cmminz2 + t->size.z - 1;
+					int cmmaxz2 = cmminz2 + t->size.x - 1;
 
 					if(cmmaxx >= cmminx2 && cmmaxz >= cmminz2 && cmminx <= cmmaxx2 && cmminz <= cmmaxz2)
 					{

@@ -3,6 +3,7 @@
 
 #include "../math/vec3i.h"
 #include "../math/vec2i.h"
+#include "../math/vec2s.h"
 #include "../render/heightmap.h"
 #include "resources.h"
 #include "../math/vec3f.h"
@@ -15,7 +16,7 @@ public:
 	Vec2i bilbsize;
 #endif
 	int model;
-	Vec3i size;
+	Vec2s size;
 	char name[64];
 	int starthp;
 	int cmspeed;

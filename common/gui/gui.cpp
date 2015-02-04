@@ -58,7 +58,7 @@ void GUI::draw()
 #endif
 
 	Sprite* sp = &g_cursor[g_curst];
-	DrawImage(g_texture[sp->texindex].texname, g_mouse.x-sp->offset[0], g_mouse.y-sp->offset[1], g_mouse.x-sp->offset[0]+32, g_mouse.y-sp->offset[1]+32);
+	DrawImage(g_texture[sp->difftexi].texname, g_mouse.x-sp->offset[0], g_mouse.y-sp->offset[1], g_mouse.x-sp->offset[2], g_mouse.y-sp->offset[3]);
 
 	CHECKGLERROR();
 

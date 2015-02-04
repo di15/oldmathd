@@ -655,7 +655,8 @@ void ReadBls(FILE *fp)
 
 		fread(&b->tilepos, sizeof(Vec2i), 1, fp);
 		fread(&b->drawpos, sizeof(Vec3f), 1, fp);
-		
+
+#if 0
 		BlType* t = &g_bltype[b->type];
 		Vec2i tmin;
 		Vec2i tmax;
@@ -670,6 +671,7 @@ void ReadBls(FILE *fp)
 			b->drawpos.x += TILE_SIZE/2;
 		if(t->widthy % 2 == 1)
 			b->drawpos.z += TILE_SIZE/2;
+#endif
 
 		fread(&b->finished, sizeof(bool), 1, fp);
 
@@ -748,7 +750,6 @@ void ReadBls(FILE *fp)
 		fread(&b->hp, sizeof(int), 1, fp);
 
 		//b->fillcollider();
-		b->remesh();
 	}
 }
 

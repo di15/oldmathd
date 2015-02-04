@@ -13,9 +13,7 @@ void MouseMidButtonDown()
 {
 	if(g_mode == APPMODE_PLAY || g_mode == APPMODE_EDITOR)
 	{
-		Player* py = &g_player[g_curP];
-
-		if(py->mousekeys[MOUSE_MIDDLE])
+		if(g_mousekeys[MOUSE_MIDDLE])
 		{
 			CenterMouse();
 		}

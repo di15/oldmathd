@@ -294,295 +294,16 @@ void DrawScene(Matrix projection, Matrix viewmat, Matrix modelmat, Matrix modelv
 {
 	//return;	//temp
 
-	Player* py = &g_player[g_localP];
-	Camera* c = &g_cam;
-
-#if 1
-	Matrix mvpmat;
-	mvpmat.set(projection.m_matrix);
-	mvpmat.postmult(viewmat);
-	g_cammvp = mvpmat;
-
-	g_frustum.construct(projection.m_matrix, viewmat.m_matrix);
-
-	UseShadow(SHADER_SKYBOX, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	DrawSkyBox(c->zoompos());
-	//DrawSkyBox(Vec3f(0,0,0));
-	EndS();
-	CheckGLError(__FILE__, __LINE__);
-
-	StartTimer(TIMER_DRAWMAP);
-#if 1
-	UseShadow(SHADER_MAPTILES, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	glActiveTexture(GL_TEXTURE8);
-	glBindTexture(GL_TEXTURE_2D, g_depth);
-	glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 8);
-	g_hmap.draw();
-	//g_hmap.draw();
-	EndS();
-#endif
-	StopTimer(TIMER_DRAWMAP);
-	CheckGLError(__FILE__, __LINE__);
-
-	StartTimer(TIMER_DRAWRIM);
-#if 1
-	UseShadow(SHADER_RIM, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	CheckGLError(__FILE__, __LINE__);
-	glActiveTexture(GL_TEXTURE8);
-	glBindTexture(GL_TEXTURE_2D, g_depth);
-	glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 8);
-	CheckGLError(__FILE__, __LINE__);
-	g_hmap.drawrim();
-	CheckGLError(__FILE__, __LINE__);
-	EndS();
-#endif
-	StopTimer(TIMER_DRAWRIM);
-	CheckGLError(__FILE__, __LINE__);
-
-	StartTimer(TIMER_DRAWWATER);
-#if 1
-	UseShadow(SHADER_WATER, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, g_depth);
-	glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 4);
-	DrawWater3();
-	//DrawWater();
-	EndS();
-#endif
-	StopTimer(TIMER_DRAWWATER);
-	CheckGLError(__FILE__, __LINE__);
-
-#if 1
-	UseShadow(SHADER_OWNED, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	//UseShadow(SHADER_UNIT, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, g_depth);
-	glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 5);
-	glUniform4f(g_shader[g_curS].m_slot[SSLOT_COLOR], 1, 1, 1, 1);
-	glUniform4f(g_shader[g_curS].m_slot[SSLOT_OWNCOLOR], 1, 0, 0, 1);
-	DrawPy();
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	StartTimer(TIMER_DRAWBL);
-	DrawBl();
-	StopTimer(TIMER_DRAWBL);
-	StartTimer(TIMER_DRAWROADS);
-	DrawCo(CONDUIT_ROAD);
-	StopTimer(TIMER_DRAWROADS);
-	StartTimer(TIMER_DRAWCRPIPES);
-	DrawCo(CONDUIT_CRPIPE);
-	StopTimer(TIMER_DRAWCRPIPES);
-	StartTimer(TIMER_DRAWPOWLS);
-	DrawCo(CONDUIT_POWL);
-	StopTimer(TIMER_DRAWPOWLS);
-	DrawSBl();
-	EndS();
-	CheckGLError(__FILE__, __LINE__);
-#endif
-
-#ifdef FREEZE_DEBUG
-	g_log<<"drawunits"<<std::endl;
-	g_log.flush();
-#endif
-
-	StartTimer(TIMER_DRAWUNITS);
-#if 1
-	UseShadow(SHADER_UNIT, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, g_depth);
-	glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 5);
-	glUniform4f(g_shader[g_curS].m_slot[SSLOT_COLOR], 1, 1, 1, 1);
-	glUniform4f(g_shader[g_curS].m_slot[SSLOT_OWNCOLOR], 1, 0, 0, 1);
-	DrawUnits();
-	EndS();
-#endif
-	StopTimer(TIMER_DRAWUNITS);
-	CheckGLError(__FILE__, __LINE__);
-
-
-#ifdef FREEZE_DEBUG
-	g_log<<"drawfol"<<std::endl;
-	g_log.flush();
-#endif
-
-#if 1
-	StartTimer(TIMER_DRAWFOLIAGE);
-	UseShadow(SHADER_FOLIAGE, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, g_depth);
-	glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 5);
-	glUniform4f(g_shader[g_curS].m_slot[SSLOT_COLOR], 1, 1, 1, 1);
-	DrawFol(c->zoompos(), c->m_up, c->m_strafe);
-	EndS();
-	StopTimer(TIMER_DRAWFOLIAGE);
-#endif
-
-	CheckGLError(__FILE__, __LINE__);
-
-#if 0
-	UseShadow(SHADER_BORDERS, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	//glActiveTexture(GL_TEXTURE8);
-	//glBindTexture(GL_TEXTURE_2D, g_depth);
-	//glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 8);
-	glUniform4f(g_shader[g_curS].m_slot[SSLOT_COLOR], 1, 1, 1, 0.5f);
-	DrawBorderLines();
-#endif
-
-
-#ifdef FREEZE_DEBUG
-	g_log<<"drawdebug"<<std::endl;
-	g_log.flush();
-#endif
-
-#if 0
-	if(g_debuglines)
-	{
-		UseShadow(SHADER_COLOR3D, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-		DrawGrid();
-		DrawUnitSquares();
-		DrawPaths();
-		//DrawSteps();
-		//DrawVelocities();
-		EndS();
-	}
-#endif
-
-
-#ifdef FREEZE_DEBUG
-	g_log<<"drawselorders"<<std::endl;
-	g_log.flush();
-#endif
-
-	DrawSel(&projection, &modelmat, &viewmat);
-	CheckGLError(__FILE__, __LINE__);
-	DrawOrders(&projection, &modelmat, &viewmat);
-	CheckGLError(__FILE__, __LINE__);
-
-
-#ifdef FREEZE_DEBUG
-	g_log<<"drawbillbs"<<std::endl;
-	g_log.flush();
-#endif
-
-#if 1
-	//UseShadow(SHADER_BILLBOARD, projection, viewmat, modelmat, modelviewinv, lightpos, lightdir);
-	//glActiveTexture(GL_TEXTURE4);
-	//glBindTexture(GL_TEXTURE_2D, g_depth);
-	//glUniform1i(g_shader[g_curS].m_slot[SSLOT_SHADOWMAP], 4);
-	UseS(SHADER_BILLBOARD);
-	Shader* s = &g_shader[g_curS];
-	glUniformMatrix4fv(s->m_slot[SSLOT_PROJECTION], 1, 0, projection.m_matrix);
-	glUniformMatrix4fv(s->m_slot[SSLOT_MODELMAT], 1, 0, modelmat.m_matrix);
-	glUniformMatrix4fv(s->m_slot[SSLOT_VIEWMAT], 1, 0, viewmat.m_matrix);
-	glUniformMatrix4fv(s->m_slot[SSLOT_MVP], 1, 0, mvpmat.m_matrix);
-	//glUniformMatrix4fv(s->m_slot[SSLOT_NORMALMAT], 1, 0, modelviewinv.m_matrix);
-	//glUniformMatrix4fv(s->m_slot[SSLOT_INVMODLVIEWMAT], 1, 0, modelviewinv.m_matrix);
-	glUniform4f(s->m_slot[SSLOT_COLOR], 1, 1, 1, 1);
-	CheckGLError(__FILE__, __LINE__);
-	UpdateParticles();
-	StartTimer(TIMER_SORTPARTICLES);
-	SortBillboards();
-	StopTimer(TIMER_SORTPARTICLES);
-	DrawBillboards();
-	EndS();
-#endif
-
-
-#ifdef FREEZE_DEBUG
-	g_log<<"drawtransactions"<<std::endl;
-	g_log.flush();
-#endif
-
-#if 1
-	StartTimer(TIMER_DRAWGUI);
-	CheckGLError(__FILE__, __LINE__);
-	Ortho(g_width, g_height, 1, 1, 1, 1);
-	glDisable(GL_DEPTH_TEST);
-	//DrawDeposits(projection, viewmat);
-	DrawTransactions(mvpmat);
-	DrawBReason(&mvpmat, g_width, g_height, true);
-	glEnable(GL_DEPTH_TEST);
-	EndS();
-	StopTimer(TIMER_DRAWGUI);
-#endif
-#endif
-
-#if 0
-	CheckGLError(__FILE__, __LINE__);
-	Ortho(g_width, g_height, 1, 1, 1, 1);
-	glDisable(GL_DEPTH_TEST);
-	FlType* t = &g_fltype[FL_TREE1];
-	Model* m = &g_model[t->model];
-	for(int i=0; i<30000; i++)
-	{
-		m->usetex();
-		Texture* tex = &g_texture[m->m_diffusem];
-
-		int x = rand()%g_width;
-		int y = rand()%g_height;
-
-		DrawImage(tex->texname, x, y, x+2, y+4, 0, 0, 1, 1);
-	}
-	glEnable(GL_DEPTH_TEST);
-	EndS();
-#endif
-
-
-#ifdef FREEZE_DEBUG
-	g_log<<"/draw"<<std::endl;
-	g_log.flush();
-#endif
 }
 
-void DrawSceneDepth()
-{
-	StartTimer(TIMER_DRAWSCENEDEPTH);
-
-#if 1
-	Player* py = &g_player[g_localP];
-
-	CheckGLError(__FILE__, __LINE__);
-	//if(rand()%2 == 1)
-	StartTimer(TIMER_DRAWMAPDEPTH);
-	g_hmap.draw2();
-	StopTimer(TIMER_DRAWMAPDEPTH);
-	CheckGLError(__FILE__, __LINE__);
-	g_hmap.drawrim();
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	CheckGLError(__FILE__, __LINE__);
-	//g_hmap.draw2();
-	DrawBl();
-	CheckGLError(__FILE__, __LINE__);
-	for(char i=0; i<CONDUIT_TYPES; i++)
-		DrawCo(i);
-	CheckGLError(__FILE__, __LINE__);
-	StartTimer(TIMER_DRAWUNITSDEPTH);
-	DrawUnits();
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	StopTimer(TIMER_DRAWUNITSDEPTH);
-	CheckGLError(__FILE__, __LINE__);
-	DrawPy();
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	CheckGLError(__FILE__, __LINE__);
-#if 1
-	DrawFol(g_lightpos, Vec3f(0,1,0), Cross(Vec3f(0,1,0), Normalize(g_lighteye - g_lightpos)));
-	CheckGLError(__FILE__, __LINE__);
-#endif
-#endif
-
-	StopTimer(TIMER_DRAWSCENEDEPTH);
-}
 
 void Draw()
 {
 	StartTimer(TIMER_DRAWSETUP);
 
-	CheckGLError(__FILE__, __LINE__);
+	CHECKGLERROR();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	CheckGLError(__FILE__, __LINE__);
+	CHECKGLERROR();
 
 	Player* py = &g_player[g_localP];
 	GUI* gui = &g_gui;
@@ -600,63 +321,9 @@ void Draw()
 	{
 		StartTimer(TIMER_DRAWSETUP);
 
-		float aspect = fabsf((float)g_width / (float)g_height);
-		Matrix projection = PerspProj(FIELD_OF_VIEW, aspect, MIN_DISTANCE, MAX_DISTANCE/g_zoom);
-		//Matrix projection = OrthoProj(-PROJ_RIGHT*aspect/g_zoom, PROJ_RIGHT*aspect/g_zoom, PROJ_RIGHT/g_zoom, -PROJ_RIGHT/g_zoom, MIN_DISTANCE, MAX_DISTANCE);
-
-		g_camproj = projection;
-
-		Vec3f focusvec = c->m_view;
-		Vec3f posvec = c->zoompos();
-		Vec3f upvec = c->m_up;
-
-		Matrix viewmat = LookAt(posvec.x, posvec.y, posvec.z, focusvec.x, focusvec.y, focusvec.z, upvec.x, upvec.y, upvec.z);
-
-		g_camview = viewmat;
-
-		Matrix modelview;
-		Matrix modelmat;
-		float translation[] = {0, 0, 0};
-		modelview.translation(translation);
-		//modelmat.translation(translation);
-		modelmat.reset();
-		modelview.postmult(viewmat);
-
-		g_cammodelview = modelview;
-
-		Matrix mvpmat;
-		mvpmat.set(projection.m_matrix);
-		mvpmat.postmult(viewmat);
-
-		Vec3f focus;
-		Vec3f vLine[2];
-		Vec3f ray = Normalize(c->m_view - posvec);
-		Vec3f onnear = posvec;	//OnNear(g_width/2, g_height/2);
-		vLine[0] = onnear;
-		vLine[1] = onnear + (ray * 10000000.0f);
-		//if(!GetMapIntersection(&g_hmap, vLine, &focus))
-		//if(!FastMapIntersect(&g_hmap, vLine, &focus))
-		//if(!GetMapIntersection(&g_hmap, vLine, &focus))
-		//GetMapIntersection2(&g_hmap, vLine, &focus);
-		//if(!GetMapIntersection2(&g_hmap, vLine, &focus))
-		//GetMapIntersection(&g_hmap, vLine, &focus);
-		focus = c->m_view;
-		CheckGLError(__FILE__, __LINE__);
-
 		StopTimer(TIMER_DRAWSETUP);
-
-#if 1
-		RenderToShadowMap(projection, viewmat, modelmat, focus, focus + g_lightoff / g_zoom, DrawSceneDepth);
-#endif
-		CheckGLError(__FILE__, __LINE__);
-		RenderShadowedScene(projection, viewmat, modelmat, modelview, DrawScene);
-		CheckGLError(__FILE__, __LINE__);
-
-		Ortho(g_width, g_height, 1, 1, 1, 1);
-		DrawOv(&mvpmat);
-		EndS();
 	}
-	CheckGLError(__FILE__, __LINE__);
+	CHECKGLERROR();
 #endif
 
 #ifdef DEBUG
@@ -672,7 +339,7 @@ void Draw()
 	g_log.flush();
 #endif
 
-	CheckGLError(__FILE__, __LINE__);
+	CHECKGLERROR();
 	//if(!(g_mode == APPMODE_PLAY && g_speed == SPEED_FAST))
 	gui->draw();
 	StopTimer(TIMER_DRAWGUI);
@@ -689,11 +356,11 @@ void Draw()
 	glDrawPixels(blitscreen.sizeX, blitscreen.sizeY, GL_RGB, GL_BYTE, blitscreen.data);
 #endif
 
-	CheckGLError(__FILE__, __LINE__);
+	CHECKGLERROR();
 	Ortho(g_width, g_height, 1, 1, 1, 1);
-	CheckGLError(__FILE__, __LINE__);
+	CHECKGLERROR();
 	glDisable(GL_DEPTH_TEST);
-	CheckGLError(__FILE__, __LINE__);
+	CHECKGLERROR();
 
 #if 0
 	RichText uni;
@@ -721,7 +388,7 @@ void Draw()
 		RichText fpsrstr(fpsstr);
 		//fpsrstr = ParseTags(fpsrstr, NULL);
 		DrawShadowedText(MAINFONT8, 0, g_height-MINIMAP_SIZE-32, &fpsrstr);
-		CheckGLError(__FILE__, __LINE__);
+		CHECKGLERROR();
 	}
 #endif
 
@@ -738,7 +405,7 @@ void Draw()
 
 	glEnable(GL_DEPTH_TEST);
 	EndS();
-	CheckGLError(__FILE__, __LINE__);
+	CHECKGLERROR();
 
 #ifdef DEBUG
 	g_log<<"draw "<<__FILE__<<" "<<__LINE__<<std::endl;
@@ -1272,7 +939,7 @@ void EventLoop()
 #endif
 			CalcDrawRate();
 
-			CheckGLError(__FILE__, __LINE__);
+			CHECKGLERROR();
 
 #ifdef DEBUG
 			g_log<<"main "<<__FILE__<<" "<<__LINE__<<std::endl;
@@ -1280,7 +947,7 @@ void EventLoop()
 #endif
 
 			Draw();
-			CheckGLError(__FILE__, __LINE__);
+			CHECKGLERROR();
 
 			if(g_mode == APPMODE_PLAY || g_mode == APPMODE_EDITOR)
 			{

@@ -95,9 +95,9 @@ void StepBeforeArrival(int utype, Vec2i* arrive, std::list<Vec2i>* path, int* di
 	{
 #if 0
 		int newuminx = pit->x - ut->size.x/2;
-		int newuminy = pit->y - ut->size.z/2;
+		int newuminy = pit->y - ut->size.x/2;
 		int newumaxx = newuminx + ut->size.x - 1;
-		int newumaxy = newuminy + ut->size.z - 1;
+		int newumaxy = newuminy + ut->size.x - 1;
 
 		if(newuminx <= cmgoalmaxx && newuminy <= cmgoalmaxy && newumaxx >= cmgoalminx && newumaxy >= cmgoalminy)
 			return;
@@ -123,9 +123,9 @@ void StepBeforeArrival(int utype, Vec2i* arrive, std::list<Vec2i>* path, int* di
 			Vec2i newpos = *arrive + step;
 			
 			int newuminx = newpos.x - ut->size.x/2;
-			int newuminy = newpos.y - ut->size.z/2;
+			int newuminy = newpos.y - ut->size.x/2;
 			int newumaxx = newuminx + ut->size.x - 1;
-			int newumaxy = newuminy + ut->size.z - 1;
+			int newumaxy = newuminy + ut->size.x - 1;
 
 			if(newuminx <= cmgoalmaxx && newuminy <= cmgoalmaxy && newumaxx >= cmgoalminx && newumaxy >= cmgoalminy)
 				return;
