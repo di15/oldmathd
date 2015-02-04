@@ -4,6 +4,7 @@
 #include "../platform.h"
 #include "../gui/richtext.h"
 #include "../math/vec3f.h"
+#include "../math/vec2f.h"
 
 class Transaction
 {
@@ -23,7 +24,7 @@ extern bool g_drawtransx;
 class Matrix;
 
 void DrawTransactions(Matrix projmodlview);
-void NewTransx(Vec3f pos, const RichText* rtext);
+void NewTransx(Vec2f pos, const RichText* rtext);
 void FreeTransx();
 
 #endif

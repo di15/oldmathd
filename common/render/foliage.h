@@ -3,6 +3,7 @@
 
 #include "../math/3dmath.h"
 #include "../math/vec3f.h"
+#include "../math/vec2s.h"
 #include "../math/vec3i.h"
 #include "../math/matrix.h"
 #include "vertexarray.h"
@@ -12,10 +13,10 @@ class FlType
 {
 public:
 	char name[64];
-	Vec3i size;
+	Vec2s size;
 	unsigned int texindex;
 	int model;
-	Sprite sprite;
+	unsigned int sprite;
 };
 
 
@@ -44,7 +45,6 @@ public:
 	unsigned char lastdraw;	//used for preventing repeats
 
 	Foliage();
-	void reinstance();
 	void fillcollider();
 	void freecollider();
 };
@@ -59,7 +59,7 @@ public:
 
 extern Foliage g_foliage[FOLIAGES];
 
-void DefF(int type, const char* modelrelative, Vec3f scale, Vec3f translate, Vec3i size);
+void DefF(int type, const char* modelrelative, Vec3f scale, Vec3f translate, Vec2s size);
 bool PlaceFol(int type, Vec3i ipos);
 void DrawFol(Vec3f zoompos, Vec3f vertical, Vec3f horizontal);
 void ClearFol(int cmminx, int cmminy, int cmmaxx, int cmmaxy);

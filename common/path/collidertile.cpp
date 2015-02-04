@@ -159,18 +159,20 @@ void FillColliderGrid()
 
 			//g_log<<"cell "<<x<<","<<z<<" cmpos="<<cmx<<","<<cmz<<" y="<<g_hmap.accheight(cmx, cmz)<<std::endl;
 
-			if(AtLand(cmx, cmz))
+			//if(AtLand(cmx, cmz))
 			{
 				//cell->hasland = true;
 				cell->flags |= FLAG_HASLAND;
 				//g_log<<"land "<<(cmx/TILE_SIZE)<<","<<(cmz/TILE_SIZE)<<" flag="<<(cell->flags & FLAG_HASLAND)<<"="<<(unsigned int)cell->flags<<std::endl;
 				//g_log<<"land"<<std::endl;
 			}
+#if 0
 			else
 			{
 				//cell->hasland = false;
 				cell->flags &= ~FLAG_HASLAND;
 			}
+#endif
 
 #if 0
 			if(AtWater(cmx, cmz))
@@ -179,12 +181,14 @@ void FillColliderGrid()
 				cell->haswater = false;
 #endif
 
+#if 0
 			if(TileUnclimable(cmx, cmz) && (cell->flags & FLAG_HASLAND))
 			{
 				//cell->abrupt = true;
 				cell->flags |= FLAG_ABRUPT;
 			}
 			else
+#endif
 			{
 				//cell->abrupt = false;
 				cell->flags &= ~FLAG_ABRUPT;
@@ -282,9 +286,9 @@ void Foliage::fillcollider()
 
 	//cm = centimeter position
 	int cmminx = cmpos.x - ft->size.x/2;
-	int cmminz = cmpos.y - ft->size.z/2;
+	int cmminz = cmpos.y - ft->size.x/2;
 	int cmmaxx = cmminx + ft->size.x - 1;
-	int cmmaxz = cmminz + ft->size.z - 1;
+	int cmmaxz = cmminz + ft->size.x - 1;
 
 	//c = cell position
 	int cminx = imax(0, cmminx / PATHNODE_SIZE);
@@ -306,9 +310,9 @@ void Foliage::freecollider()
 
 	//cm = centimeter position
 	int cmminx = cmpos.x - ft->size.x/2;
-	int cmminz = cmpos.y - ft->size.z/2;
+	int cmminz = cmpos.y - ft->size.x/2;
 	int cmmaxx = cmminx + ft->size.x - 1;
-	int cmmaxz = cmminz + ft->size.z - 1;
+	int cmmaxz = cmminz + ft->size.x - 1;
 
 	//c = cell position
 	int cminx = imax(0, cmminx / PATHNODE_SIZE);

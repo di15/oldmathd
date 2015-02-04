@@ -30,7 +30,10 @@ public:
 	bool loadteam;
 };
 
+extern int g_lastLSp;
+
 bool Load1Sprite();
+void FreeSprites();
 void LoadSprite(const char* relative, unsigned int* spindex, bool loadteam);
 void QueueSprite(const char* relative, unsigned int* spindex, bool loadteam);
 void ParseSprite(const char* relative, Sprite* s);

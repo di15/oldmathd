@@ -75,7 +75,7 @@ bool FindFuel(Unit* u)
 
 	//Pathfind();
 	//float pathlen = pathlength();
-	//g_log<<"found food path length = "<<pathlen<<" ("<<(pathlen/TILE_SIZE)<<" tiles)"<<endl;
+	//g_log<<"found food path length = "<<pathlen<<" ("<<(pathlen/TILE_SIZE)<<" tiles)"<<std::endl;
 	//g_log.flush();
 
 	return true;
@@ -571,7 +571,7 @@ void AtSup(Unit* u)
 	supb->recenth.consumed[u->cargotype] += got;
 #endif
 
-	Vec3f transxpos = supb->drawpos;
+	Vec2f transxpos = supb->drawpos;
 
 #ifdef LOCAL_TRANSX
 	if(supb->owner == g_localP && demb->owner != supb->owner)
@@ -592,7 +592,7 @@ void AtSup(Unit* u)
 			transx.m_part.push_back( RichPart( " \n" ) );
 		}
 
-		NewTransx(transxpos, &transx);
+		//NewTransx(transxpos, &transx); //TODO
 
 		//NewTransx(transxpos, u->cargotype, -got);
 	}
@@ -734,7 +734,7 @@ void UpdTruck(Unit* u)
 			if(NeedFuel(u) && FindFuel(u))
 			{
 				//InfoMess("ff", "ff");
-				//g_log<<"find fuel"<<endl;
+				//g_log<<"find fuel"<<std::endl;
 				//g_log.flush();
 			}
 			else if(u->mode == UMODE_NONE && u->target < 0)
@@ -743,7 +743,7 @@ void UpdTruck(Unit* u)
 				if(u->jobframes >= TBID_DELAY)
 				{
 					//g_freetrucks.push_back(UnitID(this));
-					//g_log<<"free truck"<<endl;
+					//g_log<<"free truck"<<std::endl;
 					//g_log.flush();
 				}
 				u->jobframes ++;

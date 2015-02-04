@@ -40,8 +40,6 @@ public:
 	EmitterPlace emitterpl[MAX_B_EMITTERS];
 
 	bool hugterr;
-
-	int sprite;
 	
 	std::list<unsigned char> manuf;
 
@@ -86,11 +84,7 @@ void DefB(int type,
 		  Vec2i size, 
 		  bool hugterr, 
 		  const char* modelrelative, 
-		  Vec3f scale, 
-		  Vec3f translate, 
 		  const char* cmodelrelative,  
-		  Vec3f cscale, 
-		  Vec3f ctranslate, 
 		  int foundation, 
 		  int reqdeposit,
 		  int maxhp);

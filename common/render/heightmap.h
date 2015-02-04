@@ -12,9 +12,9 @@
 #define TILE_SIZE			1000
 #define TILE_Y_SCALE		(10.0f/255.0f)
 #define MAPMINZ				(0)
-#define MAPMAXZ				(m_widthz*TILE_SIZE)
+#define MAPMAXZ				(g_mapsz.y*TILE_SIZE)
 
-#define MAX_MAP				256
+#define MAX_MAP				63
 
 class Vec2f;
 class Vec3f;
@@ -42,20 +42,20 @@ public:
 	Plane3f *m_tridivider;
 	Tile *m_surftile;
 
-	void alloc(int wx, int wz);
+	void alloc(int wx, int wy);
 	void remesh();
 	void draw();
 
-	inline unsigned char getheight(int tx, int tz)
+	inline unsigned char getheight(int tx, int ty)
 	{
-		return m_heightpoints[ (tz)*(m_widthx+1) + tx ];
+		return m_heightpoints[ (ty)*(g_mapsz.x+1) + tx ];
 	}
 
-	float accheight(int x, int z);
-	void chheight(int x, int z, signed char change);
-	void setheight(int x, int z, unsigned char height);
+	float accheight(int x, int y);
+	void adjheight(int x, int y, signed char change);
+	void setheight(int x, int y, unsigned char height);
 	void destroy();
-	Vec3f getnormal(int x, int z);
+	Vec3f getnormal(int x, int y);
 
 	~Heightmap()
 	{
@@ -65,7 +65,7 @@ public:
 
 extern Heightmap g_hmap;
 
-void AllocGrid(int wx, int wz);
+void AllocGrid(int wx, int wy);
 void FreeGrid();
 
 #endif

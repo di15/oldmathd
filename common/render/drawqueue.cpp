@@ -37,14 +37,14 @@ void DrawQueue()
 			Sprite* sprite = &g_sprite[tiletype->sprite];
 			Texture* tex = &g_texture[sprite->difftexi];
 
-			//g_log<<"xyz "<<cmpos.x<<","<<cmpos.y<<","<<cmpos.z<<" screen "<<screenpos.x<<","<<screenpos.y<<endl;
+			//g_log<<"xyz "<<cmpos.x<<","<<cmpos.y<<","<<cmpos.z<<" screen "<<screenpos.x<<","<<screenpos.y<<std::endl;
 
 #if 0
 			if(x == 0 && z == 0)
 			{
 
-				//g_log<<"00dr "<<(screenpos.x + sprite->offset[0])<<","<<(screenpos.y + sprite->offset[1])<<endl;
-				g_log<<"tile 00 pos "<<screenpos.x<<","<<screenpos.y<<" hy "<<((int)Height(0,0)*TILE_SIZE/2)<<endl;
+				//g_log<<"00dr "<<(screenpos.x + sprite->offset[0])<<","<<(screenpos.y + sprite->offset[1])<<std::endl;
+				g_log<<"tile 00 pos "<<screenpos.x<<","<<screenpos.y<<" hy "<<((int)Height(0,0)*TILE_SIZE/2)<<std::endl;
 			}
 #endif
 #if 1

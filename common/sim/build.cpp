@@ -51,13 +51,6 @@ void UpdSBl()
 	line[0] = c->zoompos();
 	line[1] = line[0] + ray * MAX_DISTANCE / 3 / g_zoom;
 
-#if 1
-	if(!FastMapIntersect(&g_hmap, line, &intersection))
-#else
-	if(!GetMapIntersection(&g_hmap, line, &intersection))
-#endif
-		return;
-
 	if(!g_mousekeys[0])
 		g_vdrag[0] = intersection;
 	else
@@ -79,7 +72,7 @@ void UpdSBl()
 		if(t->widthy%2 == 1)
 			g_vdrag[0].z += TILE_SIZE/2;
 
-		g_vdrag[0].y = Lowest(tilepos.x, tilepos.y, tilepos.x, tilepos.y);
+		//g_vdrag[0].y = Lowest(tilepos.x, tilepos.y, tilepos.x, tilepos.y);
 
 		if(!CheckCanPlace(g_build, tilepos))
 		{
@@ -93,11 +86,11 @@ void UpdSBl()
 		int ctype = g_build - BL_TYPES;
 
 		if(g_mousekeys[0])
-			UpdCoPlans(ctype, g_localP, g_vdrag[0], g_vdrag[1]);
+			UpdCdPlans(ctype, g_localP, g_vdrag[0], g_vdrag[1]);
 		else
 		{
-			ClearCoPlans(ctype);
-			UpdCoPlans(ctype, g_localP, g_vdrag[0], g_vdrag[0]);
+			ClearCdPlans(ctype);
+			UpdCdPlans(ctype, g_localP, g_vdrag[0], g_vdrag[0]);
 		}
 	}
 }
@@ -415,7 +408,7 @@ bool PlaceBl(int type, Vec2i pos, bool finished, int owner, int* bid)
 	tmax.x = tmin.x + t->widthx;
 	tmax.y = tmin.y + t->widthy;
 
-	b->drawpos = Vec3f(pos.x*TILE_SIZE, Lowest(tmin.x, tmin.y, tmax.x, tmax.y), pos.y*TILE_SIZE);
+	//b->drawpos = Vec3f(pos.x*TILE_SIZE, Lowest(tmin.x, tmin.y, tmax.x, tmax.y), pos.y*TILE_SIZE);
 
 	if(t->foundation == FOUNDATION_SEA)
 		b->drawpos.y = WATER_LEVEL;
@@ -425,7 +418,7 @@ bool PlaceBl(int type, Vec2i pos, bool finished, int owner, int* bid)
 		b->drawpos.x += TILE_SIZE/2;
 
 	if(t->widthy % 2 == 1)
-		b->drawpos.z += TILE_SIZE/2;
+		b->drawpos.y += TILE_SIZE/2;
 
 	b->owner = owner;
 
@@ -463,7 +456,7 @@ bool PlaceBl(int type, Vec2i pos, bool finished, int owner, int* bid)
 #endif
 	for(unsigned char ctype=0; ctype<CONDUIT_TYPES; ctype++)
 	{
-		PruneCo(ctype);
+		PruneCd(ctype);
 		ReNetw(ctype);
 	}
 #if 0

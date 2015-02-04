@@ -18,31 +18,6 @@ void DefTl(int tiletype, const char* texpath, Vec2i spriteoffset, Vec2i spritesz
 	t->sprite.offset[2] = t->sprite.offset[0] + spritesz.x;
 	t->sprite.offset[3] = t->sprite.offset[1] + spritesz.y;
 #endif
-
-#if 1
-	char infopath[MAX_PATH+1];
-	strcpy(infopath, texpath);
-	StripExtension(infopath);
-	strcat(infopath, ".txt");
-
-	std::ifstream infos(infopath);
-
-	if(!infos)
-		return;
-
-	int centeroff[2];
-	int imagesz[2];
-	int clipsz[2];
-
-	infos>>centeroff[0]>>centeroff[1];
-	infos>>imagesz[0]>>imagesz[1];
-	infos>>clipsz[0]>>clipsz[1];
-
-	t->sprite.offset[0] = -centeroff[0];
-	t->sprite.offset[1] = -centeroff[1];
-	t->sprite.offset[2] = t->sprite.offset[0] + imagesz[0];
-	t->sprite.offset[3] = t->sprite.offset[1] + imagesz[1];
-#endif
 }
 
 Tile &SurfTile(int tx, int tz)

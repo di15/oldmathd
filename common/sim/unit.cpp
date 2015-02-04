@@ -17,6 +17,7 @@
 #include "../econ/demand.h"
 #include "../math/vec4f.h"
 #include "../path/pathjob.h"
+#include "../render/anim.h"
 
 #ifdef RANDOM8DEBUG
 int thatunit = -1;
@@ -128,9 +129,9 @@ void DrawUnits()
 			continue;
 
 		UType* t = &g_utype[u->type];
-
-		Vec3f vmin(u->drawpos.x - t->size.x/2, u->drawpos.y, u->drawpos.z - t->size.x/2);
-		Vec3f vmax(u->drawpos.x + t->size.x/2, u->drawpos.y + t->size.y, u->drawpos.z + t->size.x/2);
+#if 0
+		Vec3f vmin(u->drawpos.x - t->size.x/2, u->drawpos.y, u->drawpos.y - t->size.x/2);
+		Vec3f vmax(u->drawpos.x + t->size.x/2, u->drawpos.y + t->size.y, u->drawpos.y + t->size.x/2);
 
 		if(!g_frustum.boxin2(vmin.x, vmin.y, vmin.z, vmax.x, vmax.y, vmax.z))
 			continue;
@@ -140,10 +141,10 @@ void DrawUnits()
 		glUniform4f(s->m_slot[SSLOT_OWNCOLOR], color[0], color[1], color[2], color[3]);
 
 		Model* m = &g_model[t->model];
-
+#endif
 		StopTimer(TIMER_DRAWUMAT);
 
-		m->draw(u->frame[BODY_LOWER], u->drawpos, u->rotation.y);
+		//m->draw(u->frame[BODY_LOWER], u->drawpos, u->rotation.y);
 	}
 }
 
@@ -242,7 +243,7 @@ bool PlaceUnit(int type, Vec2i cmpos, int owner, int *reti)
 	u->on = true;
 	u->type = type;
 	u->cmpos = cmpos;
-	u->drawpos = Vec3f(cmpos.x, g_hmap.accheight(cmpos.x, cmpos.y), cmpos.y);
+	//u->drawpos = Vec3f(cmpos.x, g_hmap.accheight(cmpos.x, cmpos.y), cmpos.y);
 	u->owner = owner;
 	u->path.clear();
 	u->goal = cmpos;
@@ -463,9 +464,12 @@ void ResetMode(Unit* u)
 	{
 		u->freecollider();
 		PlaceUAb(u->type, u->cmpos, &u->cmpos);
+#if 0
+		//TODO
 		u->drawpos.x = u->cmpos.x;
-		u->drawpos.z = u->cmpos.y;
+		u->drawpos.y = u->cmpos.y;
 		u->drawpos.y = g_hmap.accheight(u->cmpos.x, u->cmpos.y);
+#endif
 		u->fillcollider();
 	}
 #endif

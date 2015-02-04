@@ -96,11 +96,11 @@ next:
 	}
 }
 
-void NewTransx(Vec3f pos, const RichText* rtext)
+void NewTransx(Vec2f pos, const RichText* rtext)
 {
 	Transaction t;
 	t.life = 1;
-	t.drawpos = pos;
+	//t.drawpos = pos;
 	t.rtext = *rtext;
 	t.halfwidth = TextWidth(MAINFONT8, rtext) / 2.0f;
 	g_transx.push_back(t);

@@ -29,19 +29,19 @@ void Queue()
 #define CU_STATES	13
 #endif
 
-	DefS("gui/transp.png", &g_cursor[CU_NONE], 0, 0);
-	DefS("gui/cursors/default.png", &g_cursor[CU_DEFAULT], 0, 0);
-	DefS("gui/cursors/move.png", &g_cursor[CU_MOVE], 16, 16);
-	DefS("gui/cursors/reszh.png", &g_cursor[CU_RESZL], 16, 16);
-	DefS("gui/cursors/reszh.png", &g_cursor[CU_RESZR], 16, 16);
-	DefS("gui/cursors/reszv.png", &g_cursor[CU_RESZT], 16, 16);
-	DefS("gui/cursors/reszv.png", &g_cursor[CU_RESZB], 16, 16);
-	DefS("gui/cursors/reszd2.png", &g_cursor[CU_RESZTL], 16, 16);
-	DefS("gui/cursors/reszd1.png", &g_cursor[CU_RESZTR], 16, 16);
-	DefS("gui/cursors/reszd1.png", &g_cursor[CU_RESZBL], 16, 16);
-	DefS("gui/cursors/reszd2.png", &g_cursor[CU_RESZBR], 16, 16);
-	DefS("gui/cursors/default.png", &g_cursor[CU_WAIT], 16, 16);
-	DefS("gui/cursors/default.png", &g_cursor[CU_DRAG], 16, 16);
+	QueueSprite("gui/transp.png", &g_cursor[CU_NONE], false);
+	QueueSprite("gui/cursors/default.png", &g_cursor[CU_DEFAULT], false);
+	QueueSprite("gui/cursors/move.png", &g_cursor[CU_MOVE], false);
+	QueueSprite("gui/cursors/reszh.png", &g_cursor[CU_RESZL], false);
+	QueueSprite("gui/cursors/reszh.png", &g_cursor[CU_RESZR], false);
+	QueueSprite("gui/cursors/reszv.png", &g_cursor[CU_RESZT], false);
+	QueueSprite("gui/cursors/reszv.png", &g_cursor[CU_RESZB], false);
+	QueueSprite("gui/cursors/reszd2.png", &g_cursor[CU_RESZTL], false);
+	QueueSprite("gui/cursors/reszd1.png", &g_cursor[CU_RESZTR], false);
+	QueueSprite("gui/cursors/reszd1.png", &g_cursor[CU_RESZBL], false);
+	QueueSprite("gui/cursors/reszd2.png", &g_cursor[CU_RESZBR], false);
+	QueueSprite("gui/cursors/default.png", &g_cursor[CU_WAIT], false);
+	QueueSprite("gui/cursors/default.png", &g_cursor[CU_DRAG], false);
 
 
 	// Icons
@@ -166,38 +166,15 @@ void Queue()
 
 	// Various environment textures
 
-	QueueTexture(&g_tiletexs[TILE_SAND], "textures/terrain/default/sand.jpg", false, false);
-	QueueTexture(&g_tiletexs[TILE_GRASS], "textures/terrain/default/grass.png", false, false);
-	//QueueTexture(&g_tiletexs[TILE_ROCK], "textures/terrain/default/rock.png", false, false);
-	QueueTexture(&g_tiletexs[TILE_ROCK], "textures/terrain/default/rock.jpg", false, true);
-	QueueTexture(&g_tiletexs[TILE_ROCK_NORM], "textures/terrain/default/rock.norm.jpg", false, false);
-	QueueTexture(&g_tiletexs[TILE_CRACKEDROCK], "textures/terrain/default/crackedrock.jpg", false, false);
-	QueueTexture(&g_tiletexs[TILE_CRACKEDROCK_NORM], "textures/terrain/default/crackedrock.norm.jpg", false, false);
-
-	QueueTexture(&g_rimtexs[TEX_DIFF], "textures/terrain/default/underground.jpg", false, false);
-	QueueTexture(&g_rimtexs[TEX_SPEC], "textures/terrain/default/underground.spec.jpg", false, false);
-	QueueTexture(&g_rimtexs[TEX_NORM], "textures/terrain/default/underground.norm.jpg", false, false);
-
-	//QueueTexture(&g_water, "textures/terrain/default/water.png", false);
-	QueueTexture(&g_watertex[WATER_TEX_GRADIENT], "textures/terrain/default/water.gradient.png", false, false);
-	QueueTexture(&g_watertex[WATER_TEX_DETAIL], "textures/terrain/default/water.detail.jpg", false, false);
-	//QueueTexture(&g_watertex[WATER_TEX_DETAIL], "textures/terrain/default/water2.png", false, true);
-	QueueTexture(&g_watertex[WATER_TEX_SPECULAR], "textures/terrain/default/water.spec.jpg", false, false);
-	//QueueTexture(&g_watertex[WATER_TEX_NORMAL], "textures/terrain/default/water.norm.jpg", false, true);
-	QueueTexture(&g_watertex[WATER_TEX_NORMAL], "textures/terrain/default/water5.norm.jpg", false, false);
-
 	QueueTexture(&g_circle, "gui/circle.png", true, true);
 
 	LoadParticles();
-	LoadSkyBox("textures/terrain/default/skydome");
 
 	//return;
 
 	// Players
 
 #if 1
-	QueueModel(&g_playerm, "models/brain/brain.ms3d", Vec3f(50, 50, 50), Vec3f(0,0,0), true);
-
 	for(int i=0; i<PLAYERS; i++)
 	{
 		Player* p = &g_player[i];
@@ -214,17 +191,17 @@ void Queue()
 
 	// Unit types
 
-	DefU(UNIT_BATTLECOMP, "models/battlecomp2011simp/battlecomp.ms3d", Vec3f(1,1,1)*182.0f/72.0f, Vec3f(0,0,0)*182.0f/72.0f, Vec3i(125, 250, 125), "Droid", 100, true, true, false, false, false, 6, true);
+	DefU(UNIT_BATTLECOMP, "models/battlecomp2011simp/battlecomp.ms3d", Vec2s(125, 250), "Droid", 100, true, true, false, false, false, 6, true);
 	UCost(UNIT_BATTLECOMP, RES_PRODUCTION, 10);
 	
-	DefU(UNIT_CARLYLE, "models/carlyle/carlyle.ms3d", Vec3f(1,1,1)*220.0f/72.0f, Vec3f(0,0,0)*182.0f/72.0f, Vec3i(250, 250, 250), "Tank", 100, true, true, false, false, false, 16, true);
+	DefU(UNIT_CARLYLE, "models/carlyle/carlyle.ms3d", Vec2s(250, 250), "Tank", 100, true, true, false, false, false, 16, true);
 	UCost(UNIT_CARLYLE, RES_PRODUCTION, 15);
 	
 	//DefU(UNIT_LABOURER, "models/labourer/labourer.ms3d", Vec3f(1,1,1)*182.0f/100.0f, Vec3f(0,0,0)*182.0f/100.0f, Vec3i(125, 250, 125), "Labourer", 100, true, true, false, false, false, 6, false);
-	DefU(UNIT_LABOURER, "models/labourer/labourer.ms3d", Vec3f(1,1,1)*182.0f/100.0f, Vec3f(0,0,0)*182.0f/100.0f, Vec3i(50, 150, 50), "Labourer", 100, true, true, false, false, false, 6, false);
+	DefU(UNIT_LABOURER, "models/labourer/labourer.ms3d", Vec2s(50, 150), "Labourer", 100, true, true, false, false, false, 6, false);
 	
 	//DefU(UNIT_TRUCK, "models/truck/truck.ms3d", Vec3f(1,1,1)*30.0f, Vec3f(0,0,0), Vec3i(125, 250, 125), "Truck", 100, true, false, true, false, false, 30, false);
-	DefU(UNIT_TRUCK, "models/truck/truck.ms3d", Vec3f(1,1,1)*30.0f, Vec3f(0,0,0), Vec3i(100, 250, 100), "Truck", 100, true, false, true, false, false, 30, false);
+	DefU(UNIT_TRUCK, "models/truck/truck.ms3d", Vec2s(100, 250), "Truck", 100, true, false, true, false, false, 30, false);
 	UCost(UNIT_TRUCK, RES_PRODUCTION, 1);
 
 	// Foliage types
@@ -234,9 +211,9 @@ void Queue()
 	DefF(FL_TREE2, "models/pine/pine.ms3d", Vec3f(200,200,200), Vec3f(0,0,0), Vec3i(40, 60, 500)*20);
 	DefF(FL_TREE3, "models/pine/pine.ms3d", Vec3f(200,200,200), Vec3f(0,0,0), Vec3i(40, 60, 500)*20);
 #elif 1
-	DefF(FL_TREE1, "models/spruce1/spruce1.ms3d", Vec3f(20,20,20), Vec3f(0,0,0), Vec3i(125, 200, 125)*3);
-	DefF(FL_TREE2, "models/spruce1/spruce1.ms3d", Vec3f(20,20,20), Vec3f(0,0,0), Vec3i(125, 200, 125)*3);
-	DefF(FL_TREE3, "models/spruce1/spruce1.ms3d", Vec3f(20,20,20), Vec3f(0,0,0), Vec3i(125, 200, 125)*3);
+	DefF(FL_TREE1, "models/spruce1/spruce1.ms3d", Vec3f(20,20,20), Vec3f(0,0,0), Vec2s(125, 200)*3);
+	DefF(FL_TREE2, "models/spruce1/spruce1.ms3d", Vec3f(20,20,20), Vec3f(0,0,0), Vec2s(125, 200)*3);
+	DefF(FL_TREE3, "models/spruce1/spruce1.ms3d", Vec3f(20,20,20), Vec3f(0,0,0), Vec2s(125, 200)*3);
 #elif 1
 	DefF(FL_TREE1, "models/trees/tree1/tree1.ms3d", Vec3f(20,20,20)*8, Vec3f(0,0,0), Vec3i(40, 60, 500)*20);
 	DefF(FL_TREE2, "models/trees/tree2/tree2.ms3d", Vec3f(20,20,20)*8, Vec3f(0,0,0), Vec3i(40, 60, 500)*20);
@@ -415,6 +392,7 @@ void Queue()
 	BOut(RESEARCH, 1);			// 118/1+1+3*12 = 155
 #endif
 
+#if 0
 	//DefB(BL_HOUSE, "Apartments", Vec2i(2,1), "models/apartment1/basebuilding.ms3d", Vec3f(100,100,100), Vec3f(0,0,0), "models/apartment1/basebuilding.ms3d", Vec3f(100,100,100), Vec3f(0,0,0), FOUNDATION_LAND, RES_NONE);
 #if 0
 	DefB(BL_HOUSE, "Apartments", 
@@ -428,9 +406,7 @@ void Queue()
 	DefB(BL_HOUSE, "House", 
 		Vec2i(1,1),  false, 
 		"models/naping1/naping1", 
-		Vec3f(1,1,1), Vec3f(0,0,0), 
 		"models/naping1/naping1", 
-		Vec3f(1,1,1), Vec3f(0,0,0), 
 		FOUNDATION_LAND, RES_NONE, 1000);
 #else
 	DefB(BL_HOUSE, "Apartments", 
@@ -870,17 +846,17 @@ void Queue()
 	BDesc(BL_MINE, "Digs up minerals necessary for production at factories, stone, and uranium, necessary for electricity generation at nuclear powerplants.");
 	BSound(BL_MINE, BLSND_PROD, "sounds/notif/button-32.wav");
 	BSound(BL_MINE, BLSND_FINI, "sounds/notif/beep-22.wav");
-
+#endif
 
 	// Conduit types
 
 	Vec3f scale(TILE_SIZE/16.0f, TILE_SIZE/16.0f, TILE_SIZE/16.0f);
 	Vec3f trans(0,0,0);
 
-	DefCo(CONDUIT_ROAD, "Road", offsetof(Building,roadnetw), offsetof(Selection,roads), ROAD_MAX_FOREW_INCLINE, ROAD_MAX_SIDEW_INCLINE, false, false, Vec2i(TILE_SIZE/2, TILE_SIZE/2), Vec3f(TILE_SIZE/2, 0, TILE_SIZE/2), "gui/hover/noroad.png");
+	DefCd(CONDUIT_ROAD, "Road", offsetof(Building,roadnetw), offsetof(Selection,roads), false, false, Vec2i(TILE_SIZE/2, TILE_SIZE/2), Vec3f(TILE_SIZE/2, 0, TILE_SIZE/2), "gui/hover/noroad.png");
 	CoDesc(CONDUIT_ROAD, "Necessary for the transportation of all physical resources between buildings.");
-	CoConMat(CONDUIT_ROAD, RES_LABOUR, 1);
-	CoConMat(CONDUIT_ROAD, RES_CEMENT, 1);
+	CdConMat(CONDUIT_ROAD, RES_LABOUR, 1);
+	CdConMat(CONDUIT_ROAD, RES_CEMENT, 1);
 	DefConn(CONDUIT_ROAD, CONNECTION_NOCONNECTION, CONSTRUCTION, "models/road/1_c.ms3d", scale, trans);
 	DefConn(CONDUIT_ROAD, CONNECTION_NORTH, CONSTRUCTION, "models/road/n_c.ms3d", scale, trans);
 	DefConn(CONDUIT_ROAD, CONNECTION_EAST, CONSTRUCTION, "models/road/e_c.ms3d", scale, trans);
@@ -914,10 +890,10 @@ void Queue()
 	DefConn(CONDUIT_ROAD, CONNECTION_NORTHEASTSOUTH, FINISHED, "models/road/nes.ms3d", scale, trans);
 	DefConn(CONDUIT_ROAD, CONNECTION_NORTHEASTSOUTHWEST, FINISHED, "models/road/nesw.ms3d", scale, trans);
 
-	DefCo(CONDUIT_POWL, "Powerline", offsetof(Building,pownetw), offsetof(Selection,powls), TILE_SIZE*2, TILE_SIZE*2, true, true, Vec2i(0, 0), Vec3f(0, 0, 0), "gui/hover/noelec.png");
+	DefCd(CONDUIT_POWL, "Powerline", offsetof(Building,pownetw), offsetof(Selection,powls), true, true, Vec2i(0, 0), Vec3f(0, 0, 0), "gui/hover/noelec.png");
 	CoDesc(CONDUIT_POWL, "Necessary to conduct electricity between buildings.");
-	CoConMat(CONDUIT_POWL, RES_LABOUR, 1);
-	CoConMat(CONDUIT_POWL, RES_CEMENT, 1);
+	CdConMat(CONDUIT_POWL, RES_LABOUR, 1);
+	CdConMat(CONDUIT_POWL, RES_CEMENT, 1);
 	DefConn(CONDUIT_POWL, CONNECTION_NOCONNECTION, CONSTRUCTION, "models/powl/1_c.ms3d", scale, trans);
 	DefConn(CONDUIT_POWL, CONNECTION_NORTH, CONSTRUCTION, "models/powl/n_c.ms3d", scale, trans);
 	DefConn(CONDUIT_POWL, CONNECTION_EAST, CONSTRUCTION, "models/powl/e_c.ms3d", scale, trans);
@@ -952,10 +928,10 @@ void Queue()
 	DefConn(CONDUIT_POWL, CONNECTION_NORTHEASTSOUTHWEST, FINISHED, "models/powl/nesw.ms3d", scale, trans);
 
 	trans = Vec3f(-TILE_SIZE/2, 0, TILE_SIZE/2);
-	DefCo(CONDUIT_CRPIPE, "Crude Oil Pipeline", offsetof(Building,crpipenetw), offsetof(Selection,crpipes), TILE_SIZE*2, TILE_SIZE*2, true, true, Vec2i(0, 0), Vec3f(0, 0, 0), "gui/hover/nocrude.png");
+	DefCd(CONDUIT_CRPIPE, "Crude Oil Pipeline", offsetof(Building,crpipenetw), offsetof(Selection,crpipes), true, true, Vec2i(0, 0), Vec3f(0, 0, 0), "gui/hover/nocrude.png");
 	CoDesc(CONDUIT_CRPIPE, "Pumps crude oil between oil wells and refineries.");
-	CoConMat(CONDUIT_CRPIPE, RES_LABOUR, 1);
-	CoConMat(CONDUIT_CRPIPE, RES_CEMENT, 1);
+	CdConMat(CONDUIT_CRPIPE, RES_LABOUR, 1);
+	CdConMat(CONDUIT_CRPIPE, RES_CEMENT, 1);
 	DefConn(CONDUIT_CRPIPE, CONNECTION_NOCONNECTION, CONSTRUCTION, "models/crpipe/1_c.ms3d", scale, trans);
 	DefConn(CONDUIT_CRPIPE, CONNECTION_NORTH, CONSTRUCTION, "models/crpipe/n_c.ms3d", scale, trans);
 	DefConn(CONDUIT_CRPIPE, CONNECTION_EAST, CONSTRUCTION, "models/crpipe/e_c.ms3d", scale, trans);

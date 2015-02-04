@@ -1,3 +1,3 @@
 #include "cursor.h"
 
-Sprite g_cursor[CU_STATES];
+unsigned int g_cursor[CU_STATES];

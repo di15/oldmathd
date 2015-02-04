@@ -59,7 +59,7 @@ void OpenLog(const char* filename, int version)
 	g_log.flush();
 }
 
-std::string MakePathRelative(const char* full)
+std::string MakeRelative(const char* full)
 {
 	char full2c[MAX_PATH+1];
 	strcpy(full2c, full);

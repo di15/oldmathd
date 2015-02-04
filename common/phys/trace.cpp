@@ -34,9 +34,9 @@ bool PassUnits(Vec2i vstart, Vec2i vend,
 	UType* u2t = &g_utype[u2->type];
 
 	int cmminx2 = u2->cmpos.x - u2t->size.x/2;
-	int cmminz2 = u2->cmpos.y - u2t->size.z/2;
+	int cmminz2 = u2->cmpos.y - u2t->size.x/2;
 	int cmmaxx2 = cmminx2 + u2t->size.x;
-	int cmmaxz2 = cmminz2 + u2t->size.z;
+	int cmmaxz2 = cmminz2 + u2t->size.x;
 
 	Plane2i planes[4];
 	planes[0] = Plane2i(-1, 0, PlaneDistance(Vec2i(-1, 0), Vec2i(cmminx2, cmminz2)));

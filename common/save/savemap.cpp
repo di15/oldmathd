@@ -670,7 +670,7 @@ void ReadBls(FILE *fp)
 		if(t->widthx % 2 == 1)
 			b->drawpos.x += TILE_SIZE/2;
 		if(t->widthy % 2 == 1)
-			b->drawpos.z += TILE_SIZE/2;
+			b->drawpos.y += TILE_SIZE/2;
 #endif
 
 		fread(&b->finished, sizeof(bool), 1, fp);
@@ -908,6 +908,7 @@ void SavePys(FILE* fp)
 	}
 }
 
+#if 0
 void ReadGr(FILE* fp)
 {
 	for(int i=0; i<GRAPHS; i++)
@@ -953,6 +954,7 @@ void SaveGr(FILE* fp)
 		}
 	}
 }
+#endif
 
 void ReadJams(FILE* fp)
 {
@@ -1006,7 +1008,7 @@ bool SaveMap(const char* name)
 	SaveBls(fp);
 	SaveUnits(fp);
 	SaveCo(fp);
-	SaveGr(fp);
+	//SaveGr(fp);
 	SaveJams(fp);
 
 	fclose(fp);
@@ -1141,7 +1143,7 @@ bool LoadMap(const char* name)
 	g_log<<"fill col grd"<<std::endl;
 	g_log.flush();
 
-	ReadGr(fp);
+	//ReadGr(fp);
 	ReadJams(fp);
 
 	FillColliderGrid();

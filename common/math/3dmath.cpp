@@ -178,7 +178,7 @@ bool Intersection(Vec3f l0, Vec3f l, Plane3f p, Vec3f& inter)
 	float denom = Dot(l, p.m_normal);
 
 #ifdef MATH_DEBUG
-	g_log<<"intersection denom="<<denom<<" (plane=n("<<p.m_normal.x<<","<<p.m_normal.y<<","<<p.m_normal.z<<")d="<<p.m_d<<") (line=("<<l.x<<","<<l.y<<","<<l.z<<"))"<<endl;
+	g_log<<"intersection denom="<<denom<<" (plane=n("<<p.m_normal.x<<","<<p.m_normal.y<<","<<p.m_normal.z<<")d="<<p.m_d<<") (line=("<<l.x<<","<<l.y<<","<<l.z<<"))"<<std::endl;
 	g_log.flush();
 #endif
 
@@ -189,7 +189,7 @@ bool Intersection(Vec3f l0, Vec3f l, Plane3f p, Vec3f& inter)
 	Vec3f p0 = PointOnPlane(p);
 
 #ifdef MATH_DEBUG
-	g_log<<"intersection pointonplane="<<p0.x<<","<<p0.y<<","<<p0.z<<endl;
+	g_log<<"intersection pointonplane="<<p0.x<<","<<p0.y<<","<<p0.z<<std::endl;
 	g_log.flush();
 #endif
 
@@ -534,19 +534,19 @@ Matrix LookAt(float eyex, float eyey, float eyez,
 	//Matrix mat2;
 	//mat2.set(m);
 	/*
-		g_log<<"------------------------"<<endl;
-		g_log<<"LookAt "<<endl;
-		g_log<<"eye="<<eyex<<","<<eyey<<","<<eyez<<" center="<<centerx<<","<<centery<<","<<centerz<<" up="<<upx<<","<<upy<<","<<upz<<endl;
+		g_log<<"------------------------"<<std::endl;
+		g_log<<"LookAt "<<std::endl;
+		g_log<<"eye="<<eyex<<","<<eyey<<","<<eyez<<" center="<<centerx<<","<<centery<<","<<centerz<<" up="<<upx<<","<<upy<<","<<upz<<std::endl;
 		for(int i=0; i<16; i++)
-			g_log<<"before translation["<<i<<"] = "<<m[i]<<endl;
+			g_log<<"before translation["<<i<<"] = "<<m[i]<<std::endl;
 		for(int i=0; i<16; i++)
-			g_log<<"the translation["<<i<<"] = "<<mat2.m_matrix[i]<<endl;*/
+			g_log<<"the translation["<<i<<"] = "<<mat2.m_matrix[i]<<std::endl;*/
 
 	mat.postmult(mat2);
 	/*
 	for(int i=0; i<16; i++)
-		g_log<<"final view matrix, after translation["<<i<<"] = "<<mat.m_matrix[i]<<endl;
-	g_log<<"------------------------"<<endl;
+		g_log<<"final view matrix, after translation["<<i<<"] = "<<mat.m_matrix[i]<<std::endl;
+	g_log<<"------------------------"<<std::endl;
 
 	g_log.flush();
 	*/
@@ -588,12 +588,12 @@ Matrix OrthoProj(float l, float r, float t, float b, float n, float f)
 	Matrix mat;
 	mat.set(m);
 	/*
-	g_log<<"------------------------"<<endl;
-	g_log<<"set orthographic matrix "<<endl;
-	g_log<<"left="<<l<<" right="<<r<<" top="<<t<<" bottom="<<b<<" near="<<n<<" far="<<f<<endl;
+	g_log<<"------------------------"<<std::endl;
+	g_log<<"set orthographic matrix "<<std::endl;
+	g_log<<"left="<<l<<" right="<<r<<" top="<<t<<" bottom="<<b<<" near="<<n<<" far="<<f<<std::endl;
 	for(int i=0; i<16; i++)
-		g_log<<"m["<<i<<"] = "<<m[i]<<endl;
-	g_log<<"------------------------"<<endl;
+		g_log<<"m["<<i<<"] = "<<m[i]<<std::endl;
+	g_log<<"------------------------"<<std::endl;
 	g_log.flush();*/
 
 	return mat;
@@ -720,8 +720,6 @@ Vec4f ScreenPos(Matrix* mvp, Vec3f vec, float width, float height, bool persp)
 
 Vec3f OnNear(int x, int y, int width, int height, Vec3f posvec, Vec3f sidevec, Vec3f upvec)
 {
-	Player* py = &g_player[g_curP];
-
 	/*
 	float halfWidth = g_width / 2.0f;
 	float halfHeight = g_height / 2.0f;
@@ -747,21 +745,21 @@ Vec3f OnNear(int x, int y, int width, int height, Vec3f posvec, Vec3f sidevec, V
 
 	//Vec3f direction = Normalize( c->m_view - c->m_pos );
 
-	//-PROJ_RIGHT*aspect/py->zoom, PROJ_RIGHT*aspect/py->zoom, PROJ_RIGHT/py->zoom, -PROJ_RIGHT/py->zoom
-	//PROJ_RIGHT*aspect/py->zoom + PROJ_RIGHT*aspect/py->zoom = 2.0f*PROJ_RIGHT*aspect/py->zoom
+	//-PROJ_RIGHT*aspect/g_zoom, PROJ_RIGHT*aspect/g_zoom, PROJ_RIGHT/g_zoom, -PROJ_RIGHT/g_zoom
+	//PROJ_RIGHT*aspect/g_zoom + PROJ_RIGHT*aspect/g_zoom = 2.0f*PROJ_RIGHT*aspect/g_zoom
 	//
 
 	float aspect = fabsf((float)width / (float)height);
-	float Wnear = PROJ_RIGHT * aspect / py->zoom;
-	float Hnear = PROJ_RIGHT / py->zoom;
+	float Wnear = PROJ_RIGHT * aspect / g_zoom;
+	float Hnear = PROJ_RIGHT / g_zoom;
 
 	//return ( c->m_pos + c->m_strafe * ratioX * Wnear + c->up2() * ratioY * Hnear );
 	Vec3f result = posvec + sidevec * ratiox * Wnear + upvec * ratioy * Hnear;
 
-	//g_log<<"--------------"<<endl;
-	//g_log<<"onnear x,y="<<x<<","<<y<<" w,h="<<width<<","<<height<<" halfw,h="<<halfWidth<<","<<halfHeight<<" ratiox,y="<<ratiox<<","<<ratioy<<" aspect="<<aspect<<" W,Hnear="<<Wnear<<","<<Hnear<<endl;
-	//g_log<<"onnear resultx,y,z="<<result.x<<","<<result.y<<","<<result.z<<endl;
-	//g_log<<"--------------"<<endl;
+	//g_log<<"--------------"<<std::endl;
+	//g_log<<"onnear x,y="<<x<<","<<y<<" w,h="<<width<<","<<height<<" halfw,h="<<halfWidth<<","<<halfHeight<<" ratiox,y="<<ratiox<<","<<ratioy<<" aspect="<<aspect<<" W,Hnear="<<Wnear<<","<<Hnear<<std::endl;
+	//g_log<<"onnear resultx,y,z="<<result.x<<","<<result.y<<","<<result.z<<std::endl;
+	//g_log<<"--------------"<<std::endl;
 
 	return posvec + sidevec * ratiox * Wnear + upvec * ratioy * Hnear;
 }
@@ -783,10 +781,10 @@ Vec3f OnNearPersp(int x, int y, int width, int height, Vec3f posvec, Vec3f sidev
 	//return ( c->m_pos + c->m_strafe * ratioX * Wnear + c->up2() * ratioY * Hnear );
 	Vec3f result = viewdir * mind + posvec + sidevec * ratiox * Wnear + upvec * ratioy * Hnear;
 
-	//g_log<<"--------------"<<endl;
-	//g_log<<"onnear x,y="<<x<<","<<y<<" w,h="<<width<<","<<height<<" halfw,h="<<halfWidth<<","<<halfHeight<<" ratiox,y="<<ratiox<<","<<ratioy<<" aspect="<<aspect<<" W,Hnear="<<Wnear<<","<<Hnear<<endl;
-	//g_log<<"onnear resultx,y,z="<<result.x<<","<<result.y<<","<<result.z<<endl;
-	//g_log<<"--------------"<<endl;
+	//g_log<<"--------------"<<std::endl;
+	//g_log<<"onnear x,y="<<x<<","<<y<<" w,h="<<width<<","<<height<<" halfw,h="<<halfWidth<<","<<halfHeight<<" ratiox,y="<<ratiox<<","<<ratioy<<" aspect="<<aspect<<" W,Hnear="<<Wnear<<","<<Hnear<<std::endl;
+	//g_log<<"onnear resultx,y,z="<<result.x<<","<<result.y<<","<<result.z<<std::endl;
+	//g_log<<"--------------"<<std::endl;
 
 	return result;
 }

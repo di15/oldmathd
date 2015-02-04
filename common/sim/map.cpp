@@ -3,7 +3,7 @@
 #include "../utils.h"
 #include "../math/vec3i.h"
 
-Vec2f g_scroll(0,0);
+Vec2i g_scroll(0,0);
 //unsigned char* g_hmap = NULL;
 Tile* g_surftile = NULL;
 

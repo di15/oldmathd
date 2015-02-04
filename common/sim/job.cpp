@@ -905,7 +905,7 @@ void NewJob(int jobtype, int target, int target2, int cdtype)
 			//if(newpay / newpathlen > currpay / currpathlen)
 			if(newtimeearn > currtimeearn)
 			{
-				//g_log<<"found better job ["<<jobname<<"] path length = "<<newpathlen<<" ("<<(newpathlen/TILE_SIZE)<<" tiles)"<<endl;
+				//g_log<<"found better job ["<<jobname<<"] path length = "<<newpathlen<<" ("<<(newpathlen/TILE_SIZE)<<" tiles)"<<std::endl;
 				//g_log.flush();
 
 				continue;

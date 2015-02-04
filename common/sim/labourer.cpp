@@ -87,7 +87,7 @@ bool FindFood(Unit* u)
 
 	//Pathfind();
 	//float pathlen = pathlength();
-	//g_log<<"found food path length = "<<pathlen<<" ("<<(pathlen/TILE_SIZE)<<" tiles)"<<endl;
+	//g_log<<"found food path length = "<<pathlen<<" ("<<(pathlen/TILE_SIZE)<<" tiles)"<<std::endl;
 	//g_log.flush();
 
 	return true;
@@ -111,7 +111,7 @@ void GoHome(Unit* u)
 
 	//Pathfind();
 	//float pathlen = pathlength();
-	//g_log<<"go home path length = "<<pathlen<<" ("<<(pathlen/TILE_SIZE)<<" tiles)"<<endl;
+	//g_log<<"go home path length = "<<pathlen<<" ("<<(pathlen/TILE_SIZE)<<" tiles)"<<std::endl;
 	//g_log.flush();
 }
 
@@ -174,7 +174,7 @@ bool FindRest(Unit* u)
 
 	//Pathfind();
 	//float pathlen = pathlength();
-	//g_log<<"found food path length = "<<pathlen<<" ("<<(pathlen/TILE_SIZE)<<" tiles)"<<endl;
+	//g_log<<"found food path length = "<<pathlen<<" ("<<(pathlen/TILE_SIZE)<<" tiles)"<<std::endl;
 	//g_log.flush();
 
 	return true;
@@ -1093,7 +1093,8 @@ void Disembark(Unit* op)
 	PlaceUAb(op->type, trpos, &oppos);
 	op->cmpos = oppos;
 	op->fillcollider();
-	op->drawpos = Vec3f(oppos.x, g_hmap.accheight(oppos.x, oppos.y), oppos.y);
+	//TODO
+	//op->drawpos = Vec3f(oppos.x, g_hmap.accheight(oppos.x, oppos.y), oppos.y);
 
 	tr->driver = -1;
 	/*u->driver = -1;
@@ -1110,7 +1111,7 @@ void DoDrive(Unit* op)
 
 	if(uID == 2)
 	{
-	g_log<<"u[2]dodrive"<<endl;
+	g_log<<"u[2]dodrive"<<std::endl;
 	g_log.flush();
 
 
@@ -1126,7 +1127,7 @@ void DoDrive(Unit* op)
 	sprintf(msg, "velbeforedodrive=%f,%f,%f", vel.x, vel.y, vel.z);
 	int unID = 5;
 
-	g_log<<"u["<<unID<<"]: "<<msg<<endl;
+	g_log<<"u["<<unID<<"]: "<<msg<<std::endl;
 	g_log.flush();
 
 	Chat(msg);
@@ -1138,7 +1139,7 @@ void DoDrive(Unit* op)
 		/*
 		if(uID == 2)
 		{
-		g_log<<"u[2]DISEMBARK"<<endl;
+		g_log<<"u[2]DISEMBARK"<<std::endl;
 		g_log.flush();
 		}
 		*/
@@ -1152,7 +1153,7 @@ void DoDrive(Unit* op)
 	/*
 	if(uID == 2)
 	{
-	g_log<<"u[2]dodrive"<<endl;
+	g_log<<"u[2]dodrive"<<std::endl;
 	g_log.flush();
 
 
@@ -1168,7 +1169,7 @@ void DoDrive(Unit* op)
 	sprintf(msg, "velaftercheckava=%f,%f,%f", vel.x, vel.y, vel.z);
 	int unID = 5;
 
-	g_log<<"u["<<unID<<"]: "<<msg<<endl;
+	g_log<<"u["<<unID<<"]: "<<msg<<std::endl;
 	g_log.flush();
 
 	Chat(msg);
@@ -1229,7 +1230,7 @@ void DoDrive(Unit* op)
 	sprintf(msg, "velafterdodrive=%f,%f,%f", vel.x, vel.y, vel.z);
 	int unID = 5;
 
-	g_log<<"u["<<unID<<"]: "<<msg<<endl;
+	g_log<<"u["<<unID<<"]: "<<msg<<std::endl;
 	g_log.flush();
 
 	Chat(msg);
@@ -1312,7 +1313,7 @@ void UpdLab(Unit* u)
 		{	/*
 			if(uID == 2)
 			{
-			g_log<<"u[2]findfood"<<endl;
+			g_log<<"u[2]findfood"<<std::endl;
 			g_log.flush();
 			}*/
 		}
@@ -1320,13 +1321,13 @@ void UpdLab(Unit* u)
 		{	/*
 			if(uID == 2)
 			{
-			g_log<<"u[2]needrest"<<endl;
+			g_log<<"u[2]needrest"<<std::endl;
 			g_log.flush();
 			}*/
 			/*
 			if(UnitID(this) == 0)
 			{
-			g_log<<"0 needrest"<<endl;
+			g_log<<"0 needrest"<<std::endl;
 			g_log.flush();
 			}
 			*/
@@ -1334,7 +1335,7 @@ void UpdLab(Unit* u)
 			{	/*
 				if(UnitID(this) == 0)
 				{
-				g_log<<"home >= 0"<<endl;
+				g_log<<"home >= 0"<<std::endl;
 				g_log.flush();
 				}
 				*/
@@ -1346,7 +1347,7 @@ void UpdLab(Unit* u)
 				/*
 				if(UnitID(this) == 0)
 				{
-				g_log<<"findrest"<<endl;
+				g_log<<"findrest"<<std::endl;
 				g_log.flush();
 				}*/
 
@@ -1358,7 +1359,7 @@ void UpdLab(Unit* u)
 		{	/*
 			if(uID == 2)
 			{
-			g_log<<"u[2]findjob"<<endl;
+			g_log<<"u[2]findjob"<<std::endl;
 			g_log.flush();
 			}*/
 			if(!FindJob(u))

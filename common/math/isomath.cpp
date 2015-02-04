@@ -26,7 +26,7 @@ int CartYToIso(int cmy)
 {
 	//return cmy / tan(DEGTORAD(30));
 	//return cmy * (TILE_PIXEL_WIDTH / 8) / (TILE_SIZE/2);
-	//g_log<<"cmy "<<cmy<<endl;
-	//g_log<<"result "<<(cmy * TILE_PIXEL_RISE / TILE_RISE)<<endl;
+	//g_log<<"cmy "<<cmy<<std::endl;
+	//g_log<<"result "<<(cmy * TILE_PIXEL_RISE / TILE_RISE)<<std::endl;
 	return cmy * TILE_PIXEL_RISE / TILE_RISE;
 }

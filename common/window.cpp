@@ -367,7 +367,6 @@ bool InitWindow()
 	glCullFace(GL_BACK);
 
 	InitGLSL();
-	InitShadows();
 	LoadFonts();
 
 	return true;

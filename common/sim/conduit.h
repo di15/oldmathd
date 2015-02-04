@@ -23,7 +23,7 @@ public:
 	short netw;	//network
 	//bool inaccessible;
 	short transporter[RESOURCES];
-	Vec3f drawpos;
+	Vec2f drawpos;
 	//int maxcost[RESOURCES];
 	int conwage;
 
@@ -91,21 +91,19 @@ inline CdTile* GetCd(unsigned char ctype, int tx, int tz, bool plan)
 
 class Building;
 
-void DefCo(unsigned char ctype,
+void DefCd(unsigned char ctype,
 			const char* name,
            unsigned short netwoff,
            unsigned short seloff,
-           unsigned short maxforwincl,
-           unsigned short maxsideincl,
            bool blconduct,
            bool cornerpl,
            Vec2i physoff,
            Vec3f drawoff,
 		   const char* lacktex);
 void CoDesc(unsigned char ctype, const char* desc);
-void CoConMat(unsigned char ctype, unsigned char rtype, short ramt);
-void UpdCoPlans(unsigned char ctype, char owner, Vec3f start, Vec3f end);
-void ClearCoPlans(unsigned char ctype);
+void CdConMat(unsigned char ctype, unsigned char rtype, short ramt);
+void UpdCdPlans(unsigned char ctype, char owner, Vec3f start, Vec3f end);
+void ClearCdPlans(unsigned char ctype);
 void ReNetw(unsigned char ctype);
 void ResetNetw(unsigned char ctype);
 bool ReNetwB(unsigned char ctype);
@@ -114,14 +112,13 @@ bool ReNetwTiles(unsigned char ctype);
 bool CompareCo(unsigned char ctype, CdTile* ctile, int tx, int tz);
 bool BAdj(unsigned char ctype, int i, int tx, int tz);
 bool CompareB(unsigned char ctype, Building* b, CdTile* ctile);
-bool CoLevel(unsigned char ctype, float iterx, float iterz, float testx, float testz, float dx, float dz, int i, float d, bool plantoo);
-void RemeshCd(unsigned char ctype, int tx, int tz, bool plan);
-void PlaceCo(unsigned char ctype);
-void PlaceCo(unsigned char ctype, int tx, int tz, int owner, bool plan);
+bool CdLevel(unsigned char ctype, float iterx, float iterz, float testx, float testz, float dx, float dz, int i, float d, bool plantoo);
+void PlaceCd(unsigned char ctype);
+void PlaceCd(unsigned char ctype, int tx, int tz, int owner, bool plan);
 void Repossess(unsigned char ctype, int tx, int tz, int owner);
-void DrawCo(unsigned char ctype);
+void DrawCd(unsigned char ctype);
 void CdXZ(unsigned char ctype, CdTile* ctile, bool plan, int& tx, int& tz);
 void DefConn(unsigned char conduittype, unsigned char connectiontype, bool finished, const char* modelfile, const Vec3f scale, Vec3f transl);
-void PruneCo(unsigned char ctype);
+void PruneCd(unsigned char ctype);
 
 #endif

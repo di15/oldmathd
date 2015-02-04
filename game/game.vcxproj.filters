@@ -374,9 +374,6 @@
     <ClCompile Include="..\common\path\localavoid.cpp">
       <Filter>Source Files\common\path</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\path\mempool.cpp">
-      <Filter>Source Files\common\path</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\path\partialpath.cpp">
       <Filter>Source Files\common\path</Filter>
     </ClCompile>
@@ -499,6 +496,42 @@
     </ClCompile>
     <ClCompile Include="..\common\render\infoov.cpp">
       <Filter>Source Files\common\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\render\anim.cpp">
+      <Filter>Source Files\common\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\path\anypath.cpp">
+      <Filter>Source Files\common\path</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\path\fillbodies.cpp">
+      <Filter>Source Files\common\path</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\path\groupmove.cpp">
+      <Filter>Source Files\common\path</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\path\itinerary.cpp">
+      <Filter>Source Files\common\path</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\path\tilepath.cpp">
+      <Filter>Source Files\common\path</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\sys\binheap.cpp">
+      <Filter>Source Files\common\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\sys\checksum.cpp">
+      <Filter>Source Files\common\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\sys\dirent.c">
+      <Filter>Source Files\common\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\sys\mempool.cpp">
+      <Filter>Source Files\common\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\sys\regress.cpp">
+      <Filter>Source Files\common\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\sys\utf8.cpp">
+      <Filter>Source Files\common\sys</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -820,9 +853,6 @@
     <ClInclude Include="..\common\path\localavoid.h">
       <Filter>Source Files\common\path</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\path\mempool.h">
-      <Filter>Source Files\common\path</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\path\partialpath.h">
       <Filter>Source Files\common\path</Filter>
     </ClInclude>
@@ -957,6 +987,39 @@
     </ClInclude>
     <ClInclude Include="..\common\math\vec2uc.h">
       <Filter>Source Files\common\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\render\anim.h">
+      <Filter>Source Files\common\render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\path\anypath.h">
+      <Filter>Source Files\common\path</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\path\fillbodies.h">
+      <Filter>Source Files\common\path</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\path\groupmove.h">
+      <Filter>Source Files\common\path</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\path\itinerary.h">
+      <Filter>Source Files\common\path</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\path\tilepath.h">
+      <Filter>Source Files\common\path</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\sys\binheap.h">
+      <Filter>Source Files\common\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\sys\checksum.h">
+      <Filter>Source Files\common\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\sys\dirent.h">
+      <Filter>Source Files\common\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\sys\mempool.h">
+      <Filter>Source Files\common\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\sys\utf8.h">
+      <Filter>Source Files\common\sys</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

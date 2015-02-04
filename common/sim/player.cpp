@@ -91,13 +91,6 @@ void DefP(int ID, float red, float green, float blue, float alpha, RichText name
 	py->name = name;
 }
 
-void DrawPy()
-{
-	Model* m = &g_model[g_playerm];
-
-	m->draw(0, Vec3f(TILE_SIZE*10, TILE_SIZE*5, TILE_SIZE*10), 30);
-}
-
 void Bankrupt(int player, const char* reason)
 {
 	Player* p = &g_player[player];

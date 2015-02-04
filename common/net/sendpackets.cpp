@@ -170,7 +170,7 @@ void ResendPacks()
 			i = g_outgo.erase(i);
 
 #if 0
-			g_log<<"expire at "<<DateTime()<<" dt="<<expire<<"-"<<p->first<<"="<<(expire-p->first)<<"(>"<<RESEND_EXPIRE<<") left = "<<g_outgo.size()<<endl;
+			g_log<<"expire at "<<DateTime()<<" dt="<<expire<<"-"<<p->first<<"="<<(expire-p->first)<<"(>"<<RESEND_EXPIRE<<") left = "<<g_outgo.size()<<std::endl;
 			g_log.flush();
 #endif
 
@@ -190,7 +190,7 @@ void ResendPacks()
 #endif
 
 #if 0
-		g_log<<"resent at "<<DateTime()<<" left = "<<g_outgo.size()<<endl;
+		g_log<<"resent at "<<DateTime()<<" left = "<<g_outgo.size()<<std::endl;
 		g_log.flush();
 #endif
 

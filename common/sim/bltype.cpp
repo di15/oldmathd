@@ -1,4 +1,4 @@
-#include "../render/model.h"
+
 #include "bltype.h"
 #include "../sound/sound.h"
 
@@ -13,11 +13,7 @@ void DefB(int type,
 		  Vec2i size, 
 		  bool hugterr, 
 		  const char* modelrelative, 
-		  Vec3f scale, 
-		  Vec3f translate, 
 		  const char* cmodelrelative,  
-		  Vec3f cscale, 
-		  Vec3f ctranslate, 
 		  int foundation, 
 		  int reqdeposit,
 		  int maxhp)
@@ -26,8 +22,8 @@ void DefB(int type,
 	t->widthx = size.x;
 	t->widthy = size.y;
 	sprintf(t->name, name);
-	QueueModel(&t->model, modelrelative, scale, translate);
-	QueueModel(&t->cmodel, cmodelrelative, cscale, ctranslate);
+	//QueueModel(&t->model, modelrelative, scale, translate);
+	//QueueModel(&t->cmodel, cmodelrelative, cscale, ctranslate);
 	t->foundation = foundation;
 	t->hugterr = hugterr;
 

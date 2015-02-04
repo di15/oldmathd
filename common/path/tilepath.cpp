@@ -50,17 +50,17 @@ Vec2s TileNodePos(TileNode* node)
 		return Vec2s(-1,-1);
 
 	const int i = node - g_tilenode;
-	const int ny = i / g_hmap.m_widthx;
-	const int nx = i % g_hmap.m_widthx;
+	const int ny = i / g_mapsz.x;
+	const int nx = i % g_mapsz.x;
 	return Vec2s(nx, ny);
 }
 
 void UpdJams()
 {
-	for(short y=0; y<g_hmap.m_widthy; y++)
-		for(short x=0; x<g_hmap.m_widthx; x++)
+	for(short y=0; y<g_mapsz.y; y++)
+		for(short x=0; x<g_mapsz.x; x++)
 		{
-			short index = x + y * g_hmap.m_widthx;
+			short index = x + y * g_mapsz.x;
 			TileNode* tn = &g_tilenode[index];
 			if(tn->jams <= 0)
 				continue;
@@ -253,7 +253,7 @@ void TilePath(int utype, int umode, int cmstartx, int cmstarty, int target, int 
 	BinHeap openlist(CompareTiles);
 	std::list<TileNode*> toclear;
 
-	int tin = tx + ty * g_hmap.m_widthx;
+	int tin = tx + ty * g_mapsz.x;
 	TileNode* tnode = &g_tilenode[tin];
 	tnode->opened = true;
 	tnode->totalD = 0;
@@ -339,7 +339,7 @@ void TilePath(int utype, int umode, int cmstartx, int cmstarty, int target, int 
 			g_log<<"\t1"<<std::endl;
 #endif
 
-			if(tpos.x + straightoffsets[i].x >= g_hmap.m_widthx)
+			if(tpos.x + straightoffsets[i].x >= g_mapsz.x)
 				continue;
 
 #ifdef HIERDEBUG
@@ -353,7 +353,7 @@ void TilePath(int utype, int umode, int cmstartx, int cmstarty, int target, int 
 			g_log<<"\t3"<<std::endl;
 #endif
 
-			if(tpos.y + straightoffsets[i].y >= g_hmap.m_widthy)
+			if(tpos.y + straightoffsets[i].y >= g_mapsz.y)
 				continue;
 			
 #ifdef HIERDEBUG
@@ -372,7 +372,7 @@ void TilePath(int utype, int umode, int cmstartx, int cmstarty, int target, int 
 			g_log<<"\t5"<<std::endl;
 #endif
 
-			tin = tpos2.x + tpos2.y * g_hmap.m_widthx;
+			tin = tpos2.x + tpos2.y * g_mapsz.x;
 			TileNode* tnode2 = &g_tilenode[ tin ];
 			TileRegs* tregs2 = &g_tilepass[ tin ];
 
@@ -380,7 +380,7 @@ void TilePath(int utype, int umode, int cmstartx, int cmstarty, int target, int 
 			//check if it leads to this other tile.
 
 			//Vec2s tpos2(tpos.x + straightoffsets[i].x, tpos.y + straightoffsets[i].y);
-			//int tin2 = (tpos2.x) + (tpos2.y) * g_hmap.m_widthx;
+			//int tin2 = (tpos2.x) + (tpos2.y) * g_mapsz.x;
 
 			unsigned char i2 = 0;
 

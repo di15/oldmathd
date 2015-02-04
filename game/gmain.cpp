@@ -10,6 +10,7 @@
 #include "../common/gui/gui.h"
 #include "../common/debug.h"
 #include "../common/render/heightmap.h"
+#include "../common/sim/map.h"
 #include "../common/math/camera.h"
 #include "../common/window.h"
 #include "../common/utils.h"
@@ -96,7 +97,7 @@ void UpdLoad()
 	switch(g_restage)
 	{
 	case 0:
-		if(!Load1Model()) g_restage++;
+		if(!Load1Sprite()) g_restage++;
 		break;
 	case 1:
 		if(!Load1Texture())
@@ -127,9 +128,11 @@ void UpdReload()
 #else
 	g_restage = 0;
 	g_lastLTex = -1;
-	g_lastmodelload = -1;
+	//g_lastmodelload = -1;
+	g_lastLSp = -1;
 	g_gui.freech();
-	FreeModels();
+	//FreeModels();
+	FreeSprites();
 	FreeTextures();
 	DestroyWindow(TITLE);
 	//ReloadTextures();

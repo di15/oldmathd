@@ -12,7 +12,7 @@
 //#define TILE_RISE		(tan(DEGTORAD(30))*TILE_DIAG/2)
 #define TILE_RISE		(tan(DEGTORAD(30))*TILE_DIAG/4)
 
-extern Vec2f g_scroll;
+extern Vec2i g_scroll;
 
 void ScrollTo(int x, int z);
 

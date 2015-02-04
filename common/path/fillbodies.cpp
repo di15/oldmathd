@@ -124,7 +124,7 @@ void FillBodies()
 	for(int i=0; i<g_pathdim.x*g_pathdim.y; i++)
 		g_tregs[i] = UCHAR_MAX;
 
-	for(int i=0; i<g_hmap.m_widthx*g_hmap.m_widthy; i++)
+	for(int i=0; i<g_mapsz.x*g_mapsz.y; i++)
 	{
 		g_tilepass[i].tregs[0].clear();
 		g_tilepass[i].tregs[1].clear();
@@ -137,8 +137,8 @@ void FillBodies()
 	//Mark flood-fill regions for each tile.
 	//This must be done on a tile-by-tile basis
 	//(the tile-to-tile region passability is determined next).
-	for(unsigned char ty=0; ty<g_hmap.m_widthy; ty++)
-		for(unsigned char tx=0; tx<g_hmap.m_widthx; tx++)
+	for(unsigned char ty=0; ty<g_mapsz.y; ty++)
+		for(unsigned char tx=0; tx<g_mapsz.x; tx++)
 		{
 			unsigned char curbody = 0;
 
@@ -231,8 +231,8 @@ void FillBodies()
 	//Now determine passability between regions
 	//in neighbouring tiles.
 	//TODO
-	for(unsigned char ty=0; ty<g_hmap.m_widthy; ty++)
-		for(unsigned char tx=0; tx<g_hmap.m_widthx; tx++)
+	for(unsigned char ty=0; ty<g_mapsz.y; ty++)
+		for(unsigned char tx=0; tx<g_mapsz.x; tx++)
 		{
 			//Go along each side.
 			//По каждой стороне проходим.
@@ -266,7 +266,7 @@ void FillBodies()
 							continue;
 
 						//tilepass index
-						int tpin = tx + ty * g_hmap.m_widthx;
+						int tpin = tx + ty * g_mapsz.x;
 						g_tilepass[tpin].add(sidr, g_tregs[nin2]);
 					}
 				}
@@ -291,14 +291,14 @@ void FillBodies()
 						continue;
 
 					//tilepass index
-					int tpin = tx + ty * g_hmap.m_widthx;
+					int tpin = tx + ty * g_mapsz.x;
 					g_tilepass[tpin].add(SDIR_W, g_tregs[nin], g_tregs[nin2]);
 
 					//g_log<<"add1"<<std::endl;
 				}
 
 			//Go along right side.
-			if(tx < g_hmap.m_widthx-1)
+			if(tx < g_mapsz.x-1)
 				for(unsigned short ny=ty*TILE_PATHNODES; ny<(ty+1)*TILE_PATHNODES; ny++)
 				//for(unsigned short nx=tx*TILE_PATHNODES; nx<(tx+1)*TILE_PATHNODES; nx++)
 				{
@@ -316,7 +316,7 @@ void FillBodies()
 						continue;
 
 					//tilepass index
-					int tpin = tx + ty * g_hmap.m_widthx;
+					int tpin = tx + ty * g_mapsz.x;
 					g_tilepass[tpin].add(SDIR_E, g_tregs[nin], g_tregs[nin2]);
 
 					//g_log<<"add2"<<std::endl;
@@ -341,14 +341,14 @@ void FillBodies()
 						continue;
 
 					//tilepass index
-					int tpin = tx + ty * g_hmap.m_widthx;
+					int tpin = tx + ty * g_mapsz.x;
 					g_tilepass[tpin].add(SDIR_N, g_tregs[nin], g_tregs[nin2]);
 
 					//g_log<<"add3"<<std::endl;
 				}
 
 			//Go along bottom side.
-			if(ty < g_hmap.m_widthy-1)
+			if(ty < g_mapsz.y-1)
 				//for(unsigned short ny=ty*TILE_PATHNODES; ny<(ty+1)*TILE_PATHNODES; ny++)
 				for(unsigned short nx=tx*TILE_PATHNODES; nx<(tx+1)*TILE_PATHNODES; nx++)
 				{
@@ -366,7 +366,7 @@ void FillBodies()
 						continue;
 
 					//tilepass index
-					int tpin = tx + ty * g_hmap.m_widthx;
+					int tpin = tx + ty * g_mapsz.x;
 					g_tilepass[tpin].add(SDIR_S, g_tregs[nin], g_tregs[nin2]);
 
 					//g_log<<"add4"<<std::endl;

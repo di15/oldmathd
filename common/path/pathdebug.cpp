@@ -481,9 +481,10 @@ void DrawVelocities()
 
 		std::vector<Vec3f> vecs;
 
-		vecs.push_back(u->drawpos + Vec3f(0, TILE_SIZE/20, 0));
-		Vec3f prevpos = Vec3f(u->prevpos.x, g_hmap.accheight(u->prevpos.x, u->prevpos.y), u->prevpos.y);
-		vecs.push_back(u->drawpos + (u->drawpos - prevpos) * (10*t->cmspeed) + Vec3f(0, TILE_SIZE/20, 0));
+		//TODO
+		//vecs.push_back(u->drawpos + Vec3f(0, TILE_SIZE/20, 0));
+		//Vec3f prevpos = Vec3f(u->prevpos.x, g_hmap.accheight(u->prevpos.x, u->prevpos.y), u->prevpos.y);
+		//vecs.push_back(u->drawpos + (u->drawpos - prevpos) * (10*t->cmspeed) + Vec3f(0, TILE_SIZE/20, 0));
 
 		if(vecs.size() > 0)
 		{

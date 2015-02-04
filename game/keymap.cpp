@@ -8,11 +8,14 @@
 #include "../common/render/heightmap.h"
 #include "../common/window.h"
 #include "../common/sim/player.h"
+#include "../common/script/console.h"
 
 void MouseMidButtonDown()
 {
 	if(g_mode == APPMODE_PLAY || g_mode == APPMODE_EDITOR)
 	{
+		Player* py = &g_player[g_localP];
+
 		if(g_mousekeys[MOUSE_MIDDLE])
 		{
 			CenterMouse();
@@ -28,6 +31,26 @@ void MouseWheel(int delta)
 {
 	if(g_mode == APPMODE_PLAY || g_mode == APPMODE_EDITOR)
 	{
+		Player* py = &g_player[g_localP];
+		Camera* c = &g_cam;
+
+		if(g_zoom <= MIN_ZOOM && delta < 0)
+			return;
+
+		if(g_zoom >= MAX_ZOOM && delta > 0)
+			return;
+
+		float oldzoom = g_zoom;
+		Vec3f line[2];
+		line[0] = c->zoompos();
+
+		g_zoom *= 1.0f + (float)delta / 10.0f;
+		line[1] = c->zoompos();
+
+		Vec3f ray = Normalize( line[1] - line[0] );
+
+		line[0] = line[0] - ray;
+		line[1] = line[1] + ray;
 	}
 }
 
@@ -40,6 +63,21 @@ void ZoomIn()
 void ZoomOut()
 {
 	MouseWheel(1);
+}
+
+void Escape()
+{
+	if(g_mode == APPMODE_PLAY)
+	{
+		Player* py = &g_player[g_localP];
+		GUI* gui = &g_gui;
+		Widget* ingame = gui->get("ingame");
+
+		if(ingame->m_opened)
+			gui->close("ingame");
+		else
+			gui->open("ingame");
+	}
 }
 
 void MapKeys()
@@ -56,8 +94,10 @@ void MapKeys()
 		GUI* gui = &g_gui;
 		gui->assignmousewheel(&MouseWheel);
 		gui->assignmbutton(MouseMidButtonDown, MouseMidButtonUp);
-		gui->assignkey('R', ZoomOut, NULL);
-		gui->assignkey('F', ZoomIn, NULL);
+		gui->assignkey(SDL_SCANCODE_R, ZoomOut, NULL);
+		gui->assignkey(SDL_SCANCODE_F, ZoomIn, NULL);
+		gui->assignkey(SDL_SCANCODE_GRAVE, NULL, ToggleConsole);
+		gui->assignkey(SDL_SCANCODE_ESCAPE, NULL, Escape);
 	}
 
 	/*
@@ -102,7 +142,7 @@ void MapKeys()
 		else if(stricmp(keystr, "'C'") == 0)			key = 'C';
 		else if(stricmp(keystr, "'D'") == 0)			key = 'D';
 		else if(stricmp(keystr, "'E'") == 0)			key = 'E';
-		else if(stricmp(keystr, "'F'") == 0)			key = 'F';
+		else if(stricmp(keystr, "'score'") == 0)			key = 'score';
 		else if(stricmp(keystr, "'G'") == 0)			key = 'G';
 		else if(stricmp(keystr, "'H'") == 0)			key = 'H';
 		else if(stricmp(keystr, "'I'") == 0)			key = 'I';
@@ -136,7 +176,7 @@ void MapKeys()
 
 		if(key == -1)
 		{
-			g_log<<"Unknown input: "<<keystr<<endl;
+			g_log<<"Unknown input: "<<keystr<<std::endl;
 			continue;
 		}
 
@@ -146,7 +186,7 @@ void MapKeys()
 		else if(stricmp(actstr, "Right();") == 0)			{	down = &Right;			up = NULL;			}
 		else if(stricmp(actstr, "Back();") == 0)			{	down = &Back;			up = NULL;			}
 
-		if(down == NULL)		g_log<<"Unknown action: "<<actstr<<endl;
+		if(down == NULL)		g_log<<"Unknown action: "<<actstr<<std::endl;
 		else if(key == -2)		AssignLButton(down, up);
 		else					AssignKey(key, down, up);
 	}

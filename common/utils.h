@@ -13,7 +13,7 @@ const std::string DateTime();
 const std::string Time();
 const std::string FileDateTime();
 void FullPath(const char* filename, char* full);
-std::string MakePathRelative(const char* full);
+std::string MakeRelative(const char* full);
 void ExePath(char* exepath);
 std::string StripFile(std::string filepath);
 void StripPathExtension(const char* n, char* o);
@@ -57,6 +57,11 @@ inline int imax(const int a, const int b)
 inline int imin(const int a, const int b)
 {
 	return (((a)<(b))?(a):(b));
+}
+
+inline int iabs(int x)
+{
+	return x & INT_MAX;
 }
 
 //deterministic ceil

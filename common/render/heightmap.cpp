@@ -1,6 +1,5 @@
 #include "../platform.h"
 #include "heightmap.h"
-
 #include "../render/shader.h"
 #include "../texture.h"
 #include "../gui/gui.h"
@@ -35,39 +34,39 @@ Number of height points/corners is +1.
 */
 Vec2uc g_mapsz(0,0);
 
-void AllocGrid(int wx, int wz)
+void AllocGrid(int wx, int wy)
 {
-	g_log<<"allocating class arrays "<<wx<<","<<wz<<endl;
+	g_log<<"allocating class arrays "<<wx<<","<<wy<<std::endl;
 	g_log.flush();
 
-	if( !(g_cotype[CONDUIT_ROAD].cotiles[0] = new RoadTile [ (wx * wz) ]) ) OutOfMem(__FILE__, __LINE__);
-	if( !(g_cotype[CONDUIT_ROAD].cotiles[1] = new RoadTile [ (wx * wz) ]) ) OutOfMem(__FILE__, __LINE__);
-	if( !(g_cotype[CONDUIT_POWL].cotiles[0] = new PowlTile [ (wx * wz) ]) ) OutOfMem(__FILE__, __LINE__);
-	if( !(g_cotype[CONDUIT_POWL].cotiles[1] = new PowlTile [ (wx * wz) ]) ) OutOfMem(__FILE__, __LINE__);
-	if( !(g_cotype[CONDUIT_CRPIPE].cotiles[0] = new CrPipeTile [ (wx * wz) ]) ) OutOfMem(__FILE__, __LINE__);
-	if( !(g_cotype[CONDUIT_CRPIPE].cotiles[1] = new CrPipeTile [ (wx * wz) ]) ) OutOfMem(__FILE__, __LINE__);
+	if( !(g_cdtype[CONDUIT_ROAD].cdtiles[0] = new CdTile [ (wx * wy) ]) ) OutOfMem(__FILE__, __LINE__);
+	if( !(g_cdtype[CONDUIT_ROAD].cdtiles[1] = new CdTile [ (wx * wy) ]) ) OutOfMem(__FILE__, __LINE__);
+	if( !(g_cdtype[CONDUIT_POWL].cdtiles[0] = new CdTile [ (wx * wy) ]) ) OutOfMem(__FILE__, __LINE__);
+	if( !(g_cdtype[CONDUIT_POWL].cdtiles[1] = new CdTile [ (wx * wy) ]) ) OutOfMem(__FILE__, __LINE__);
+	if( !(g_cdtype[CONDUIT_CRPIPE].cdtiles[0] = new CdTile [ (wx * wy) ]) ) OutOfMem(__FILE__, __LINE__);
+	if( !(g_cdtype[CONDUIT_CRPIPE].cdtiles[1] = new CdTile [ (wx * wy) ]) ) OutOfMem(__FILE__, __LINE__);
 }
 
 /*
 allocate room for a number of tiles, not height points.
 */
-void Heightmap::alloc(int wx, int wz)
+void Heightmap::alloc(int wx, int wy)
 {
 	destroy();
 
 	// Vertices aren't shared between tiles or triangles.
-	int numverts = wx * wz * 3 * 2;
+	int numverts = wx * wy * 3 * 2;
 
-	m_widthx = wx;
-	m_widthz = wz;
+	g_mapsz.x = wx;
+	g_mapsz.y = wy;
 
-	m_heightpoints = new unsigned char [ (wx+1) * (wz+1) ];
+	m_heightpoints = new unsigned char [ (wx+1) * (wy+1) ];
 	m_3dverts = new Vec3f [ numverts ];
 	m_normals = new Vec3f [ numverts ];
 	m_texcoords0 = new Vec2f [ numverts ];
-	m_triconfig = new bool [ wx * wz ];
-	m_tridivider = new Plane3f [ wx * wz ];
-	m_surftile = new Tile [ wx * wz ];
+	m_triconfig = new bool [ wx * wy ];
+	m_tridivider = new Plane3f [ wx * wy ];
+	m_surftile = new Tile [ wx * wy ];
 
 	if(!m_heightpoints) OutOfMem(__FILE__, __LINE__);
 	if(!m_3dverts) OutOfMem(__FILE__, __LINE__);
@@ -77,14 +76,14 @@ void Heightmap::alloc(int wx, int wz)
 	if(!m_tridivider) OutOfMem(__FILE__, __LINE__);
 	if(!m_surftile) OutOfMem(__FILE__, __LINE__);
 
-	//g_log<<"setting heights to 0"<<endl;
+	//g_log<<"setting heights to 0"<<std::endl;
 	//g_log.flush();
 
 	// Set to initial height.
 	for(int x=0; x<=wx; x++)
-		for(int z=0; z<=wz; z++)
-			//m_heightpoints[ z*(wx+1) + x ] = rand()%1000;
-			m_heightpoints[ z*(wx+1) + x ] = 0;
+		for(int y=0; y<=wy; y++)
+			//m_heightpoints[ y*(wx+1) + x ] = rand()%1000;
+			m_heightpoints[ y*(wx+1) + x ] = 0;
 
 	remesh();
 	//retexture();
@@ -92,11 +91,12 @@ void Heightmap::alloc(int wx, int wz)
 
 void FreeGrid()
 {
-	for(char ctype=0; ctype<CONDUIT_TYPES; ctype++)
+	for(unsigned char ctype=0; ctype<CONDUIT_TYPES; ctype++)
 	{
-		ConduitType* ct = &g_cotype[ctype];
-		ConduitTile*& actual = ct->cotiles[(int)false];
-		ConduitTile*& planned = ct->cotiles[(int)true];
+		CdType* ct = &g_cdtype[ctype];
+		//nice
+		CdTile*& actual = ct->cdtiles[(int)false];
+		CdTile*& planned = ct->cdtiles[(int)true];
 
 		if(planned)
 		{
@@ -114,15 +114,15 @@ void FreeGrid()
 
 void Heightmap::destroy()
 {
-	if(m_widthx <= 0 || m_widthz <= 0)
+	if(g_mapsz.x <= 0 || g_mapsz.y <= 0)
 		return;
 
-	g_log<<"deleting [] g_open"<<endl;
+	g_log<<"deleting [] g_open"<<std::endl;
 	g_log.flush();
 	/*
 		delete [] g_open;
 
-		g_log<<"deleting [] g_road"<<endl;
+		g_log<<"deleting [] g_road"<<std::endl;
 		g_log.flush();
 		*/
 
@@ -132,43 +132,43 @@ void Heightmap::destroy()
 	delete [] m_texcoords0;
 	delete [] m_surftile;
 
-	m_widthx = 0;
-	m_widthz = 0;
+	g_mapsz.x = 0;
+	g_mapsz.y = 0;
 
 	FreePathGrid();
 }
 
-void Heightmap::chheight(int x, int z, signed char change)
+void Heightmap::adjheight(int x, int y, signed char change)
 {
-	m_heightpoints[ (z)*(m_widthx+1) + x ] += change;
+	m_heightpoints[ (y)*(g_mapsz.x+1) + x ] += change;
 }
 
-void Heightmap::setheight(int x, int z, unsigned char height)
+void Heightmap::setheight(int x, int y, unsigned char height)
 {
-	m_heightpoints[ (z)*(m_widthx+1) + x ] = height;
+	m_heightpoints[ (y)*(g_mapsz.x+1) + x ] = height;
 }
 
-float Heightmap::accheight(int x, int z)
+float Heightmap::accheight(int x, int y)
 {
 	int tx = x / TILE_SIZE;
-	int tz = z / TILE_SIZE;
+	int ty = y / TILE_SIZE;
 
 	if(tx < 0)
 		tx = 0;
 
-	if(tz < 0)
-		tz = 0;
+	if(ty < 0)
+		ty = 0;
 
 	if(tx >= g_mapsz.x)
 		tx = g_mapsz.x-1;
 
-	if(tz >= g_mapsz.y)
-		tz = g_mapsz.y-1;
+	if(ty >= g_mapsz.y)
+		ty = g_mapsz.y-1;
 
-	int tileindex = tz*m_widthx + tx;
+	int tileindex = ty*g_mapsz.x + tx;
 	int tileindex6v = tileindex * 6;
 
-	Vec3f point = Vec3f(x, 0, z);
+	Vec3f point = Vec3f(x, 0, y);
 
 	Vec3f tri[3];
 
@@ -191,14 +191,14 @@ float Heightmap::accheight(int x, int z)
 
 	MakePlane(&plane.m_normal, &plane.m_d, tri[0], trinorm);
 
-	float y = - ( x*plane.m_normal.x + z*plane.m_normal.z + plane.m_d ) / plane.m_normal.y;
+	float z = - ( x*plane.m_normal.x + y*plane.m_normal.y + plane.m_d ) / plane.m_normal.y;
 
-	return y;
+	return z;
 }
 
-Vec3f Heightmap::getnormal(int x, int z)
+Vec3f Heightmap::getnormal(int x, int y)
 {
-	return m_normals[ (z * m_widthx + x) * 6 ];
+	return m_normals[ (y * g_mapsz.x + x) * 6 ];
 }
 
 /*
@@ -215,37 +215,37 @@ void Heightmap::remesh()
 		changed = false;
 
 		for(int x=0; x<g_mapsz.x; x++)
-			for(int z=0; z<g_mapsz.y; z++)
+			for(int y=0; y<g_mapsz.y; y++)
 			{
-				unsigned short h0 = getheight(x, z);
-				unsigned short h1 = getheight(x+1, z);
-				unsigned short h2 = getheight(x+1, z+1);
-				unsigned short h3 = getheight(x, z+1);
+				unsigned short h0 = getheight(x, y);
+				unsigned short h1 = getheight(x+1, y);
+				unsigned short h2 = getheight(x+1, y+1);
+				unsigned short h3 = getheight(x, y+1);
 
 				unsigned int minh = imin(h0, imin(h1, imin(h2, h3)));
 
 				if(h0 > minh+1)
 				{
 					changed = true;
-					chheight(x, z, -1);
+					adjheight(x, y, -1);
 				}
 
 				if(h1 > minh+1)
 				{
 					changed = true;
-					chheight(x+1, z, -1);
+					adjheight(x+1, y, -1);
 				}
 
 				if(h2 > minh+1)
 				{
 					changed = true;
-					chheight(x+1, z+1, -1);
+					adjheight(x+1, y+1, -1);
 				}
 
 				if(h3 > minh+1)
 				{
 					changed = true;
-					chheight(x, z+1, -1);
+					adjheight(x, y+1, -1);
 				}
 			}
 
@@ -253,17 +253,17 @@ void Heightmap::remesh()
 #endif
 
 	for(int x=0; x<g_mapsz.x; x++)
-		for(int z=0; z<g_mapsz.y; z++)
+		for(int y=0; y<g_mapsz.y; y++)
 		{
-			unsigned char h0 = getheight(x, z);
-			unsigned char h1 = getheight(x+1, z);
-			unsigned char h2 = getheight(x+1, z+1);
-			unsigned char h3 = getheight(x, z+1);
+			unsigned char h0 = getheight(x, y);
+			unsigned char h1 = getheight(x+1, y);
+			unsigned char h2 = getheight(x+1, y+1);
+			unsigned char h3 = getheight(x, y+1);
 
 
 			//g_log<<"height after "<<(unsigned int)h0<<std::endl;
 
-			g_log<<"("<<(int)h0<<","<<(int)h1<<","<<(int)h2<<","<<(int)h3<<")"<<endl;
+			g_log<<"("<<(int)h0<<","<<(int)h1<<","<<(int)h2<<","<<(int)h3<<")"<<std::endl;
 
 			unsigned char minh = imin(h0, imin(h1, imin(h2, h3)));
 
@@ -272,29 +272,29 @@ void Heightmap::remesh()
 			bool u2 = h2 > minh;
 			bool u3 = h3 > minh;
 
-			if(!u0 && !u1 && !u2 && !u3)	SurfTile(x,z).tiletype = TILE_0000;
-			if(!u0 && !u1 && !u2 && u3)		SurfTile(x,z).tiletype = TILE_0001;
-			if(!u0 && !u1 && u2 && !u3)		SurfTile(x,z).tiletype = TILE_0010;
-			if(!u0 && !u1 && u2 && u3)		SurfTile(x,z).tiletype = TILE_0011;
-			if(!u0 && u1 && !u2 && !u3)		SurfTile(x,z).tiletype = TILE_0100;
-			if(!u0 && u1 && !u2 && u3)		SurfTile(x,z).tiletype = TILE_0101;
-			if(!u0 && u1 && u2 && !u3)		SurfTile(x,z).tiletype = TILE_0110;
-			if(!u0 && u1 && u2 && u3)		SurfTile(x,z).tiletype = TILE_0111;
-			if(u0 && !u1 && !u2 && !u3)		SurfTile(x,z).tiletype = TILE_1000;
-			if(u0 && !u1 && !u2 && u3)		SurfTile(x,z).tiletype = TILE_1001;
-			if(u0 && !u1 && u2 && !u3)		SurfTile(x,z).tiletype = TILE_1010;
-			if(u0 && !u1 && u2 && u3)		SurfTile(x,z).tiletype = TILE_1011;
-			if(u0 && u1 && !u2 && !u3)		SurfTile(x,z).tiletype = TILE_1100;
-			if(u0 && u1 && !u2 && u3)		SurfTile(x,z).tiletype = TILE_1101;
-			if(u0 && u1 && u2 && !u3)		SurfTile(x,z).tiletype = TILE_1110;
+			if(!u0 && !u1 && !u2 && !u3)	SurfTile(x,y).tiletype = TILE_0000;
+			if(!u0 && !u1 && !u2 && u3)		SurfTile(x,y).tiletype = TILE_0001;
+			if(!u0 && !u1 && u2 && !u3)		SurfTile(x,y).tiletype = TILE_0010;
+			if(!u0 && !u1 && u2 && u3)		SurfTile(x,y).tiletype = TILE_0011;
+			if(!u0 && u1 && !u2 && !u3)		SurfTile(x,y).tiletype = TILE_0100;
+			if(!u0 && u1 && !u2 && u3)		SurfTile(x,y).tiletype = TILE_0101;
+			if(!u0 && u1 && u2 && !u3)		SurfTile(x,y).tiletype = TILE_0110;
+			if(!u0 && u1 && u2 && u3)		SurfTile(x,y).tiletype = TILE_0111;
+			if(u0 && !u1 && !u2 && !u3)		SurfTile(x,y).tiletype = TILE_1000;
+			if(u0 && !u1 && !u2 && u3)		SurfTile(x,y).tiletype = TILE_1001;
+			if(u0 && !u1 && u2 && !u3)		SurfTile(x,y).tiletype = TILE_1010;
+			if(u0 && !u1 && u2 && u3)		SurfTile(x,y).tiletype = TILE_1011;
+			if(u0 && u1 && !u2 && !u3)		SurfTile(x,y).tiletype = TILE_1100;
+			if(u0 && u1 && !u2 && u3)		SurfTile(x,y).tiletype = TILE_1101;
+			if(u0 && u1 && u2 && !u3)		SurfTile(x,y).tiletype = TILE_1110;
 
-			SurfTile(x,z).tilepos = Vec3i(x,minh,z);
+			SurfTile(x,y).tilepos = Vec3i(x,minh,y);
 		}
 }
 
 void Heightmap::draw()
 {
-	if(m_widthx <= 0 || m_widthz <= 0)
+	if(g_mapsz.x <= 0 || g_mapsz.y <= 0)
 		return;
 	//return;
 	Shader* s = &g_shader[g_curS];

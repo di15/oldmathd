@@ -184,9 +184,9 @@ bool UnitCollides(Unit* u, Vec2i cmpos, int utype)
 #if 1
 				UType* t2 = &g_utype[u2->type];
 				int minx2 = u2->cmpos.x - t2->size.x/2;
-				int minz2 = u2->cmpos.y - t2->size.z/2;
+				int minz2 = u2->cmpos.y - t2->size.x/2;
 				int maxx2 = minx2 + t2->size.x - 1;
-				int maxz2 = minz2 + t2->size.z - 1;
+				int maxz2 = minz2 + t2->size.x - 1;
 
 				if(minx <= maxx2 && minz <= maxz2 && maxx >= minx2 && maxz >= minz2)
 				{
@@ -834,8 +834,8 @@ elif 0
 			{
 				u->fillcollider();
 				u->drawpos.x = u->cmpos.x;
-				u->drawpos.z = u->cmpos.y;
-				u->drawpos.y = g_hmap.accheight(u->drawpos.x, u->drawpos.z);
+				u->drawpos.y = u->cmpos.y;
+				u->drawpos.y = g_hmap.accheight(u->drawpos.x, u->drawpos.y);
 				u->rotation.y = GetYaw(dir.x, dir.y);
 				return;
 			}
@@ -1091,7 +1091,7 @@ elif 0
 		u->fillcollider();
 
 	u->drawpos.x = u->cmpos.x;
-	u->drawpos.z = u->cmpos.y;
+	u->drawpos.y = u->cmpos.y;
 	u->drawpos.y = g_hmap.accheight(u->cmpos.x, u->cmpos.y);
 
 #if 0
@@ -1231,9 +1231,9 @@ bool CheckIfArrived(Unit* u)
 		u2t = &g_utype[u2->type];
 
 		u2cmminx = u2->cmpos.x - u2t->size.x/2;
-		u2cmminz = u2->cmpos.y - u2t->size.z/2;
+		u2cmminz = u2->cmpos.y - u2t->size.x/2;
 		u2cmmaxx = u2cmminx + u2t->size.x - 1;
-		u2cmmaxz = u2cmminz + u2t->size.z - 1;
+		u2cmmaxz = u2cmminz + u2t->size.x - 1;
 
 		//InfoMess("dr","d?");
 

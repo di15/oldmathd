@@ -125,10 +125,6 @@ void Order(int mousex, int mousey, int viewwidth, int viewheight, Vec3f campos, 
 
 	Vec3f mapgoal;
 
-	if(!FastMapIntersect(&g_hmap, line, &mapgoal))
-		if(!GetMapIntersection(&g_hmap, line, &mapgoal))
-			return;
-
 #if 0
 	InfoMess("asd", "found surf");
 #endif

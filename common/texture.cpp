@@ -642,7 +642,7 @@ bool FindTexture(unsigned int &textureidx, const char* relative)
 	{
 		Texture* t = &g_texture[i];
 
-		if(t->loaded && _stricmp(t->fullpath, corrected) == 0)
+		if(t->loaded && stricmp(t->fullpath.c_str(), corrected) == 0)
 		{
 			//g_texindex = i;
 			//texture = t->texname;
@@ -666,7 +666,7 @@ void FreeTexture(const char* relative)
 	{
 		Texture* t = &g_texture[i];
 
-		if(t->loaded && _stricmp(t->fullpath, corrected) == 0)
+		if(t->loaded && stricmp(t->fullpath.c_str(), corrected) == 0)
 		{
 			t->loaded = false;
 			glDeleteTextures(1, &t->texname);
@@ -716,7 +716,7 @@ bool TextureLoaded(unsigned int texture, const char* relative, bool transp, bool
 	//g_texindex = texindex;
 	Texture* t = &g_texture[texindex];
 	t->loaded = true;
-	strcpy(t->fullpath, corrected);
+	t->fullpath = corrected;
 	t->texname = texture;
 	t->width = g_texwidth;
 	t->height = g_texheight;
@@ -875,7 +875,7 @@ void ReloadTextures()
 			continue;
 
 		std::string rel;
-		rel = MakePathRelative(t->fullpath);
+		rel = MakeRelative(t->fullpath.c_str());
 		RequeueTexture(i, rel.c_str(), t->clamp, t->mipmaps);
 	}
 }

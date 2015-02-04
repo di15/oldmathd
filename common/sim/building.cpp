@@ -56,9 +56,12 @@ void Building::destroy()
 		{
 			u->cmpos = cmplace;
 			u->fillcollider();
+#if 0
+			//TODO
 			u->drawpos.x = (float)u->cmpos.x;
-			u->drawpos.z = (float)u->cmpos.y;
+			u->drawpos.y = (float)u->cmpos.y;
 			u->drawpos.y = g_hmap.accheight(u->cmpos.x, u->cmpos.y);
+#endif
 		}
 		worker.erase( worker.begin() );
 	}
@@ -1295,8 +1298,8 @@ void DrawBl()
 		//const BlType* t = &g_bltype[BL_HOUSE];
 		Sprite* sp = &g_sprite[ t->sprite ];
 
-		Vec3f vmin(b->drawpos.x - t->widthx*TILE_SIZE/2, b->drawpos.y, b->drawpos.z - t->widthy*TILE_SIZE/2);
-		Vec3f vmax(b->drawpos.x + t->widthx*TILE_SIZE/2, b->drawpos.y + (t->widthx+t->widthy)*TILE_SIZE/2, b->drawpos.z + t->widthy*TILE_SIZE/2);
+		Vec3f vmin(b->drawpos.x - t->widthx*TILE_SIZE/2, b->drawpos.y, b->drawpos.y - t->widthy*TILE_SIZE/2);
+		Vec3f vmax(b->drawpos.x + t->widthx*TILE_SIZE/2, b->drawpos.y + (t->widthx+t->widthy)*TILE_SIZE/2, b->drawpos.y + t->widthy*TILE_SIZE/2);
 
 		if(!g_frustum.boxin2(vmin.x, vmin.y, vmin.z, vmax.x, vmax.y, vmax.z))
 			continue;
@@ -1381,8 +1384,9 @@ void UpdBls()
 
 				pt = &g_particleT[ep->type];
 
-				if(b->emitterco[j].emitnext(pt->delay))
-					EmitParticle(ep->type, b->drawpos + ep->offset);
+				//TODO
+				//if(b->emitterco[j].emitnext(pt->delay))
+				//	EmitParticle(ep->type, b->drawpos + ep->offset);
 			}
 	}
 }
@@ -1511,7 +1515,7 @@ void Explode(Building* b)
 		p.x = hwx * (float)(rand()%1000 - 500)/500.0f;
 		p.y = TILE_SIZE/2.5f;
 		p.z = hwz * (float)(rand()%1000 - 500)/500.0f;
-		EmitParticle(PARTICLE_FIREBALL, p + b->drawpos);
+		//EmitParticle(PARTICLE_FIREBALL, p + b->drawpos);	//TODO
 	}
 
 	for(int i=0; i<10; i++)
@@ -1519,7 +1523,7 @@ void Explode(Building* b)
 		p.x = hwx * (float)(rand()%1000 - 500)/500.0f;
 		p.y = TILE_SIZE/2.5f;
 		p.z = hwz * (float)(rand()%1000 - 500)/500.0f;
-		EmitParticle(PARTICLE_FIREBALL2, p + b->drawpos);
+		//EmitParticle(PARTICLE_FIREBALL2, p + b->drawpos);	//TODO
 	}
 	/*
 	for(int i=0; i<5; i++)
@@ -1543,6 +1547,6 @@ void Explode(Building* b)
 		p.x = hwx * (float)(rand()%1000 - 500)/500.0f;
 		p.y = TILE_SIZE/2.5f;
 		p.z = hwz * (float)(rand()%1000 - 500)/500.0f;
-		EmitParticle(PARTICLE_DEBRIS, p + b->drawpos);
+		//EmitParticle(PARTICLE_DEBRIS, p + b->drawpos); //TODO
 	}
 }

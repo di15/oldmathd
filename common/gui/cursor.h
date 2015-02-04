@@ -19,7 +19,7 @@
 #define CU_DRAG		12	//drag some object between widgets?
 #define CU_STATES	13
 
-extern Sprite g_cursor[CU_STATES];
+extern unsigned int g_cursor[CU_STATES];
 
 
 #endif

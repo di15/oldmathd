@@ -34,7 +34,7 @@ void DrawOv(Matrix* mvp)
 			//if(!b->finished)
 			//	continue;
 
-			//if(!g_frustum.pointin(b->drawpos.x, b->drawpos.y, b->drawpos.z))
+			//if(!g_frustum.pointin(b->drawpos.x, b->drawpos.y, b->drawpos.y))
 			//	continue;
 		
 			bool showcd[CONDUIT_TYPES];
@@ -136,7 +136,7 @@ void DrawOv(Matrix* mvp)
 			if(!b->finished)
 				continue;
 
-			//if(!g_frustum.pointin(b->drawpos.x, b->drawpos.y, b->drawpos.z))
+			//if(!g_frustum.pointin(b->drawpos.x, b->drawpos.y, b->drawpos.y))
 			//	continue;
 		
 #if 0
@@ -208,7 +208,7 @@ void DrawOv(Matrix* mvp)
 		if(u->hidden())
 			continue;
 
-		//if(!g_frustum.pointin(u->drawpos.x, u->drawpos.y, u->drawpos.z))
+		//if(!g_frustum.pointin(u->drawpos.x, u->drawpos.y, u->drawpos.y))
 		//	continue;
 
 		RichText rt;

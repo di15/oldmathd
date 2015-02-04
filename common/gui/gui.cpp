@@ -57,7 +57,8 @@ void GUI::draw()
 		DrawImage(g_tiletexs[TILE_PRERENDER], 0, 0, 150, 150, 0, 1, 1, 0);
 #endif
 
-	Sprite* sp = &g_cursor[g_curst];
+	unsigned int spi = g_cursor[g_curst];
+	Sprite* sp = &g_sprite[spi];
 	DrawImage(g_texture[sp->difftexi].texname, g_mouse.x-sp->offset[0], g_mouse.y-sp->offset[1], g_mouse.x-sp->offset[2], g_mouse.y-sp->offset[3]);
 
 	CHECKGLERROR();

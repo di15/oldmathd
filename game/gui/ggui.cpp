@@ -213,28 +213,9 @@ void Click_EndGame()
 
 void Click_NewGame()
 {
-	CHECKGLERROR();
-#if 0
-	//LoadJPGMap("heightmaps/heightmap0e2s.jpg");
-	//LoadJPGMap("heightmaps/heightmap0e2.jpg");
-	//LoadJPGMap("heightmaps/heightmap0e.jpg");
-	LoadJPGMap("heightmaps/heightmap0e4.jpg");
-	//LoadJPGMap("heightmaps/water.jpg");
-#elif 1
-	//LoadJPGMap("heightmaps/heightmap0c.jpg");
-	LoadJPGMap("heightmaps/heightmap0d.jpg");
-#else
-	char fullpath[MAX_PATH+1];
-	FullPath("maps/testmap", fullpath);
-	//FullPath("maps/bigmap256", fullpath);
-	LoadMap(fullpath);
-#endif
-
 	//return;
 
 	CHECKGLERROR();
-
-
 
 	for(int i=0; i<10; i++)
 		//for(int j=0; j<10; j++)
@@ -387,8 +368,6 @@ void Click_NewGame()
 
 void Click_OpenEditor()
 {
-	CHECKGLERROR();
-	LoadJPGMap("heightmaps/heightmap0e2.jpg");
 	CHECKGLERROR();
 
 	g_mode = APPMODE_EDITOR;
@@ -602,13 +581,6 @@ void StartRoadPlacement()
 	line[0] = c->zoompos();
 	line[1] = line[0] + ray * MAX_DISTANCE / 3 / g_zoom;
 
-#if 1
-	if(!FastMapIntersect(&g_hmap, line, &intersection))
-#else
-	if(!GetMapIntersection(&g_hmap, line, &intersection))
-#endif
-		return;
-
 	g_vdrag[0] = intersection;
 	g_vdrag[1] = intersection;
 }
@@ -646,13 +618,6 @@ void EdPlaceUnit()
 	line[0] = c->zoompos();
 	line[1] = line[0] + ray * MAX_DISTANCE / 3 / g_zoom;
 
-#if 1
-	if(!FastMapIntersect(&g_hmap, line, &intersection))
-#else
-	if(!GetMapIntersection(&g_hmap, line, &intersection))
-#endif
-		return;
-
 	int type = GetPlaceUnitType();
 
 	int country = GetPlaceUnitCountry();
@@ -678,17 +643,6 @@ void EdPlaceBuilding()
 	Vec3f line[2];
 	line[0] = c->zoompos();
 	line[1] = line[0] + ray * MAX_DISTANCE / 3 / g_zoom;
-
-#if 1
-	if(!FastMapIntersect(&g_hmap, line, &intersection))
-#else
-	if(!GetMapIntersection(&g_hmap, line, &intersection))
-#endif
-		return;
-
-	if(intersection.y < WATER_LEVEL && !GetMapIntersection2(&g_hmap, line, &intersection))
-		return;
-
 
 	int type = GetPlaceBuildingType();
 
@@ -729,11 +683,11 @@ void MouseLUp()
 		else if(edtool == EDTOOL_DELETEOBJECTS)
 			EdDeleteObject();
 		else if(edtool == EDTOOL_PLACEROADS)
-			PlaceCo(CONDUIT_ROAD);
+			PlaceCd(CONDUIT_ROAD);
 		else if(edtool == EDTOOL_PLACECRUDEPIPES)
-			PlaceCo(CONDUIT_CRPIPE);
+			PlaceCd(CONDUIT_CRPIPE);
 		else if(edtool == EDTOOL_PLACEPOWERLINES)
-			PlaceCo(CONDUIT_POWL);
+			PlaceCd(CONDUIT_POWL);
 	}
 	else if(g_mode == APPMODE_PLAY)
 	{
@@ -780,45 +734,10 @@ void MouseLUp()
 		else if(g_build >= BL_TYPES && g_build < BL_TYPES+CONDUIT_TYPES)
 		{
 			//g_log<<"place r"<<std::endl;
-			PlaceCo(g_build - BL_TYPES);
+			PlaceCd(g_build - BL_TYPES);
 			g_build = -1;
 		}
 	}
-}
-
-void RotateAbout()
-{
-	Player* py = &g_player[g_localP];
-	Camera* c = &g_cam;
-
-	float dx = (float)( g_mouse.x - g_width/2 );
-	float dy = (float)( g_mouse.y - g_height/2 );
-
-	Camera oldcam = g_cam;
-	Vec3f line[2];
-	line[0] = c->zoompos();
-
-	//c->rotateabout(c->m_view, dy / 100.0f, c->m_strafe.x, c->m_strafe.y, c->m_strafe.z);
-	c->rotateabout(c->m_view, dx / 100.0f, c->m_up.x, c->m_up.y, c->m_up.z);
-
-	line[1] = c->zoompos();
-
-	Vec3f ray = Normalize(line[1] - line[0]) * TILE_SIZE;
-
-	//line[0] = line[0] - ray;
-	line[1] = line[1] + ray;
-
-	Vec3f clip;
-
-#if 0
-	if(GetMapIntersection(&g_hmap, line, &clip))
-#else
-	if(FastMapIntersect(&g_hmap, line, &clip))
-#endif
-		g_cam = oldcam;
-	//else
-	//	CalcMapView();
-
 }
 
 void UpdateRoadPlans()
@@ -836,16 +755,9 @@ void UpdateRoadPlans()
 	line[0] = c->zoompos();
 	line[1] = line[0] + ray * MAX_DISTANCE / 3 / g_zoom;
 
-#if 1
-	if(!FastMapIntersect(&g_hmap, line, &intersection))
-#else
-	if(!GetMapIntersection(&g_hmap, line, &intersection))
-#endif
-		return;
-
 	g_vdrag[1] = intersection;
 
-	UpdCoPlans(CONDUIT_ROAD, 0, g_vdrag[0], g_vdrag[1]);
+	UpdCdPlans(CONDUIT_ROAD, 0, g_vdrag[0], g_vdrag[1]);
 }
 
 void UpdateCrPipePlans()
@@ -863,16 +775,9 @@ void UpdateCrPipePlans()
 	line[0] = c->zoompos();
 	line[1] = line[0] + ray * MAX_DISTANCE / 3 / g_zoom;
 
-#if 1
-	if(!FastMapIntersect(&g_hmap, line, &intersection))
-#else
-	if(!GetMapIntersection(&g_hmap, line, &intersection))
-#endif
-		return;
-
 	g_vdrag[1] = intersection;
 
-	UpdCoPlans(CONDUIT_CRPIPE, 0, g_vdrag[0], g_vdrag[1]);
+	UpdCdPlans(CONDUIT_CRPIPE, 0, g_vdrag[0], g_vdrag[1]);
 }
 
 void UpdatePowlPlans()
@@ -890,16 +795,9 @@ void UpdatePowlPlans()
 	line[0] = c->zoompos();
 	line[1] = line[0] + ray * MAX_DISTANCE / 3 / g_zoom;
 
-#if 1
-	if(!FastMapIntersect(&g_hmap, line, &intersection))
-#else
-	if(!GetMapIntersection(&g_hmap, line, &intersection))
-#endif
-		return;
-
 	g_vdrag[1] = intersection;
 
-	UpdCoPlans(CONDUIT_POWL, 0, g_vdrag[0], g_vdrag[1]);
+	UpdCdPlans(CONDUIT_POWL, 0, g_vdrag[0], g_vdrag[1]);
 }
 
 void MouseMove()
@@ -910,7 +808,6 @@ void MouseMove()
 
 		if(g_mousekeys[MOUSE_MIDDLE])
 		{
-			RotateAbout();
 			CenterMouse();
 		}
 

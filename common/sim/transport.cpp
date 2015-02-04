@@ -147,8 +147,8 @@ bool CompareJobs(const TransportJob& a, const TransportJob& b)
 void TBid(int target, int target2, int targtype, int umode, int cdtype, int res, int amt)
 {
 #ifdef TRUCK_DEBUG
-	g_log<<"-------------------"<<endl;
-	g_log<<"TBid("<<target<<", "<<target2<<", "<<targtype<<", "<<res<<", "<<amt<<");"<<endl;
+	g_log<<"-------------------"<<std::endl;
+	g_log<<"TBid("<<target<<", "<<target2<<", "<<targtype<<", "<<res<<", "<<amt<<");"<<std::endl;
 	g_log.flush();
 #endif
 
@@ -200,7 +200,7 @@ void TBid(int target, int target2, int targtype, int umode, int cdtype, int res,
 #endif
 
 #ifdef TRUCK_DEBUG
-		g_log<<"demander b = "<<g_bltype[g_building[target].type].name<<endl;
+		g_log<<"demander b = "<<g_bltype[g_building[target].type].name<<std::endl;
 		g_log.flush();
 #endif
 	}
@@ -1047,7 +1047,7 @@ void ManageTrips()
 					continue;
 
 #ifdef TRUCK_DEBUG
-				g_log<<"road bid 0"<<endl;
+				g_log<<"road bid 0"<<std::endl;
 				g_log.flush();
 #endif
 				for(int ri=0; ri<RESOURCES; ri++)
@@ -1057,7 +1057,7 @@ void ManageTrips()
 
 					Resource* r = &g_resource[ri];
 #ifdef TRUCK_DEBUG
-					g_log<<"road bid 1"<<endl;
+					g_log<<"road bid 1"<<std::endl;
 					g_log.flush();
 #endif
 					if(r->capacity)
@@ -1066,26 +1066,26 @@ void ManageTrips()
 					if(r->conduit != CONDUIT_ROAD)
 						continue;
 #ifdef TRUCK_DEBUG
-					g_log<<"road bid 2"<<endl;
+					g_log<<"road bid 2"<<std::endl;
 					g_log.flush();
 #endif
 					if(ri == RES_LABOUR)
 						continue;
 #ifdef TRUCK_DEBUG
-					g_log<<"road bid 3"<<endl;
+					g_log<<"road bid 3"<<std::endl;
 					g_log.flush();
 #endif
 					if(ctile->transporter[ri] >= 0)
 						continue;
 #ifdef TRUCK_DEBUG
-					g_log<<"road bid 4 ri="<<g_resource[ri].name<<endl;
+					g_log<<"road bid 4 ri="<<g_resource[ri].name<<std::endl;
 					g_log.flush();
 #endif
 					int netreq = ctile->netreq(ri, cti);
 					if(netreq <= 0)
 						continue;
 #ifdef TRUCK_DEBUG
-					g_log<<"road bid 5"<<endl;
+					g_log<<"road bid 5"<<std::endl;
 					g_log.flush();
 #endif
 					

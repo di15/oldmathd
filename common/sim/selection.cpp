@@ -184,7 +184,7 @@ void DrawSel(Matrix* projection, Matrix* modelmat, Matrix* viewmat)
 	{
 		Unit* u = &g_unit[ *seliter ];
 		//Entity* e = g_entity[ 0 ];
-		Vec3f p = u->drawpos;
+		Vec2f p = u->drawpos;
 		UType* t = &g_utype[ u->type ];
 
 		//Vec3f p = c->m_pos + Vec3f(0, t->vmin.y, 0) + Vec3f(0, 1.0f, 0);
@@ -197,10 +197,10 @@ void DrawSel(Matrix* projection, Matrix* modelmat, Matrix* viewmat)
 		float y3 = Bilerp(&g_hmap, p.x - r, p.z + r);
 		float y4 = Bilerp(&g_hmap, p.x - r, p.z - r);
 #elif 1
-		const float y1 = g_hmap.accheight(p.x + r, p.z - r) + TILE_SIZE/20;
-		const float y2 = g_hmap.accheight(p.x + r, p.z + r) + TILE_SIZE/20;
-		const float y3 = g_hmap.accheight(p.x - r, p.z + r) + TILE_SIZE/20;
-		const float y4 = g_hmap.accheight(p.x - r, p.z - r) + TILE_SIZE/20;
+		const float y1 = g_hmap.accheight(p.x + r, p.y - r) + TILE_SIZE/20;
+		const float y2 = g_hmap.accheight(p.x + r, p.y + r) + TILE_SIZE/20;
+		const float y3 = g_hmap.accheight(p.x - r, p.y + r) + TILE_SIZE/20;
+		const float y4 = g_hmap.accheight(p.x - r, p.y - r) + TILE_SIZE/20;
 #else
 		float y1 = p.y;
 		float y2 = p.y;
@@ -211,13 +211,13 @@ void DrawSel(Matrix* projection, Matrix* modelmat, Matrix* viewmat)
 		const float vertices[] =
 		{
 			//posx, posy posz   texx, texy
-			p.x + r, y1, p.z - r,          1, 0,
-			p.x + r, y2, p.z + r,          1, 1,
-			p.x - r, y3, p.z + r,          0, 1,
+			p.x + r, y1, p.y - r,          1, 0,
+			p.x + r, y2, p.y + r,          1, 1,
+			p.x - r, y3, p.y + r,          0, 1,
 
-			p.x - r, y3, p.z + r,          0, 1,
-			p.x - r, y4, p.z - r,          0, 0,
-			p.x + r, y1, p.z - r,          1, 0
+			p.x - r, y3, p.y + r,          0, 1,
+			p.x - r, y4, p.y - r,          0, 0,
+			p.x + r, y1, p.y - r,          1, 0
 		};
 
 		//glVertexPointer(3, GL_FLOAT, sizeof(float)*5, &vertices[0]);
@@ -371,15 +371,15 @@ std::list<int> SelectAreaUnits()
 
 		UType* t = &g_utype[ u->type ];
 
-		Vec3f vmin = u->drawpos + Vec3f(-t->size.x/2, 0, -t->size.x/2);
+		Vec2f vmin = u->drawpos + Vec2f(-t->size.x/2, -t->size.x/2);
 #if 1
-		Vec3f vmax = u->drawpos + Vec3f(t->size.x/2, t->size.y, t->size.x/2);
+		Vec2f vmax = u->drawpos + Vec2f(t->size.x/2, t->size.y);
 #else
 		Vec3f vmax = u->drawpos + Vec3f(t->size.x/2, 0, t->size.x/2);
 #endif
 
-		if(!g_selfrust.boxin2(vmin.x, vmin.y, vmin.z, vmax.x, vmax.y, vmax.z))
-			continue;
+		//if(!g_selfrust.boxin2(vmin.x, vmin.y, vmin.z, vmax.x, vmax.y, vmax.z))
+		//	continue;
 
 		unitsel.push_back(i);
 

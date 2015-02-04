@@ -47,12 +47,6 @@ BotPan::BotPan(Widget* parent, const char* n, void (*reframef)(Widget* thisw))
 		bottomright_button_on[i] = false;
 	}
 
-	graph_sel = DropList(this, "graph sel", MAINFONT8, NULL, NULL);
-
-	for(int i=0; i<GRAPHS; i++)
-		graph_sel.m_options.push_back(RichText(GRAPHNAME[i]));
-	graph_sel.m_selected = 0;
-
 	reframe();
 }
 
@@ -246,6 +240,7 @@ void BotPan::draw()
 	//innerbottom.draw();
 #endif
 
+#if 0
 	float grpos[4];
 	grpos[0] = m_pos[0] + MINIMAP_SIZE + 32;
 	grpos[1] = m_pos[1] + 64;
@@ -253,7 +248,8 @@ void BotPan::draw()
 	grpos[3] = m_pos[3];
 	//DrawGraph(&g_graph[GR_AVGSAT], grpos[0], grpos[1], grpos[2], grpos[3]);
 	DrawGraph(&g_graph[graph_sel.m_selected], grpos[0], grpos[1], grpos[2], grpos[3]);
-
+	
+#endif
 	graph_sel.draw();
 }
 
