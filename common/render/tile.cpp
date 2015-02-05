@@ -6,12 +6,17 @@
 
 TlType g_tiletype[TILE_TYPES];
 
-void DefTl(int tiletype, const char* texpath, Vec2i spriteoffset, Vec2i spritesz)
+void DefTl(const char* sprel)
 {
-	TlType* t = &g_tiletype[tiletype];
-	//QueueTexture(&t->sprite.texindex, texpath, true);
-	//CreateTexture(t->sprite.texindex, texpath, true, false);
-	QueueSprite(texpath, &t->sprite, false);
+	for(int tti=0; tti<TILE_TYPES; tti++)
+	{
+		TlType* t = &g_tiletype[tti];
+		//QueueTexture(&t->sprite.texindex, texpath, true);
+		//CreateTexture(t->sprite.texindex, texpath, true, false);
+		char specrel[MAX_PATH+1];
+		sprintf(specrel, "
+		QueueSprite(sprel, &t->sprite, false);
+	}
 #if 0
 	t->sprite.offset[0] = spriteoffset.x;
 	t->sprite.offset[1] = spriteoffset.y;

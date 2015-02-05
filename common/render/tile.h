@@ -28,6 +28,25 @@ public:
 #define TILE_1110		14
 #define TILE_TYPES		15
 
+const char* TILETYPENAME[] =
+{
+	"0000",
+	"0001",
+	"0010",
+	"0011",
+	"0100",
+	"0101",
+	"0110",
+	"0111",
+	"1000",
+	"1001",
+	"1010",
+	"1011",
+	"1100",
+	"1101",
+	"1110"
+};
+
 extern TlType g_tiletype[TILE_TYPES];
 
 class Tile : public Collidable
@@ -37,7 +56,7 @@ public:
 	Vec3i tilepos;
 };
 
-void DefTl(int tiletype, const char* texpath, Vec2i spriteoffset, Vec2i spritesz);
+void DefTl(int tiletype, const char* sprel);
 Tile &SurfTile(int tx, int tz);
 
 #endif
